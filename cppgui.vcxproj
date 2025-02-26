@@ -106,8 +106,8 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
-    <SourcePath>D:\source\WebView2Samples\GettingStartedGuides\Win32_GettingStarted\App\Backend;$(SourcePath)</SourcePath>
-    <IncludePath>D:\source\WebView2Samples;D:\source\WebView2Samples\GettingStartedGuides\Win32_GettingStarted\App\Backend</IncludePath>
+    <SourcePath>C:Users\bruce\source\cppgui\src;$(SourcePath)</SourcePath>
+    <IncludePath>C:\Users\bruce\source\cppgui\src;</IncludePath>
     <RunCodeAnalysis>false</RunCodeAnalysis>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'">
@@ -118,7 +118,7 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
-    <SourcePath>D:\source\WebView2Samples\GettingStartedGuides\Win32_GettingStarted\App\Backend;$(SourcePath)</SourcePath>
+    <SourcePath>C:\Users\bruce\cppgui\src;$(SourcePath)</SourcePath>
     <IncludePath>
     </IncludePath>
     <RunCodeAnalysis>true</RunCodeAnalysis>

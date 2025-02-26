@@ -22,7 +22,7 @@ std::wstring WebView2Manager::GetUIPath()
     GetCurrentDirectory(MAX_PATH, exePath.data());
     std::wstring localFolder = exePath;
 
-    PathCchAppend(localFolder.data(), MAX_PATH, L"Frontend\\UI\\dist\\");
+    PathCchAppend(localFolder.data(), MAX_PATH, L"Frontend\\UI\\dist2\\");
 
     // Clean up any null padding. This IS necessary!
     localFolder.erase(std::ranges::find(localFolder, L'\0'), localFolder.end());

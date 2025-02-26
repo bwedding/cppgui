@@ -1,0 +1,454 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Natvis Include="$(MSBuildThisFileDirectory)..\..\natvis\wil.natvis" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="src\APIBridge.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\CommunicationManager.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\main.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\NativeWindowControls.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\SystemUtils.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\USBListener.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\WindowApp.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\webview.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="src\APIBridge.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="src\AppMessageIDs.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="src\CommunicationManager.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="src\CallbackRegistry.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="src\ControlMode.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="src\EventDispatcher.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="src\EventManager.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="src\EventQueue.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="src\spdlog\async.h">
+      <Filter>include\spdlog</Filter>
+    </ClInclude>
+    <ClInclude Include="src\spdlog\async_logger.h">
+      <Filter>include\spdlog</Filter>
+    </ClInclude>
+    <ClInclude Include="src\spdlog\async_logger-inl.h">
+      <Filter>include\spdlog</Filter>
+    </ClInclude>
+    <ClInclude Include="src\spdlog\common.h">
+      <Filter>include\spdlog</Filter>
+    </ClInclude>
+    <ClInclude Include="src\spdlog\common-inl.h">
+      <Filter>include\spdlog</Filter>
+    </ClInclude>
+    <ClInclude Include="src\spdlog\formatter.h">
+      <Filter>include\spdlog</Filter>
+    </ClInclude>
+    <ClInclude Include="src\spdlog\fwd.h">
+      <Filter>include\spdlog</Filter>
+    </ClInclude>
+    <ClInclude Include="src\spdlog\logger.h">
+      <Filter>include\spdlog</Filter>
+    </ClInclude>
+    <ClInclude Include="src\spdlog\logger-inl.h">
+      <Filter>include\spdlog</Filter>
+    </ClInclude>
+    <ClInclude Include="src\spdlog\mdc.h">
+      <Filter>include\spdlog</Filter>
+    </ClInclude>
+    <ClInclude Include="src\spdlog\pattern_formatter.h">
+      <Filter>include\spdlog</Filter>
+    </ClInclude>
+    <ClInclude Include="src\spdlog\pattern_formatter-inl.h">
+      <Filter>include\spdlog</Filter>
+    </ClInclude>
+    <ClInclude Include="src\spdlog\spdlog.h">
+      <Filter>include\spdlog</Filter>
+    </ClInclude>
+    <ClInclude Include="src\spdlog\spdlog-inl.h">
+      <Filter>include\spdlog</Filter>
+    </ClInclude>
+    <ClInclude Include="src\spdlog\stopwatch.h">
+      <Filter>include\spdlog</Filter>
+    </ClInclude>
+    <ClInclude Include="src\spdlog\tweakme.h">
+      <Filter>include\spdlog</Filter>
+    </ClInclude>
+    <ClInclude Include="src\spdlog\version.h">
+      <Filter>include\spdlog</Filter>
+    </ClInclude>
+    <ClInclude Include="src\spdlog\cfg\argv.h">
+      <Filter>include\spdlog\cfg</Filter>
+    </ClInclude>
+    <ClInclude Include="src\spdlog\cfg\env.h">
+      <Filter>include\spdlog\cfg</Filter>
+    </ClInclude>
+    <ClInclude Include="src\spdlog\cfg\helpers-inl.h">
+      <Filter>include\spdlog\cfg</Filter>
+    </ClInclude>
+    <ClInclude Include="src\spdlog\cfg\helpers.h">
+      <Filter>include\spdlog\cfg</Filter>
+    </ClInclude>
+    <ClInclude Include="src\spdlog\details\backtracer.h">
+      <Filter>include\spdlog\details</Filter>
+    </ClInclude>
+    <ClInclude Include="src\spdlog\details\backtracer-inl.h">
+      <Filter>include\spdlog\details</Filter>
+    </ClInclude>
+    <ClInclude Include="src\spdlog\details\circular_q.h">
+      <Filter>include\spdlog\details</Filter>
+    </ClInclude>
+    <ClInclude Include="src\spdlog\details\console_globals.h">
+      <Filter>include\spdlog\details</Filter>
+    </ClInclude>
+    <ClInclude Include="src\spdlog\details\file_helper.h">
+      <Filter>include\spdlog\details</Filter>
+    </ClInclude>
+    <ClInclude Include="src\spdlog\details\file_helper-inl.h">
+      <Filter>include\spdlog\details</Filter>
+    </ClInclude>
+    <ClInclude Include="src\spdlog\details\fmt_helper.h">
+      <Filter>include\spdlog\details</Filter>
+    </ClInclude>
+    <ClInclude Include="src\spdlog\details\log_msg.h">
+      <Filter>include\spdlog\details</Filter>
+    </ClInclude>
+    <ClInclude Include="src\spdlog\details\log_msg_buffer.h">
+      <Filter>include\spdlog\details</Filter>
+    </ClInclude>
+    <ClInclude Include="src\spdlog\details\log_msg_buffer-inl.h">
+      <Filter>include\spdlog\details</Filter>
+    </ClInclude>
+    <ClInclude Include="src\spdlog\details\log_msg-inl.h">
+      <Filter>include\spdlog\details</Filter>
+    </ClInclude>
+    <ClInclude Include="src\spdlog\details\mpmc_blocking_q.h">
+      <Filter>include\spdlog\details</Filter>
+    </ClInclude>
+    <ClInclude Include="src\spdlog\details\null_mutex.h">
+      <Filter>include\spdlog\details</Filter>
+    </ClInclude>
+    <ClInclude Include="src\spdlog\details\os.h">
+      <Filter>include\spdlog\details</Filter>
+    </ClInclude>
+    <ClInclude Include="src\spdlog\details\os-inl.h">
+      <Filter>include\spdlog\details</Filter>
+    </ClInclude>
+    <ClInclude Include="src\spdlog\fmt\bundled\os.h">
+      <Filter>include\spdlog\details</Filter>
+    </ClInclude>
+    <ClInclude Include="src\spdlog\details\periodic_worker.h">
+      <Filter>include\spdlog\details</Filter>
+    </ClInclude>
+    <ClInclude Include="src\spdlog\details\periodic_worker-inl.h">
+      <Filter>include\spdlog\details</Filter>
+    </ClInclude>
+    <ClInclude Include="src\spdlog\details\registry.h">
+      <Filter>include\spdlog\details</Filter>
+    </ClInclude>
+    <ClInclude Include="src\spdlog\details\registry-inl.h">
+      <Filter>include\spdlog\details</Filter>
+    </ClInclude>
+    <ClInclude Include="src\spdlog\details\synchronous_factory.h">
+      <Filter>include\spdlog\details</Filter>
+    </ClInclude>
+    <ClInclude Include="src\spdlog\details\tcp_client.h">
+      <Filter>include\spdlog\details</Filter>
+    </ClInclude>
+    <ClInclude Include="src\spdlog\details\tcp_client-windows.h">
+      <Filter>include\spdlog\details</Filter>
+    </ClInclude>
+    <ClInclude Include="src\spdlog\details\thread_pool.h">
+      <Filter>include\spdlog\details</Filter>
+    </ClInclude>
+    <ClInclude Include="src\spdlog\details\thread_pool-inl.h">
+      <Filter>include\spdlog\details</Filter>
+    </ClInclude>
+    <ClInclude Include="src\spdlog\details\udp_client.h">
+      <Filter>include\spdlog\details</Filter>
+    </ClInclude>
+    <ClInclude Include="src\spdlog\details\udp_client-windows.h">
+      <Filter>include\spdlog\details</Filter>
+    </ClInclude>
+    <ClInclude Include="src\spdlog\details\windows_include.h">
+      <Filter>include\spdlog\details</Filter>
+    </ClInclude>
+    <ClInclude Include="src\spdlog\fmt\bin_to_hex.h">
+      <Filter>include\spdlog\fmt</Filter>
+    </ClInclude>
+    <ClInclude Include="src\spdlog\fmt\bundled\chrono.h">
+      <Filter>include\spdlog\fmt</Filter>
+    </ClInclude>
+    <ClInclude Include="src\spdlog\fmt\bundled\compile.h">
+      <Filter>include\spdlog\fmt</Filter>
+    </ClInclude>
+    <ClInclude Include="src\spdlog\fmt\compile.h">
+      <Filter>include\spdlog\fmt</Filter>
+    </ClInclude>
+    <ClInclude Include="src\spdlog\fmt\fmt.h">
+      <Filter>include\spdlog\fmt</Filter>
+    </ClInclude>
+    <ClInclude Include="src\spdlog\fmt\ostr.h">
+      <Filter>include\spdlog\fmt</Filter>
+    </ClInclude>
+    <ClInclude Include="src\spdlog\fmt\ranges.h">
+      <Filter>include\spdlog\fmt</Filter>
+    </ClInclude>
+    <ClInclude Include="src\spdlog\fmt\bundled\ranges.h">
+      <Filter>include\spdlog\fmt</Filter>
+    </ClInclude>
+    <ClInclude Include="src\spdlog\fmt\bundled\std.h">
+      <Filter>include\spdlog\fmt</Filter>
+    </ClInclude>
+    <ClInclude Include="src\spdlog\fmt\std.h">
+      <Filter>include\spdlog\fmt</Filter>
+    </ClInclude>
+    <ClInclude Include="src\spdlog\fmt\xchar.h">
+      <Filter>include\spdlog\fmt</Filter>
+    </ClInclude>
+    <ClInclude Include="src\spdlog\fmt\bundled\xchar.h">
+      <Filter>include\spdlog\fmt</Filter>
+    </ClInclude>
+    <ClInclude Include="src\spdlog\fmt\bundled\args.h">
+      <Filter>include\spdlog\fmt\bundled</Filter>
+    </ClInclude>
+    <ClInclude Include="src\spdlog\fmt\bundled\base.h">
+      <Filter>include\spdlog\fmt\bundled</Filter>
+    </ClInclude>
+    <ClInclude Include="src\spdlog\fmt\chrono.h">
+      <Filter>include\spdlog\fmt\bundled</Filter>
+    </ClInclude>
+    <ClInclude Include="src\spdlog\fmt\bundled\color.h">
+      <Filter>include\spdlog\fmt\bundled</Filter>
+    </ClInclude>
+    <ClInclude Include="src\spdlog\fmt\bundled\core.h">
+      <Filter>include\spdlog\fmt\bundled</Filter>
+    </ClInclude>
+    <ClInclude Include="src\spdlog\fmt\bundled\format.h">
+      <Filter>include\spdlog\fmt\bundled</Filter>
+    </ClInclude>
+    <ClInclude Include="src\spdlog\fmt\bundled\format-inl.h">
+      <Filter>include\spdlog\fmt\bundled</Filter>
+    </ClInclude>
+    <ClInclude Include="src\spdlog\fmt\bundled\ostream.h">
+      <Filter>include\spdlog\fmt\bundled</Filter>
+    </ClInclude>
+    <ClInclude Include="src\spdlog\fmt\bundled\printf.h">
+      <Filter>include\spdlog\fmt\bundled</Filter>
+    </ClInclude>
+    <ClInclude Include="src\spdlog\sinks\android_sink.h">
+      <Filter>include\spdlog\sinks</Filter>
+    </ClInclude>
+    <ClInclude Include="src\spdlog\sinks\ansicolor_sink.h">
+      <Filter>include\spdlog\sinks</Filter>
+    </ClInclude>
+    <ClInclude Include="src\spdlog\sinks\ansicolor_sink-inl.h">
+      <Filter>include\spdlog\sinks</Filter>
+    </ClInclude>
+    <ClInclude Include="src\spdlog\sinks\base_sink.h">
+      <Filter>include\spdlog\sinks</Filter>
+    </ClInclude>
+    <ClInclude Include="src\spdlog\sinks\base_sink-inl.h">
+      <Filter>include\spdlog\sinks</Filter>
+    </ClInclude>
+    <ClInclude Include="src\spdlog\sinks\basic_file_sink.h">
+      <Filter>include\spdlog\sinks</Filter>
+    </ClInclude>
+    <ClInclude Include="src\spdlog\sinks\basic_file_sink-inl.h">
+      <Filter>include\spdlog\sinks</Filter>
+    </ClInclude>
+    <ClInclude Include="src\spdlog\sinks\callback_sink.h">
+      <Filter>include\spdlog\sinks</Filter>
+    </ClInclude>
+    <ClInclude Include="src\spdlog\sinks\daily_file_sink.h">
+      <Filter>include\spdlog\sinks</Filter>
+    </ClInclude>
+    <ClInclude Include="src\spdlog\sinks\dup_filter_sink.h">
+      <Filter>include\spdlog\sinks</Filter>
+    </ClInclude>
+    <ClInclude Include="src\spdlog\sinks\hourly_file_sink.h">
+      <Filter>include\spdlog\sinks</Filter>
+    </ClInclude>
+    <ClInclude Include="src\spdlog\sinks\kafka_sink.h">
+      <Filter>include\spdlog\sinks</Filter>
+    </ClInclude>
+    <ClInclude Include="src\spdlog\sinks\mongo_sink.h">
+      <Filter>include\spdlog\sinks</Filter>
+    </ClInclude>
+    <ClInclude Include="src\spdlog\sinks\msvc_sink.h">
+      <Filter>include\spdlog\sinks</Filter>
+    </ClInclude>
+    <ClInclude Include="src\spdlog\sinks\null_sink.h">
+      <Filter>include\spdlog\sinks</Filter>
+    </ClInclude>
+    <ClInclude Include="src\spdlog\sinks\ostream_sink.h">
+      <Filter>include\spdlog\sinks</Filter>
+    </ClInclude>
+    <ClInclude Include="src\spdlog\sinks\qt_sinks.h">
+      <Filter>include\spdlog\sinks</Filter>
+    </ClInclude>
+    <ClInclude Include="src\spdlog\sinks\ringbuffer_sink.h">
+      <Filter>include\spdlog\sinks</Filter>
+    </ClInclude>
+    <ClInclude Include="src\spdlog\sinks\rotating_file_sink.h">
+      <Filter>include\spdlog\sinks</Filter>
+    </ClInclude>
+    <ClInclude Include="src\spdlog\sinks\rotating_file_sink-inl.h">
+      <Filter>include\spdlog\sinks</Filter>
+    </ClInclude>
+    <ClInclude Include="src\spdlog\sinks\sink.h">
+      <Filter>include\spdlog\sinks</Filter>
+    </ClInclude>
+    <ClInclude Include="src\spdlog\sinks\sink-inl.h">
+      <Filter>include\spdlog\sinks</Filter>
+    </ClInclude>
+    <ClInclude Include="src\spdlog\sinks\stdout_color_sinks.h">
+      <Filter>include\spdlog\sinks</Filter>
+    </ClInclude>
+    <ClInclude Include="src\spdlog\sinks\stdout_color_sinks-inl.h">
+      <Filter>include\spdlog\sinks</Filter>
+    </ClInclude>
+    <ClInclude Include="src\spdlog\sinks\stdout_sinks.h">
+      <Filter>include\spdlog\sinks</Filter>
+    </ClInclude>
+    <ClInclude Include="src\spdlog\sinks\stdout_sinks-inl.h">
+      <Filter>include\spdlog\sinks</Filter>
+    </ClInclude>
+    <ClInclude Include="src\spdlog\sinks\syslog_sink.h">
+      <Filter>include\spdlog\sinks</Filter>
+    </ClInclude>
+    <ClInclude Include="src\spdlog\sinks\systemd_sink.h">
+      <Filter>include\spdlog\sinks</Filter>
+    </ClInclude>
+    <ClInclude Include="src\spdlog\sinks\tcp_sink.h">
+      <Filter>include\spdlog\sinks</Filter>
+    </ClInclude>
+    <ClInclude Include="src\spdlog\sinks\udp_sink.h">
+      <Filter>include\spdlog\sinks</Filter>
+    </ClInclude>
+    <ClInclude Include="src\spdlog\sinks\win_eventlog_sink.h">
+      <Filter>include\spdlog\sinks</Filter>
+    </ClInclude>
+    <ClInclude Include="src\spdlog\sinks\wincolor_sink-inl.h">
+      <Filter>include\spdlog\sinks</Filter>
+    </ClInclude>
+    <ClInclude Include="src\spdlog\sinks\wincolor_sink.h">
+      <Filter>include\spdlog\sinks</Filter>
+    </ClInclude>
+    <ClInclude Include="src\INativeWindowControls.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="src\NativeWindowControls.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="src\SystemData.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="src\SystemUtils.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="src\UIEvent.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="src\UIMapper.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="src\USBDevice.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="src\USBListener.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="src\webview.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="src\WindowApp.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="src\main.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="src\DemoData.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="src\spdlog\sinks\dist_sink.h">
+      <Filter>include\spdlog\sinks</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include=".gitignore" />
+    <None Include="packages.config" />
+    <None Include="src\architecture.md" />
+    <None Include="src\packages.config" />
+    <None Include="src\spdlog\fmt\bundled\fmt.license.rst">
+      <Filter>include\spdlog\fmt\bundled</Filter>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="include">
+      <UniqueIdentifier>{306f9e8a-f7b8-4278-8540-bc990c373f43}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="include\spdlog">
+      <UniqueIdentifier>{e85966cf-80e2-4673-a858-ce9fa7075323}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src">
+      <UniqueIdentifier>{e71a0a80-dd1b-444a-9b12-9bafd6169c92}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="include\spdlog\cfg">
+      <UniqueIdentifier>{e73e2f57-0fd5-451c-92da-dd593f2a5f31}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="include\spdlog\details">
+      <UniqueIdentifier>{5df9213f-7c4b-40dd-9ec7-6bfe5d7e106e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="include\spdlog\fmt">
+      <UniqueIdentifier>{92914d49-0b18-4a2a-a3ed-eb49220e6f51}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="include\spdlog\fmt\bundled">
+      <UniqueIdentifier>{7491cc41-ec5a-44e1-ad17-fe3b860a59d2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="include\spdlog\sinks">
+      <UniqueIdentifier>{d17857f2-244d-44cf-a9a2-f69b6484fe7a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="docs">
+      <UniqueIdentifier>{c04012a8-93a8-450f-a096-a333fb6e8078}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <Midl Include="src\NativeWindowControls.idl">
+      <Filter>src</Filter>
+    </Midl>
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="Event Handler Guidelines.txt">
+      <Filter>docs</Filter>
+    </Text>
+  </ItemGroup>
+</Project>

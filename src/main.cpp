@@ -12,7 +12,7 @@ void InitializeLog()
 {
 	spdlog::init_thread_pool(10000, 1); // queue with 10K items and 1 backing thread
 
-	const auto file_sink = std::make_shared<spdlog::sinks::daily_file_sink_mt>("logs/SHRAnimalMonitor.log", 23, 59);
+	const auto file_sink = std::make_shared<spdlog::sinks::daily_file_sink_mt>("logs/CPPGUI.log", 23, 59);
 	file_sink->set_level(spdlog::level::trace);
 	const auto msvc_sink = std::make_shared<spdlog::sinks::msvc_sink_mt>();
 	msvc_sink->set_level(spdlog::level::trace);
