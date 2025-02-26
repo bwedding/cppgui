@@ -1,0 +1,32 @@
+import "oaidl.idl";
+import "ocidl.idl";
+// To compile this: midl NativeWindowControls.idl /tlb NativeWindowControls.tlb /h NativeWindowControls_h.h /env win32
+[
+    uuid(c8bac080-7723-4ca4-9118-dd13e00629d2),  // Generate a new UUID
+        version(1.0)
+]
+library NativeWindowControlsLib
+{
+    importlib("stdole2.tlb");
+
+    [
+        uuid(bf3778c3-a587-4ad3-afc3-e3bef12d301d),  // Generate a new UUID
+            object,
+            dual,
+            nonextensible,
+            helpstring("INativeWindowControls Interface"),
+            pointer_default(unique)
+    ]
+        interface INativeWindowControls : IDispatch
+    {
+        [id(1)] HRESULT MinimizeWindow();
+        [id(2)] HRESULT MaximizeWindow();
+        [id(3)] HRESULT CloseWindow();
+        [id(4)] HRESULT StartWindowDrag();
+        [id(5)] HRESULT FileOpenDialog([out, retval] BSTR* result);
+        [id(6)] HRESULT FileSaveDialog([out, retval] BSTR* result);
+        [id(7)] HRESULT BrowseForFolder([out, retval] BSTR* result);
+        [id(8)] HRESULT OpenFolderDialog([out, retval] BSTR* result);
+        [id(9)] HRESULT SendClick([in] BSTR jsonData);
+    };
+}

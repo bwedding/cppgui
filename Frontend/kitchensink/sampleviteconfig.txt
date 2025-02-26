@@ -1,0 +1,41 @@
+import { defineConfig } from 'vite'
+import react from '@vitejs/plugin-react'
+import { viteSingleFile } from 'vite-plugin-singlefile'
+import path from 'path'
+
+export default defineConfig({
+  logLevel: 'error',  
+  plugins: [react(), viteSingleFile()],
+  root: './',
+  base: '/', 
+  publicDir: 'public', 
+    build: {
+    silent: true,
+    minify: 'esbuild',
+    outDir: 'dist',
+    emptyOutDir: true,
+    sourcemap: true,
+    cssCodeSplit: false,
+    assetsInlineLimit: 100000000,
+    rollupOptions: {
+      input: {
+        main: path.resolve(__dirname, 'index.html')
+      },
+      output: {
+        format: 'es',
+        inlineDynamicImports: true,
+        manualChunks: undefined,
+        assetFileNames: 'assets/[name].[ext]'  // Simplified asset names
+      }
+    }
+  },
+  resolve: {
+    alias: {
+      '@': path.resolve(__dirname, './src'),
+    },
+  },
+  server: {
+    port: 5173,
+    strictPort: true
+  }
+})

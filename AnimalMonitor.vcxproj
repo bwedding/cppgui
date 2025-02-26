@@ -1,0 +1,412 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Debug|ARM64">
+      <Configuration>Debug</Configuration>
+      <Platform>ARM64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|ARM64">
+      <Configuration>Release</Configuration>
+      <Platform>ARM64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <VCProjectVersion>15.0</VCProjectVersion>
+    <ProjectGuid>{A1238CE8-5AF4-4BBB-9821-E6BBB0D44F75}</ProjectGuid>
+    <Keyword>Win32Proj</Keyword>
+    <RootNamespace>WebViewSample</RootNamespace>
+    <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
+    <ProjectName>Backend</ProjectName>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v143</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v143</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v143</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v143</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>Unicode</CharacterSet>
+    <PreferredToolArchitecture>x64</PreferredToolArchitecture>
+    <SpectreMitigation>false</SpectreMitigation>
+    <EnableASAN>true</EnableASAN>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v143</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v143</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="Shared">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <LinkIncremental>true</LinkIncremental>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <LinkIncremental>true</LinkIncremental>
+    <SourcePath>D:\source\WebView2Samples\GettingStartedGuides\Win32_GettingStarted\App\Backend;$(SourcePath)</SourcePath>
+    <IncludePath>D:\source\WebView2Samples;D:\source\WebView2Samples\GettingStartedGuides\Win32_GettingStarted\App\Backend</IncludePath>
+    <RunCodeAnalysis>false</RunCodeAnalysis>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'">
+    <LinkIncremental>true</LinkIncremental>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <LinkIncremental>false</LinkIncremental>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <LinkIncremental>false</LinkIncremental>
+    <SourcePath>D:\source\WebView2Samples\GettingStartedGuides\Win32_GettingStarted\App\Backend;$(SourcePath)</SourcePath>
+    <IncludePath>
+    </IncludePath>
+    <RunCodeAnalysis>true</RunCodeAnalysis>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'">
+    <LinkIncremental>false</LinkIncremental>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>Disabled</Optimization>
+      <SDLCheck>true</SDLCheck>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <ConformanceMode>true</ConformanceMode>
+      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
+    </ClCompile>
+    <Link>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <SubSystem>Windows</SubSystem>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>Disabled</Optimization>
+      <SDLCheck>true</SDLCheck>
+      <PreprocessorDefinitions>_DEBUG;_WINDOWS;SPDLOG_WCHAR_TO_UTF8_SUPPORT;SPDLOG_ACTIVE_LEVEL=SPDLOG_LEVEL_TRACE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <ConformanceMode>true</ConformanceMode>
+      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
+      <LanguageStandard>stdcpp20</LanguageStandard>
+      <AdditionalIncludeDirectories>$(SolutionDir)\src\spdlog\sinks;$(SolutionDir)\src\spdlog;$(SolutionDir)\src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <AdditionalOptions>/utf-8 %(AdditionalOptions)</AdditionalOptions>
+      <LanguageStandard_C>stdc17</LanguageStandard_C>
+      <PreprocessToFile>false</PreprocessToFile>
+    </ClCompile>
+    <Link>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <SubSystem>Windows</SubSystem>
+      <AdditionalDependencies>Pathcch.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>Disabled</Optimization>
+      <SDLCheck>true</SDLCheck>
+      <PreprocessorDefinitions>_DEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <ConformanceMode>true</ConformanceMode>
+      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
+    </ClCompile>
+    <Link>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <SubSystem>Windows</SubSystem>
+      <AdditionalDependencies>kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>MaxSpeed</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <SDLCheck>true</SDLCheck>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <ConformanceMode>true</ConformanceMode>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+    </ClCompile>
+    <Link>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <SubSystem>Windows</SubSystem>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>Full</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <SDLCheck>true</SDLCheck>
+      <PreprocessorDefinitions>NDEBUG;_WINDOWS;SPDLOG_WCHAR_TO_UTF8_SUPPORT;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <ConformanceMode>true</ConformanceMode>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+      <LanguageStandard>stdcpp20</LanguageStandard>
+      <AdditionalIncludeDirectories>$(SolutionDir)\src\spdlog;$(SolutionDir)\src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <AdditionalOptions>/utf-8 %(AdditionalOptions)</AdditionalOptions>
+      <LanguageStandard_C>stdc17</LanguageStandard_C>
+      <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
+      <EnableEnhancedInstructionSet>AdvancedVectorExtensions2</EnableEnhancedInstructionSet>
+      <BasicRuntimeChecks>Default</BasicRuntimeChecks>
+      <ControlFlowGuard>Guard</ControlFlowGuard>
+      <FloatingPointExceptions>false</FloatingPointExceptions>
+    </ClCompile>
+    <Link>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <SubSystem>Windows</SubSystem>
+      <AdditionalDependencies>Pathcch.lib;$(CoreLibraryDependencies);%(AdditionalDependencies)</AdditionalDependencies>
+      <HeapReserveSize>0x6400000</HeapReserveSize>
+      <HeapCommitSize>0x800000</HeapCommitSize>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>MaxSpeed</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <SDLCheck>true</SDLCheck>
+      <PreprocessorDefinitions>NDEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <ConformanceMode>true</ConformanceMode>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+    </ClCompile>
+    <Link>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <SubSystem>Windows</SubSystem>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <None Include=".gitignore" />
+    <None Include="packages.config" />
+    <None Include="src\architecture.md" />
+    <None Include="src\packages.config" />
+    <None Include="src\spdlog\fmt\bundled\fmt.license.rst" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="src\APIBridge.h" />
+    <ClInclude Include="src\AppMessageIDs.h" />
+    <ClInclude Include="src\CallbackRegistry.h" />
+    <ClInclude Include="src\CommunicationManager.h" />
+    <ClInclude Include="src\ControlMode.h" />
+    <ClInclude Include="src\DemoData.h" />
+    <ClInclude Include="src\EventDispatcher.h" />
+    <ClInclude Include="src\EventManager.h" />
+    <ClInclude Include="src\EventQueue.h" />
+    <ClInclude Include="src\INativeWindowControls.h" />
+    <ClInclude Include="src\main.h" />
+    <ClInclude Include="src\NativeWindowControls.h" />
+    <ClInclude Include="src\spdlog\async.h" />
+    <ClInclude Include="src\spdlog\async_logger-inl.h" />
+    <ClInclude Include="src\spdlog\async_logger.h" />
+    <ClInclude Include="src\spdlog\cfg\argv.h" />
+    <ClInclude Include="src\spdlog\cfg\env.h" />
+    <ClInclude Include="src\spdlog\cfg\helpers-inl.h" />
+    <ClInclude Include="src\spdlog\cfg\helpers.h" />
+    <ClInclude Include="src\spdlog\common-inl.h" />
+    <ClInclude Include="src\spdlog\common.h" />
+    <ClInclude Include="src\spdlog\details\backtracer-inl.h" />
+    <ClInclude Include="src\spdlog\details\backtracer.h" />
+    <ClInclude Include="src\spdlog\details\circular_q.h" />
+    <ClInclude Include="src\spdlog\details\console_globals.h" />
+    <ClInclude Include="src\spdlog\details\file_helper-inl.h" />
+    <ClInclude Include="src\spdlog\details\file_helper.h" />
+    <ClInclude Include="src\spdlog\details\fmt_helper.h" />
+    <ClInclude Include="src\spdlog\details\log_msg-inl.h" />
+    <ClInclude Include="src\spdlog\details\log_msg.h" />
+    <ClInclude Include="src\spdlog\details\log_msg_buffer-inl.h" />
+    <ClInclude Include="src\spdlog\details\log_msg_buffer.h" />
+    <ClInclude Include="src\spdlog\details\mpmc_blocking_q.h" />
+    <ClInclude Include="src\spdlog\details\null_mutex.h" />
+    <ClInclude Include="src\spdlog\details\os-inl.h" />
+    <ClInclude Include="src\spdlog\details\os.h" />
+    <ClInclude Include="src\spdlog\details\periodic_worker-inl.h" />
+    <ClInclude Include="src\spdlog\details\periodic_worker.h" />
+    <ClInclude Include="src\spdlog\details\registry-inl.h" />
+    <ClInclude Include="src\spdlog\details\registry.h" />
+    <ClInclude Include="src\spdlog\details\synchronous_factory.h" />
+    <ClInclude Include="src\spdlog\details\tcp_client-windows.h" />
+    <ClInclude Include="src\spdlog\details\tcp_client.h" />
+    <ClInclude Include="src\spdlog\details\thread_pool-inl.h" />
+    <ClInclude Include="src\spdlog\details\thread_pool.h" />
+    <ClInclude Include="src\spdlog\details\udp_client-windows.h" />
+    <ClInclude Include="src\spdlog\details\udp_client.h" />
+    <ClInclude Include="src\spdlog\details\windows_include.h" />
+    <ClInclude Include="src\spdlog\fmt\bin_to_hex.h" />
+    <ClInclude Include="src\spdlog\fmt\bundled\args.h" />
+    <ClInclude Include="src\spdlog\fmt\bundled\base.h" />
+    <ClInclude Include="src\spdlog\fmt\bundled\chrono.h" />
+    <ClInclude Include="src\spdlog\fmt\bundled\color.h" />
+    <ClInclude Include="src\spdlog\fmt\bundled\compile.h" />
+    <ClInclude Include="src\spdlog\fmt\bundled\core.h" />
+    <ClInclude Include="src\spdlog\fmt\bundled\format-inl.h" />
+    <ClInclude Include="src\spdlog\fmt\bundled\format.h" />
+    <ClInclude Include="src\spdlog\fmt\bundled\os.h" />
+    <ClInclude Include="src\spdlog\fmt\bundled\ostream.h" />
+    <ClInclude Include="src\spdlog\fmt\bundled\printf.h" />
+    <ClInclude Include="src\spdlog\fmt\bundled\ranges.h" />
+    <ClInclude Include="src\spdlog\fmt\bundled\std.h" />
+    <ClInclude Include="src\spdlog\fmt\bundled\xchar.h" />
+    <ClInclude Include="src\spdlog\fmt\chrono.h" />
+    <ClInclude Include="src\spdlog\fmt\compile.h" />
+    <ClInclude Include="src\spdlog\fmt\fmt.h" />
+    <ClInclude Include="src\spdlog\fmt\ostr.h" />
+    <ClInclude Include="src\spdlog\fmt\ranges.h" />
+    <ClInclude Include="src\spdlog\fmt\std.h" />
+    <ClInclude Include="src\spdlog\fmt\xchar.h" />
+    <ClInclude Include="src\spdlog\formatter.h" />
+    <ClInclude Include="src\spdlog\fwd.h" />
+    <ClInclude Include="src\spdlog\logger-inl.h" />
+    <ClInclude Include="src\spdlog\logger.h" />
+    <ClInclude Include="src\spdlog\mdc.h" />
+    <ClInclude Include="src\spdlog\pattern_formatter-inl.h" />
+    <ClInclude Include="src\spdlog\pattern_formatter.h" />
+    <ClInclude Include="src\spdlog\sinks\android_sink.h" />
+    <ClInclude Include="src\spdlog\sinks\ansicolor_sink-inl.h" />
+    <ClInclude Include="src\spdlog\sinks\ansicolor_sink.h" />
+    <ClInclude Include="src\spdlog\sinks\base_sink-inl.h" />
+    <ClInclude Include="src\spdlog\sinks\base_sink.h" />
+    <ClInclude Include="src\spdlog\sinks\basic_file_sink-inl.h" />
+    <ClInclude Include="src\spdlog\sinks\basic_file_sink.h" />
+    <ClInclude Include="src\spdlog\sinks\callback_sink.h" />
+    <ClInclude Include="src\spdlog\sinks\daily_file_sink.h" />
+    <ClInclude Include="src\spdlog\sinks\dist_sink.h" />
+    <ClInclude Include="src\spdlog\sinks\dup_filter_sink.h" />
+    <ClInclude Include="src\spdlog\sinks\hourly_file_sink.h" />
+    <ClInclude Include="src\spdlog\sinks\kafka_sink.h" />
+    <ClInclude Include="src\spdlog\sinks\mongo_sink.h" />
+    <ClInclude Include="src\spdlog\sinks\msvc_sink.h" />
+    <ClInclude Include="src\spdlog\sinks\null_sink.h" />
+    <ClInclude Include="src\spdlog\sinks\ostream_sink.h" />
+    <ClInclude Include="src\spdlog\sinks\qt_sinks.h" />
+    <ClInclude Include="src\spdlog\sinks\ringbuffer_sink.h" />
+    <ClInclude Include="src\spdlog\sinks\rotating_file_sink-inl.h" />
+    <ClInclude Include="src\spdlog\sinks\rotating_file_sink.h" />
+    <ClInclude Include="src\spdlog\sinks\sink-inl.h" />
+    <ClInclude Include="src\spdlog\sinks\sink.h" />
+    <ClInclude Include="src\spdlog\sinks\stdout_color_sinks-inl.h" />
+    <ClInclude Include="src\spdlog\sinks\stdout_color_sinks.h" />
+    <ClInclude Include="src\spdlog\sinks\stdout_sinks-inl.h" />
+    <ClInclude Include="src\spdlog\sinks\stdout_sinks.h" />
+    <ClInclude Include="src\spdlog\sinks\syslog_sink.h" />
+    <ClInclude Include="src\spdlog\sinks\systemd_sink.h" />
+    <ClInclude Include="src\spdlog\sinks\tcp_sink.h" />
+    <ClInclude Include="src\spdlog\sinks\udp_sink.h" />
+    <ClInclude Include="src\spdlog\sinks\wincolor_sink-inl.h" />
+    <ClInclude Include="src\spdlog\sinks\wincolor_sink.h" />
+    <ClInclude Include="src\spdlog\sinks\win_eventlog_sink.h" />
+    <ClInclude Include="src\spdlog\spdlog-inl.h" />
+    <ClInclude Include="src\spdlog\spdlog.h" />
+    <ClInclude Include="src\spdlog\stopwatch.h" />
+    <ClInclude Include="src\spdlog\tweakme.h" />
+    <ClInclude Include="src\spdlog\version.h" />
+    <ClInclude Include="src\SystemData.h" />
+    <ClInclude Include="src\SystemUtils.h" />
+    <ClInclude Include="src\UIEvent.h" />
+    <ClInclude Include="src\UIMapper.h" />
+    <ClInclude Include="src\USBDevice.h" />
+    <ClInclude Include="src\USBListener.h" />
+    <ClInclude Include="src\webview.h" />
+    <ClInclude Include="src\WindowApp.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="Event Handler Guidelines.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <Midl Include="src\NativeWindowControls.idl" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="src\APIBridge.cpp" />
+    <ClCompile Include="src\CommunicationManager.cpp" />
+    <ClCompile Include="src\main.cpp" />
+    <ClCompile Include="src\NativeWindowControls.cpp" />
+    <ClCompile Include="src\SystemUtils.cpp" />
+    <ClCompile Include="src\USBListener.cpp" />
+    <ClCompile Include="src\webview.cpp" />
+    <ClCompile Include="src\WindowApp.cpp" />
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+    <Import Project="packages\Microsoft.Windows.ImplementationLibrary.1.0.240803.1\build\native\Microsoft.Windows.ImplementationLibrary.targets" Condition="Exists('packages\Microsoft.Windows.ImplementationLibrary.1.0.240803.1\build\native\Microsoft.Windows.ImplementationLibrary.targets')" />
+    <Import Project="packages\Microsoft.Web.WebView2.1.0.3065.39\build\native\Microsoft.Web.WebView2.targets" Condition="Exists('packages\Microsoft.Web.WebView2.1.0.3065.39\build\native\Microsoft.Web.WebView2.targets')" />
+    <Import Project="packages\nlohmann.json.3.11.3\build\native\nlohmann.json.targets" Condition="Exists('packages\nlohmann.json.3.11.3\build\native\nlohmann.json.targets')" />
+    <Import Project="packages\tencent.rapidjson.1.1.1\build\tencent.rapidjson.targets" Condition="Exists('packages\tencent.rapidjson.1.1.1\build\tencent.rapidjson.targets')" />
+  </ImportGroup>
+  <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
+    <PropertyGroup>
+      <ErrorText>This project references NuGet package(s) that are missing on this computer. Use NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
+    </PropertyGroup>
+    <Error Condition="!Exists('packages\Microsoft.Windows.ImplementationLibrary.1.0.240803.1\build\native\Microsoft.Windows.ImplementationLibrary.targets')" Text="$([System.String]::Format('$(ErrorText)', 'packages\Microsoft.Windows.ImplementationLibrary.1.0.240803.1\build\native\Microsoft.Windows.ImplementationLibrary.targets'))" />
+    <Error Condition="!Exists('packages\Microsoft.Web.WebView2.1.0.3065.39\build\native\Microsoft.Web.WebView2.targets')" Text="$([System.String]::Format('$(ErrorText)', 'packages\Microsoft.Web.WebView2.1.0.3065.39\build\native\Microsoft.Web.WebView2.targets'))" />
+    <Error Condition="!Exists('packages\nlohmann.json.3.11.3\build\native\nlohmann.json.targets')" Text="$([System.String]::Format('$(ErrorText)', 'packages\nlohmann.json.3.11.3\build\native\nlohmann.json.targets'))" />
+    <Error Condition="!Exists('packages\tencent.rapidjson.1.1.1\build\tencent.rapidjson.targets')" Text="$([System.String]::Format('$(ErrorText)', 'packages\tencent.rapidjson.1.1.1\build\tencent.rapidjson.targets'))" />
+  </Target>
+</Project>
