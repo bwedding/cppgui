@@ -3,7 +3,7 @@ import "oaidl.idl";
 import "ocidl.idl";
 
 [
-    uuid(66A5F6BB-0D3F-4E8B-8E4F-2D12B49D7A6A),
+    uuid(5bdb4673-7c79-40ec-9a48-7988b38ce7c5),
         version(1.0),
 ]
 library DatabaseInterfaces
@@ -13,7 +13,7 @@ library DatabaseInterfaces
     // Interface for database operations
     [
         object,
-            uuid(77B5F6BC-1D4F-4E8C-9E5F-3E13C49E8A7B),
+            uuid(55c7ffa0-894d-4a5b-9fa9-166fe9e4a355),
             dual,
             nonextensible,
             helpstring("Interface for database operations"),

@@ -486,5 +486,8 @@
     <Text Include="Event Handler Guidelines.txt">
       <Filter>docs</Filter>
     </Text>
+    <Text Include="DBQueries in JS.txt">
+      <Filter>docs</Filter>
+    </Text>
   </ItemGroup>
 </Project>

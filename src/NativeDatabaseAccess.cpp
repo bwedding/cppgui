@@ -26,6 +26,40 @@ BSTR StringToBSTR(const std::string& str) {
     return SysAllocString(wstr.c_str());
 }
 
+std::string NativeDatabaseAccess::FormatPostgresParameterizedQuery(const ParameterizedQuery& query) {
+    std::wstring wquery = query.query;
+    std::string sqlQuery(wquery.begin(), wquery.end());
+
+    // PostgreSQL uses $1, $2, etc. for parameters
+    // We need to convert named parameters to positional parameters
+
+    std::unordered_map<std::wstring, int> paramMap;
+    int paramIndex = 1;
+
+    // Build parameter map
+    for (const auto& param : query.parameters) {
+        if (paramMap.find(param.name) == paramMap.end()) {
+            paramMap[param.name] = paramIndex++;
+        }
+    }
+
+    // Replace parameters in the query
+    std::string result = sqlQuery;
+    for (const auto& pair : paramMap) {
+        std::string paramName(pair.first.begin(), pair.first.end());
+        std::string replacement = "$" + std::to_string(pair.second);
+
+        // Replace all occurrences
+        size_t pos = 0;
+        while ((pos = result.find(paramName, pos)) != std::string::npos) {
+            result.replace(pos, paramName.length(), replacement);
+            pos += replacement.length();
+        }
+    }
+
+    return result;
+}
+
 // Connection pool management
 class ConnectionPool {
 private:
@@ -106,6 +140,26 @@ public:
 std::unordered_map<std::wstring, std::shared_ptr<void>> ConnectionPool::postgresConnections;
 std::unordered_map<std::wstring, std::shared_ptr<void>> ConnectionPool::sqliteConnections;
 std::mutex ConnectionPool::connectionMutex;
+
+void* NativeDatabaseAccess::GetConnection(const std::wstring& connectionString, DatabaseType dbType) {
+    // This simply forwards to the ConnectionPool implementation
+    std::lock_guard<std::mutex> lock(m_connectionMutex);
+
+    if (dbType == DatabaseType::PostgreSQL) {
+        auto connIt = m_postgresConnections.find(connectionString);
+        if (connIt != m_postgresConnections.end()) {
+            return connIt->second.get();
+        }
+    }
+    else if (dbType == DatabaseType::SQLite) {
+        auto connIt = m_sqliteConnections.find(connectionString);
+        if (connIt != m_sqliteConnections.end()) {
+            return connIt->second.get();
+        }
+    }
+
+    return nullptr;
+}
 
 STDMETHODIMP NativeDatabaseAccess::ExecuteQuery(BSTR connectionString, BSTR query, BSTR* pVarResult) {
     SPDLOG_TRACE("ExecuteQuery called");
@@ -634,28 +688,665 @@ STDMETHODIMP NativeDatabaseAccess::CommitTransaction(BSTR connectionString, BOOL
 }
 
 STDMETHODIMP NativeDatabaseAccess::RollbackTransaction(BSTR connectionString, BOOL* success) {
-    // Implementation here
+    SPDLOG_TRACE("RollbackTransaction called");
+
+    if (!connectionString || !success) {
+        return E_INVALIDARG;
+    }
+
+    *success = FALSE;
+
+    try {
+        std::wstring connStr(connectionString);
+        DatabaseType dbType = GetDatabaseTypeFromConnectionString(connStr);
+
+        // Check if there's an active transaction for this connection
+        bool hasActiveTxn = false;
+        {
+            std::lock_guard<std::mutex> lock(m_connectionMutex);
+            auto txnIt = m_activeTransactions.find(connStr);
+            hasActiveTxn = (txnIt != m_activeTransactions.end() && txnIt->second);
+        }
+
+        if (!hasActiveTxn) {
+            SPDLOG_WARN("No active transaction to rollback");
+            return S_OK; // Return success but with *success = FALSE
+        }
+
+        switch (dbType) {
+        case DatabaseType::SQLite: {
+            // Get the SQLite connection
+            sqlite3* db = nullptr;
+            {
+                std::lock_guard<std::mutex> lock(m_connectionMutex);
+                auto connIt = m_sqliteConnections.find(connStr);
+                if (connIt == m_sqliteConnections.end()) {
+                    SPDLOG_ERROR("No open SQLite connection found");
+                    return S_OK; // Return success but with *success = FALSE
+                }
+                db = static_cast<sqlite3*>(connIt->second.get());
+            }
+
+            // Rollback transaction
+            char* errMsg = nullptr;
+            if (sqlite3_exec(db, "ROLLBACK", nullptr, nullptr, &errMsg) != SQLITE_OK) {
+                std::string errorMsg = errMsg;
+                sqlite3_free(errMsg);
+                SPDLOG_ERROR("Failed to rollback SQLite transaction: {}", errorMsg);
+                return S_OK; // Return success but with *success = FALSE
+            }
+
+            // Mark transaction as inactive
+            {
+                std::lock_guard<std::mutex> lock(m_connectionMutex);
+                m_activeTransactions[connStr] = false;
+            }
+
+            *success = TRUE;
+            SPDLOG_INFO("SQLite transaction rolled back");
+            break;
+        }
+
+        case DatabaseType::PostgreSQL: {
+            // Get the PostgreSQL connection
+            PGconn* pgConn = nullptr;
+            {
+                std::lock_guard<std::mutex> lock(m_connectionMutex);
+                auto connIt = m_postgresConnections.find(connStr);
+                if (connIt == m_postgresConnections.end()) {
+                    SPDLOG_ERROR("No open PostgreSQL connection found");
+                    return S_OK; // Return success but with *success = FALSE
+                }
+                pgConn = static_cast<PGconn*>(connIt->second.get());
+            }
+
+            // Rollback transaction
+            PGresult* res = PQexec(pgConn, "ROLLBACK");
+            if (PQresultStatus(res) != PGRES_COMMAND_OK) {
+                std::string errorMsg = PQerrorMessage(pgConn);
+                PQclear(res);
+                SPDLOG_ERROR("Failed to rollback PostgreSQL transaction: {}", errorMsg);
+                return S_OK; // Return success but with *success = FALSE
+            }
+
+            PQclear(res);
+
+            // Mark transaction as inactive
+            {
+                std::lock_guard<std::mutex> lock(m_connectionMutex);
+                m_activeTransactions[connStr] = false;
+            }
+
+            *success = TRUE;
+            SPDLOG_INFO("PostgreSQL transaction rolled back");
+            break;
+        }
+
+        default:
+            SPDLOG_ERROR("Unknown database type");
+            return S_OK; // Return success but with *success = FALSE
+        }
+
+    }
+    catch (const std::exception& e) {
+        SPDLOG_ERROR("Exception in RollbackTransaction: {}", e.what());
+        return E_FAIL;
+    }
+
     return S_OK;
 }
 
 STDMETHODIMP NativeDatabaseAccess::CreateParameterizedQuery(BSTR query, BSTR* queryId)
 { 
-    return S_OK; 
+    SPDLOG_TRACE("CreateParameterizedQuery called");
+
+    if (!query || !queryId) {
+        return E_INVALIDARG;
+    }
+
+    try {
+        std::wstring queryStr(query);
+
+        // Generate a unique ID for this query
+        std::wstring id = L"query_" + std::to_wstring(GetTickCount64()) + L"_" + std::to_wstring(m_nextQueryId++);
+
+        // Store the query
+        {
+            std::lock_guard<std::mutex> lock(m_queryMutex);
+            ParameterizedQuery pq;
+            pq.query = queryStr;
+            m_parameterizedQueries[id] = pq;
+        }
+
+        // Return the ID
+        *queryId = SysAllocString(id.c_str());
+        SPDLOG_INFO("Created parameterized query with ID: {}", std::string(id.begin(), id.end()));
+
+    }
+    catch (const std::exception& e) {
+        SPDLOG_ERROR("Exception in CreateParameterizedQuery: {}", e.what());
+        return E_FAIL;
+    }
+
+    return S_OK;;
 }
 
 STDMETHODIMP NativeDatabaseAccess::AddParameter(BSTR queryId, BSTR paramName, VARIANT paramValue)
 { 
-    return S_OK; 
+    SPDLOG_TRACE("AddParameter called");
+
+    if (!queryId || !paramName) {
+        return E_INVALIDARG;
+    }
+
+    try {
+        std::wstring id(queryId);
+        std::wstring name(paramName);
+
+        // Find the query
+        std::lock_guard<std::mutex> lock(m_queryMutex);
+        auto queryIt = m_parameterizedQueries.find(id);
+        if (queryIt == m_parameterizedQueries.end()) {
+            SPDLOG_ERROR("Parameterized query not found: {}", std::string(id.begin(), id.end()));
+            return E_INVALIDARG;
+        }
+
+        // Add the parameter
+        QueryParameter param;
+        param.name = name;
+        VariantCopy(&param.value, &paramValue);
+        queryIt->second.parameters.push_back(param);
+
+        SPDLOG_INFO("Added parameter '{}' to query ID: {}",
+            std::string(name.begin(), name.end()),
+            std::string(id.begin(), id.end()));
+
+    }
+    catch (const std::exception& e) {
+        SPDLOG_ERROR("Exception in AddParameter: {}", e.what());
+        return E_FAIL;
+    }
+
+    return S_OK;
 }
 
 STDMETHODIMP NativeDatabaseAccess::ExecuteParameterizedQuery(BSTR connectionString, BSTR queryId, BSTR* pVarResult)
 { 
-    return S_OK; 
+    SPDLOG_TRACE("ExecuteParameterizedQuery called");
+
+    if (!connectionString || !queryId || !pVarResult) {
+        return E_INVALIDARG;
+    }
+
+    *pVarResult = nullptr;
+
+    try {
+        std::wstring connStr(connectionString);
+        std::wstring id(queryId);
+
+        DatabaseType dbType = GetDatabaseTypeFromConnectionString(connStr);
+
+        // Get the parameterized query
+        ParameterizedQuery query;
+        {
+            std::lock_guard<std::mutex> lock(m_queryMutex);
+            auto queryIt = m_parameterizedQueries.find(id);
+            if (queryIt == m_parameterizedQueries.end()) {
+                SPDLOG_ERROR("Parameterized query not found: {}", std::string(id.begin(), id.end()));
+                SetStringResult(pVarResult, L"{\"error\": \"Query not found\"}");
+                return S_OK;
+            }
+            query = queryIt->second;
+        }
+
+        json resultJson = json::array();
+
+        switch (dbType) {
+        case DatabaseType::SQLite: {
+            // Get the SQLite connection
+            sqlite3* db = nullptr;
+            {
+                std::lock_guard<std::mutex> lock(m_connectionMutex);
+                auto connIt = m_sqliteConnections.find(connStr);
+                if (connIt == m_sqliteConnections.end()) {
+                    SPDLOG_ERROR("No open SQLite connection found");
+                    SetStringResult(pVarResult, L"{\"error\": \"Database connection not found\"}");
+                    return S_OK;
+                }
+                db = static_cast<sqlite3*>(connIt->second.get());
+            }
+
+            // Prepare the query
+            std::wstring sqlQuery = query.query;
+            sqlite3_stmt* stmt = nullptr;
+
+            // Convert to UTF-8
+            std::string sqlQueryUtf8(sqlQuery.begin(), sqlQuery.end());
+
+            if (sqlite3_prepare_v2(db, sqlQueryUtf8.c_str(), -1, &stmt, nullptr) != SQLITE_OK) {
+                std::string errorMsg = sqlite3_errmsg(db);
+                SPDLOG_ERROR("Failed to prepare SQLite statement: {}", errorMsg);
+                SetStringResult(pVarResult, std::wstring(L"{\"error\": \"") +
+                    std::wstring(errorMsg.begin(), errorMsg.end()) + L"\"}");
+                return S_OK;
+            }
+
+            // Bind parameters
+            for (const auto& param : query.parameters) {
+                // Convert parameter name to UTF-8 and find its index
+                std::string paramNameUtf8(param.name.begin(), param.name.end());
+                int paramIndex = sqlite3_bind_parameter_index(stmt, paramNameUtf8.c_str());
+
+                if (paramIndex == 0) {
+                    // Parameter not found in query
+                    SPDLOG_WARN("Parameter not found in query: {}", paramNameUtf8);
+                    continue;
+                }
+
+                // Bind based on VARIANT type
+                switch (param.value.vt) {
+                case VT_NULL:
+                    sqlite3_bind_null(stmt, paramIndex);
+                    break;
+                case VT_I4:
+                    sqlite3_bind_int(stmt, paramIndex, param.value.lVal);
+                    break;
+                case VT_I8:
+                    sqlite3_bind_int64(stmt, paramIndex, param.value.llVal);
+                    break;
+                case VT_R8:
+                    sqlite3_bind_double(stmt, paramIndex, param.value.dblVal);
+                    break;
+                case VT_BSTR: {
+                    std::wstring wstr(param.value.bstrVal);
+                    std::string str(wstr.begin(), wstr.end());
+                    sqlite3_bind_text(stmt, paramIndex, str.c_str(), -1, SQLITE_TRANSIENT);
+                    break;
+                }
+                case VT_BOOL:
+                    sqlite3_bind_int(stmt, paramIndex, param.value.boolVal ? 1 : 0);
+                    break;
+                default:
+                    SPDLOG_WARN("Unsupported parameter type: {}", param.value.vt);
+                    break;
+                }
+            }
+
+            // Execute and get results
+            int colCount = sqlite3_column_count(stmt);
+            std::vector<std::string> columnNames;
+
+            // Get column names
+            for (int i = 0; i < colCount; i++) {
+                columnNames.push_back(sqlite3_column_name(stmt, i));
+            }
+
+            // Get data
+            while (sqlite3_step(stmt) == SQLITE_ROW) {
+                json rowJson;
+                for (int i = 0; i < colCount; i++) {
+                    int colType = sqlite3_column_type(stmt, i);
+
+                    switch (colType) {
+                    case SQLITE_INTEGER:
+                        rowJson[columnNames[i]] = sqlite3_column_int64(stmt, i);
+                        break;
+                    case SQLITE_FLOAT:
+                        rowJson[columnNames[i]] = sqlite3_column_double(stmt, i);
+                        break;
+                    case SQLITE_TEXT:
+                        rowJson[columnNames[i]] = reinterpret_cast<const char*>(sqlite3_column_text(stmt, i));
+                        break;
+                    case SQLITE_BLOB:
+                        rowJson[columnNames[i]] = "[BLOB data]";
+                        break;
+                    case SQLITE_NULL:
+                        rowJson[columnNames[i]] = nullptr;
+                        break;
+                    }
+                }
+                resultJson.push_back(rowJson);
+            }
+
+            sqlite3_finalize(stmt);
+            break;
+        }
+
+        case DatabaseType::PostgreSQL: {
+            // Get the PostgreSQL connection
+            PGconn* pgConn = nullptr;
+            {
+                std::lock_guard<std::mutex> lock(m_connectionMutex);
+                auto connIt = m_postgresConnections.find(connStr);
+                if (connIt == m_postgresConnections.end()) {
+                    SPDLOG_ERROR("No open PostgreSQL connection found");
+                    SetStringResult(pVarResult, L"{\"error\": \"Database connection not found\"}");
+                    return S_OK;
+                }
+                pgConn = static_cast<PGconn*>(connIt->second.get());
+            }
+
+            // Convert parameters to PostgreSQL format and replace placeholders
+            std::string sqlQueryUtf8 = FormatPostgresParameterizedQuery(query);
+
+            // Create parameter values array
+            std::vector<std::string> paramValues;
+            std::vector<const char*> paramValuesPtr;
+
+            for (const auto& param : query.parameters) {
+                std::string valueStr;
+
+                // Convert VARIANT to string
+                switch (param.value.vt) {
+                case VT_NULL:
+                    paramValues.push_back("");
+                    paramValuesPtr.push_back(nullptr); // NULL value
+                    continue;
+                case VT_I4:
+                    valueStr = std::to_string(param.value.lVal);
+                    break;
+                case VT_I8:
+                    valueStr = std::to_string(param.value.llVal);
+                    break;
+                case VT_R8:
+                    valueStr = std::to_string(param.value.dblVal);
+                    break;
+                case VT_BSTR: {
+                    std::wstring wstr(param.value.bstrVal);
+                    valueStr = std::string(wstr.begin(), wstr.end());
+                    break;
+                }
+                case VT_BOOL:
+                    valueStr = param.value.boolVal ? "true" : "false";
+                    break;
+                default:
+                    SPDLOG_WARN("Unsupported parameter type: {}", param.value.vt);
+                    valueStr = "";
+                    break;
+                }
+
+                paramValues.push_back(valueStr);
+                paramValuesPtr.push_back(paramValues.back().c_str());
+            }
+
+            // Execute query
+            PGresult* res = PQexecParams(
+                pgConn,
+                sqlQueryUtf8.c_str(),
+                paramValuesPtr.size(),
+                nullptr,  // param types - auto-detect
+                paramValuesPtr.data(),
+                nullptr,  // param lengths - null-terminated strings
+                nullptr,  // param formats - all text
+                0         // result format - text
+            );
+
+            if (PQresultStatus(res) != PGRES_TUPLES_OK && PQresultStatus(res) != PGRES_COMMAND_OK) {
+                std::string errorMsg = PQerrorMessage(pgConn);
+                PQclear(res);
+                SPDLOG_ERROR("Failed to execute PostgreSQL query: {}", errorMsg);
+                SetStringResult(pVarResult, std::wstring(L"{\"error\": \"") +
+                    std::wstring(errorMsg.begin(), errorMsg.end()) + L"\"}");
+                return S_OK;
+            }
+
+            // Process results
+            int rows = PQntuples(res);
+            int cols = PQnfields(res);
+
+            // Get column names
+            std::vector<std::string> columnNames;
+            for (int i = 0; i < cols; i++) {
+                columnNames.push_back(PQfname(res, i));
+            }
+
+            // Get data
+            for (int i = 0; i < rows; i++) {
+                json rowJson;
+                for (int j = 0; j < cols; j++) {
+                    if (PQgetisnull(res, i, j)) {
+                        rowJson[columnNames[j]] = nullptr;
+                    }
+                    else {
+                        rowJson[columnNames[j]] = PQgetvalue(res, i, j);
+                    }
+                }
+                resultJson.push_back(rowJson);
+            }
+
+            PQclear(res);
+            break;
+        }
+
+        default:
+            SPDLOG_ERROR("Unknown database type");
+            SetStringResult(pVarResult, L"{\"error\": \"Unknown database type\"}");
+            return S_OK;
+        }
+
+        std::string resultStr = resultJson.dump();
+        SetStringResult(pVarResult, std::wstring(resultStr.begin(), resultStr.end()));
+
+    }
+    catch (const std::exception& e) {
+        SPDLOG_ERROR("Exception in ExecuteParameterizedQuery: {}", e.what());
+        std::string errorMsg = e.what();
+        SetStringResult(pVarResult, std::wstring(L"{\"error\": \"") +
+            std::wstring(errorMsg.begin(), errorMsg.end()) + L"\"}");
+    }
+
+    return S_OK;
 }
 
 STDMETHODIMP NativeDatabaseAccess::ExecuteParameterizedNonQuery(BSTR connectionString, BSTR queryId, LONG* rowsAffected)
 { 
-    return S_OK; 
+    SPDLOG_TRACE("ExecuteParameterizedNonQuery called");
+
+    if (!connectionString || !queryId || !rowsAffected) {
+        return E_INVALIDARG;
+    }
+
+    *rowsAffected = 0;
+
+    try {
+        std::wstring connStr(connectionString);
+        std::wstring id(queryId);
+
+        DatabaseType dbType = GetDatabaseTypeFromConnectionString(connStr);
+
+        // Get the parameterized query
+        ParameterizedQuery query;
+        {
+            std::lock_guard<std::mutex> lock(m_queryMutex);
+            auto queryIt = m_parameterizedQueries.find(id);
+            if (queryIt == m_parameterizedQueries.end()) {
+                SPDLOG_ERROR("Parameterized query not found: {}", std::string(id.begin(), id.end()));
+                return E_INVALIDARG;
+            }
+            query = queryIt->second;
+        }
+
+        switch (dbType) {
+        case DatabaseType::SQLite: {
+            // Get the SQLite connection
+            sqlite3* db = nullptr;
+            {
+                std::lock_guard<std::mutex> lock(m_connectionMutex);
+                auto connIt = m_sqliteConnections.find(connStr);
+                if (connIt == m_sqliteConnections.end()) {
+                    SPDLOG_ERROR("No open SQLite connection found");
+                    return E_FAIL;
+                }
+                db = static_cast<sqlite3*>(connIt->second.get());
+            }
+
+            // Prepare the query
+            std::wstring sqlQuery = query.query;
+            sqlite3_stmt* stmt = nullptr;
+
+            // Convert to UTF-8
+            std::string sqlQueryUtf8(sqlQuery.begin(), sqlQuery.end());
+
+            if (sqlite3_prepare_v2(db, sqlQueryUtf8.c_str(), -1, &stmt, nullptr) != SQLITE_OK) {
+                std::string errorMsg = sqlite3_errmsg(db);
+                SPDLOG_ERROR("Failed to prepare SQLite statement: {}", errorMsg);
+                return E_FAIL;
+            }
+
+            // Bind parameters
+            for (const auto& param : query.parameters) {
+                // Convert parameter name to UTF-8 and find its index
+                std::string paramNameUtf8(param.name.begin(), param.name.end());
+                int paramIndex = sqlite3_bind_parameter_index(stmt, paramNameUtf8.c_str());
+
+                if (paramIndex == 0) {
+                    // Parameter not found in query
+                    SPDLOG_WARN("Parameter not found in query: {}", paramNameUtf8);
+                    continue;
+                }
+
+                // Bind based on VARIANT type
+                switch (param.value.vt) {
+                case VT_NULL:
+                    sqlite3_bind_null(stmt, paramIndex);
+                    break;
+                case VT_I4:
+                    sqlite3_bind_int(stmt, paramIndex, param.value.lVal);
+                    break;
+                case VT_I8:
+                    sqlite3_bind_int64(stmt, paramIndex, param.value.llVal);
+                    break;
+                case VT_R8:
+                    sqlite3_bind_double(stmt, paramIndex, param.value.dblVal);
+                    break;
+                case VT_BSTR: {
+                    std::wstring wstr(param.value.bstrVal);
+                    std::string str(wstr.begin(), wstr.end());
+                    sqlite3_bind_text(stmt, paramIndex, str.c_str(), -1, SQLITE_TRANSIENT);
+                    break;
+                }
+                case VT_BOOL:
+                    sqlite3_bind_int(stmt, paramIndex, param.value.boolVal ? 1 : 0);
+                    break;
+                default:
+                    SPDLOG_WARN("Unsupported parameter type: {}", param.value.vt);
+                    break;
+                }
+            }
+
+            // Execute
+            int result = sqlite3_step(stmt);
+            if (result != SQLITE_DONE) {
+                std::string errorMsg = sqlite3_errmsg(db);
+                sqlite3_finalize(stmt);
+                SPDLOG_ERROR("Failed to execute SQLite statement: {}", errorMsg);
+                return E_FAIL;
+            }
+
+            // Get rows affected
+            *rowsAffected = sqlite3_changes(db);
+
+            sqlite3_finalize(stmt);
+            break;
+        }
+
+        case DatabaseType::PostgreSQL: {
+            // Get the PostgreSQL connection
+            PGconn* pgConn = nullptr;
+            {
+                std::lock_guard<std::mutex> lock(m_connectionMutex);
+                auto connIt = m_postgresConnections.find(connStr);
+                if (connIt == m_postgresConnections.end()) {
+                    SPDLOG_ERROR("No open PostgreSQL connection found");
+                    return E_FAIL;
+                }
+                pgConn = static_cast<PGconn*>(connIt->second.get());
+            }
+
+            // Convert parameters to PostgreSQL format and replace placeholders
+            std::string sqlQueryUtf8 = FormatPostgresParameterizedQuery(query);
+
+            // Create parameter values array
+            std::vector<std::string> paramValues;
+            std::vector<const char*> paramValuesPtr;
+
+            for (const auto& param : query.parameters) {
+                std::string valueStr;
+
+                // Convert VARIANT to string
+                switch (param.value.vt) {
+                case VT_NULL:
+                    paramValues.push_back("");
+                    paramValuesPtr.push_back(nullptr); // NULL value
+                    continue;
+                case VT_I4:
+                    valueStr = std::to_string(param.value.lVal);
+                    break;
+                case VT_I8:
+                    valueStr = std::to_string(param.value.llVal);
+                    break;
+                case VT_R8:
+                    valueStr = std::to_string(param.value.dblVal);
+                    break;
+                case VT_BSTR: {
+                    std::wstring wstr(param.value.bstrVal);
+                    valueStr = std::string(wstr.begin(), wstr.end());
+                    break;
+                }
+                case VT_BOOL:
+                    valueStr = param.value.boolVal ? "true" : "false";
+                    break;
+                default:
+                    SPDLOG_WARN("Unsupported parameter type: {}", param.value.vt);
+                    valueStr = "";
+                    break;
+                }
+
+                paramValues.push_back(valueStr);
+                paramValuesPtr.push_back(paramValues.back().c_str());
+            }
+
+            // Execute query
+            PGresult* res = PQexecParams(
+                pgConn,
+                sqlQueryUtf8.c_str(),
+                paramValuesPtr.size(),
+                nullptr,  // param types - auto-detect
+                paramValuesPtr.data(),
+                nullptr,  // param lengths - null-terminated strings
+                nullptr,  // param formats - all text
+                0         // result format - text
+            );
+
+            if (PQresultStatus(res) != PGRES_COMMAND_OK) {
+                std::string errorMsg = PQerrorMessage(pgConn);
+                PQclear(res);
+                SPDLOG_ERROR("Failed to execute PostgreSQL query: {}", errorMsg);
+                return E_FAIL;
+            }
+
+            // Get rows affected
+            std::string rowsStr = PQcmdTuples(res);
+            if (!rowsStr.empty()) {
+                *rowsAffected = std::stol(rowsStr);
+            }
+
+            PQclear(res);
+            break;
+        }
+
+        default:
+            SPDLOG_ERROR("Unknown database type");
+            return E_FAIL;
+        }
+
+    }
+    catch (const std::exception& e) {
+        SPDLOG_ERROR("Exception in ExecuteParameterizedNonQuery: {}", e.what());
+        return E_FAIL;
+    }
+
+    return S_OK;
 }
 
 void NativeDatabaseAccess::SetStringResult(VARIANT* pVarResult, const std::wstring& str)

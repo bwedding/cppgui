@@ -1,0 +1,54 @@
+// Example connection strings
+const postgresConnectionString = "host=localhost port=5432 dbname=mydb user=postgres password=secret";
+const sqliteConnectionString = "Data Source=C:\\path\\to\\database.db;Version=3;";
+
+// Execute a query and get results as JSON
+async function executeQuery() {
+    try {
+        // For the approach with methods in NativeWindowControls
+        const result = await window.chrome.webview.hostObjects.controls.ExecuteQuery(
+            postgresConnectionString, 
+            "SELECT * FROM users WHERE active = true"
+        );
+        
+        // Parse the JSON result
+        const data = JSON.parse(result);
+        console.log(data);
+        
+        // Or using the dedicated database object
+        const dbResult = await window.chrome.webview.hostObjects.dbAccess.ExecuteQuery(
+            postgresConnectionString, 
+            "SELECT * FROM users WHERE active = true"
+        );
+        
+        const dbData = JSON.parse(dbResult);
+        console.log(dbData);
+    } catch (error) {
+        console.error("Query error:", error);
+    }
+}
+
+// Execute a parameterized query (safer approach with dedicated db object)
+async function executeParameterizedQuery() {
+    try {
+        // Create a parameterized query
+        const queryId = await window.chrome.webview.hostObjects.dbAccess.CreateParameterizedQuery(
+            "SELECT * FROM users WHERE username = @username AND active = @active"
+        );
+        
+        // Add parameters
+        await window.chrome.webview.hostObjects.dbAccess.AddParameter(queryId, "@username", "john_doe");
+        await window.chrome.webview.hostObjects.dbAccess.AddParameter(queryId, "@active", true);
+        
+        // Execute the query
+        const result = await window.chrome.webview.hostObjects.dbAccess.ExecuteParameterizedQuery(
+            postgresConnectionString, 
+            queryId
+        );
+        
+        const data = JSON.parse(result);
+        console.log(data);
+    } catch (error) {
+        console.error("Parameterized query error:", error);
+    }
+}

@@ -386,6 +386,7 @@
     <ClInclude Include="src\WindowApp.h" />
   </ItemGroup>
   <ItemGroup>
+    <Text Include="DBQueries in JS.txt" />
     <Text Include="Event Handler Guidelines.txt" />
   </ItemGroup>
   <ItemGroup>

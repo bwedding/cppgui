@@ -5,7 +5,7 @@
 
 // Define the interface ID - you'll need to generate a unique GUID
 // {66A5F6BB-0D3F-4E8B-8E4F-2D12B49D7A6A} - example GUID, generate your own
-interface __declspec(uuid("66A5F6BB-0D3F-4E8B-8E4F-2D12B49D7A6A")) INativeDatabaseAccess : public IDispatch
+interface __declspec(uuid("5bdb4673-7c79-40ec-9a48-7988b38ce7c5")) INativeDatabaseAccess : public IDispatch
 {
     // Connection management
     STDMETHOD(OpenConnection)(BSTR connectionString, BOOL * success) PURE;

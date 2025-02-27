@@ -59,11 +59,11 @@ private:
 
     std::unordered_map<std::wstring, ParameterizedQuery> m_parameterizedQueries;
     std::mutex m_queryMutex;
+    int m_nextQueryId = 1;
 
     DatabaseType GetDatabaseTypeFromConnectionString(const std::wstring& connectionString);
-    
+    std::string FormatPostgresParameterizedQuery(const ParameterizedQuery& query);
     void* GetConnection(const std::wstring& connectionString, DatabaseType dbType);
-    std::string FormatParameterizedQuery(const ParameterizedQuery& query);
     static void SetStringResult(VARIANT* pVarResult, const std::wstring& str);
     static void SetStringResult(BSTR* pVarResult, const std::wstring& str);
 

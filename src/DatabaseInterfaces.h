@@ -86,7 +86,7 @@ EXTERN_C const IID IID_INativeDatabaseAccess;
 
 #if defined(__cplusplus) && !defined(CINTERFACE)
     
-    MIDL_INTERFACE("77B5F6BC-1D4F-4E8C-9E5F-3E13C49E8A7B")
+    MIDL_INTERFACE("55c7ffa0-894d-4a5b-9fa9-166fe9e4a355")
     INativeDatabaseAccess : public IDispatch
     {
     public:
