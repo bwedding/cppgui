@@ -86,10 +86,6 @@ self.onmessage = function(e) {
   }
 }
 
-  // Export a singleton instance
-const dbClient = new DbClient();
-export default dbClient;
-
 // dbClient.js - Create this file as your abstraction layer
 class DbClient {
   constructor() {
@@ -204,3 +200,7 @@ class DbClient {
     return this.executeQuery(this.connectionString, query, params);
   }
 }
+
+// Export a singleton instance
+const dbClient = new DbClient();
+export default dbClient;
