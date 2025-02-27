@@ -79,8 +79,11 @@ LRESULT WindowApp::HandleMessage(const HWND hWnd, const UINT message, const WPAR
 	{
 		if (auto pmessage = reinterpret_cast<std::wstring*>(wParam))
 		{
-			// TODO Add error handling
-			WebView2Manager::GetInstance().PostMessageToWebView(*pmessage);
+			auto result = WebView2Manager::GetInstance().PostMessageToWebView(*pmessage);
+			if (result != S_OK)
+			{
+				spdlog::error("Failed to post message to WebView2: {}", result);
+			}
 			delete pmessage;
 		}
 		return 0;

@@ -4,6 +4,7 @@
 #include <psapi.h>
 #include "WindowApp.h"
 #include "APIBridge.h"
+#include "NativeDatabaseAccess.h"
 #include "CommunicationManager.h"
 #include <WebView2EnvironmentOptions.h>
 #include <wrl/event.h>
@@ -228,14 +229,20 @@ void WebView2Manager::ConfigureWebViewSettings()
     }
     // Add it as a host object
     m_webview->AddHostObjectToScript(L"native", &var);
-    ComPtr<ApiBridge> apiBridge = Make<ApiBridge>(GetInstance().GetWebView());
 
-    // Wrap the COM object in a VARIANT
+    ComPtr<ApiBridge> apiBridge = Make<ApiBridge>(GetInstance().GetWebView());
     VARIANT variant;
     VariantInit(&variant);
     variant.vt = VT_DISPATCH; // Set the type to IDispatch
     variant.pdispVal = apiBridge.Get(); // Assign the COM object
     m_webview->AddHostObjectToScript(L"bridge", &variant);
+
+    ComPtr<NativeDatabaseAccess> databaseAccess = Make<NativeDatabaseAccess>(GetInstance().GetWebView());
+    VARIANT dbvariant;
+    VariantInit(&dbvariant);
+    dbvariant.pdispVal = static_cast<INativeDatabaseAccess*>(databaseAccess.Get()); // Cast to specific interface
+    dbvariant.vt = VT_DISPATCH;
+    m_webview->AddHostObjectToScript(L"dbAccess", &dbvariant);
 }
 
 void WebView2Manager::SetupNavigationHandlers() const

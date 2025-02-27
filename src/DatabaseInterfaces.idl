@@ -1,0 +1,44 @@
+// DatabaseInterfaces.idl
+import "oaidl.idl";
+import "ocidl.idl";
+
+[
+    uuid(66A5F6BB-0D3F-4E8B-8E4F-2D12B49D7A6A),
+        version(1.0),
+]
+library DatabaseInterfaces
+{
+    importlib("stdole2.tlb");
+
+    // Interface for database operations
+    [
+        object,
+            uuid(77B5F6BC-1D4F-4E8C-9E5F-3E13C49E8A7B),
+            dual,
+            nonextensible,
+            helpstring("Interface for database operations"),
+            pointer_default(unique)
+    ]
+        interface INativeDatabaseAccess : IDispatch
+    {
+        // Connection management
+        [id(1)] HRESULT OpenConnection([in] BSTR connectionString, [out, retval] BOOL* success);
+        [id(2)] HRESULT CloseConnection([in] BSTR connectionString, [out, retval] BOOL* success);
+        [id(3)] HRESULT GetConnectionStatus([in] BSTR connectionString, [out, retval] BOOL* isConnected);
+
+        // Query execution
+        [id(4)] HRESULT ExecuteQuery([in] BSTR connectionString, [in] BSTR query, [out, retval] BSTR* pVarResult);
+        [id(5)] HRESULT ExecuteNonQuery([in] BSTR connectionString, [in] BSTR query, [out, retval] LONG* rowsAffected);
+
+        // Transaction management
+        [id(6)] HRESULT BeginTransaction([in] BSTR connectionString, [out, retval] BOOL* success);
+        [id(7)] HRESULT CommitTransaction([in] BSTR connectionString, [out, retval] BOOL* success);
+        [id(8)] HRESULT RollbackTransaction([in] BSTR connectionString, [out, retval] BOOL* success);
+
+        // Parameter binding
+        [id(9)] HRESULT CreateParameterizedQuery([in] BSTR query, [out, retval] BSTR* queryId);
+        [id(10)] HRESULT AddParameter([in] BSTR queryId, [in] BSTR paramName, [in] VARIANT paramValue);
+        [id(11)] HRESULT ExecuteParameterizedQuery([in] BSTR connectionString, [in] BSTR queryId, [out, retval] BSTR* pVarResult);
+        [id(12)] HRESULT ExecuteParameterizedNonQuery([in] BSTR connectionString, [in] BSTR queryId, [out, retval] LONG* rowsAffected);
+    };
+}

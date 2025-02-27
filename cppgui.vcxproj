@@ -149,7 +149,7 @@
       <ConformanceMode>true</ConformanceMode>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <LanguageStandard>stdcpp20</LanguageStandard>
-      <AdditionalIncludeDirectories>$(SolutionDir)\src\spdlog\sinks;$(SolutionDir)\src\spdlog;$(SolutionDir)\src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\Program Files\PostgreSQL\17\include;C:\Users\bruce\source\cppgui\libs;$(SolutionDir)\src\spdlog\sinks;$(SolutionDir)\src\spdlog;$(SolutionDir)\src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <AdditionalOptions>/utf-8 %(AdditionalOptions)</AdditionalOptions>
       <LanguageStandard_C>stdc17</LanguageStandard_C>
@@ -158,8 +158,8 @@
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <SubSystem>Windows</SubSystem>
-      <AdditionalDependencies>Pathcch.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>Pathcch.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;libpq.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>C:\Program Files\PostgreSQL\17\lib;C:\Program Files\PostgreSQL\17\bin;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'">
@@ -206,7 +206,7 @@
       <ConformanceMode>true</ConformanceMode>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <LanguageStandard>stdcpp20</LanguageStandard>
-      <AdditionalIncludeDirectories>$(SolutionDir)\src\spdlog;$(SolutionDir)\src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)\src\spdlog;C:\Program Files\PostgreSQL\17\include;$(SolutionDir)\src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <AdditionalOptions>/utf-8 %(AdditionalOptions)</AdditionalOptions>
       <LanguageStandard_C>stdc17</LanguageStandard_C>
@@ -221,9 +221,10 @@
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <SubSystem>Windows</SubSystem>
-      <AdditionalDependencies>Pathcch.lib;$(CoreLibraryDependencies);%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>Pathcch.lib;libpq.lib;$(CoreLibraryDependencies);%(AdditionalDependencies)</AdditionalDependencies>
       <HeapReserveSize>0x6400000</HeapReserveSize>
       <HeapCommitSize>0x800000</HeapCommitSize>
+      <AdditionalLibraryDirectories>C:\Program Files\PostgreSQL\17\lib;C:\Program Files\PostgreSQL\17\bin;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'">
@@ -246,23 +247,30 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <None Include=".gitignore" />
+    <None Include="libs\sqlite3.def" />
     <None Include="packages.config" />
     <None Include="src\architecture.md" />
     <None Include="src\packages.config" />
     <None Include="src\spdlog\fmt\bundled\fmt.license.rst" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="DatabaseTypes.h" />
+    <ClInclude Include="libs\sqlite3.h" />
+    <ClInclude Include="libs\sqlite3ext.h" />
     <ClInclude Include="src\APIBridge.h" />
     <ClInclude Include="src\AppMessageIDs.h" />
     <ClInclude Include="src\CallbackRegistry.h" />
     <ClInclude Include="src\CommunicationManager.h" />
     <ClInclude Include="src\ControlMode.h" />
+    <ClInclude Include="src\DatabaseTypes.h" />
     <ClInclude Include="src\DemoData.h" />
     <ClInclude Include="src\EventDispatcher.h" />
     <ClInclude Include="src\EventManager.h" />
     <ClInclude Include="src\EventQueue.h" />
+    <ClInclude Include="src\INativeDatabaseAccess.h" />
     <ClInclude Include="src\INativeWindowControls.h" />
     <ClInclude Include="src\main.h" />
+    <ClInclude Include="src\NativeDatabaseAccess.h" />
     <ClInclude Include="src\NativeWindowControls.h" />
     <ClInclude Include="src\spdlog\async.h" />
     <ClInclude Include="src\spdlog\async_logger-inl.h" />
@@ -381,12 +389,16 @@
     <Text Include="Event Handler Guidelines.txt" />
   </ItemGroup>
   <ItemGroup>
+    <Midl Include="src\DatabaseInterfaces.idl" />
     <Midl Include="src\NativeWindowControls.idl" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="libs\shell.c" />
+    <ClCompile Include="libs\sqlite3.c" />
     <ClCompile Include="src\APIBridge.cpp" />
     <ClCompile Include="src\CommunicationManager.cpp" />
     <ClCompile Include="src\main.cpp" />
+    <ClCompile Include="src\NativeDatabaseAccess.cpp" />
     <ClCompile Include="src\NativeWindowControls.cpp" />
     <ClCompile Include="src\SystemUtils.cpp" />
     <ClCompile Include="src\USBListener.cpp" />

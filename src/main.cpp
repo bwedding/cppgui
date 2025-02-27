@@ -1,4 +1,3 @@
-// compile with: /D_UNICODE /DUNICODE /DWIN32 /D_WINDOWS /c
 #include "main.h"
 #include <iostream>
 #include "WindowApp.h"
@@ -8,7 +7,7 @@
 #include "sinks/daily_file_sink.h" // support for basic file logging
 #include "sinks/msvc_sink.h"
 
-void InitializeLog()
+static void InitializeLog()
 {
 	spdlog::init_thread_pool(10000, 1); // queue with 10K items and 1 backing thread
 
@@ -33,7 +32,7 @@ void InitializeLog()
 	SPDLOG_TRACE("Some trace message");
 }
 
-void processMessage(wil::unique_cotaskmem_string::pointer* message)
+static void processMessage(wil::unique_cotaskmem_string::pointer* message)
 {
     return;
 }
