@@ -1,3 +1,7 @@
+const result = window.chrome.webview.hostObjects.sync.native.SendClick(jsonData);
+// async works but is much slower, from 10ms to 300ms
+//const result = await window.chrome.webview.hostObjects.native.SendClick(jsonData);
+
 // Example connection strings
 const postgresConnectionString = "host=localhost port=5432 dbname=mydb user=postgres password=secret";
 const sqliteConnectionString = "Data Source=C:\\path\\to\\database.db;Version=3;";
@@ -51,4 +55,152 @@ async function executeParameterizedQuery() {
     } catch (error) {
         console.error("Parameterized query error:", error);
     }
+}
+
+Webworker Asynchronous Example
+// dbWorker.js - Create this file to handle the worker operations
+self.onmessage = function(e) {
+  const { method, connectionString, query, params } = e.data;
+  
+  try {
+    // Access the native methods synchronously (no UI thread blocking in worker)
+    let result;
+    if (method === 'controls') {
+      result = window.chrome.webview.hostObjects.sync.controls.ExecuteQuery(
+        connectionString, 
+        query,
+        params
+      );
+    } else if (method === 'dbAccess') {
+      result = window.chrome.webview.hostObjects.sync.dbAccess.ExecuteQuery(
+        connectionString, 
+        query,
+        params
+      );
+    }
+    
+    // Send the result back to the main thread
+    self.postMessage({ success: true, data: result });
+  } catch (error) {
+    self.postMessage({ success: false, error: error.toString() });
+  }
+}
+
+  // Export a singleton instance
+const dbClient = new DbClient();
+export default dbClient;
+
+// dbClient.js - Create this file as your abstraction layer
+class DbClient {
+  constructor() {
+    this.worker = null;
+    this.callbacks = new Map();
+    this.callId = 0;
+  }
+
+  // Initialize the worker
+  init() {
+    if (this.worker) return;
+    
+    this.worker = new Worker('dbWorker.js');
+    this.worker.onmessage = (e) => {
+      const { id, success, data, error } = e.data;
+      
+      if (this.callbacks.has(id)) {
+        const { resolve, reject } = this.callbacks.get(id);
+        
+        if (success) {
+          resolve(data);
+        } else {
+          reject(new Error(error));
+        }
+        
+        this.callbacks.delete(id);
+      }
+    };
+  }
+
+  // Execute query using the worker
+  executeQuery(connectionString, query, params = [], method = 'controls') {
+    this.init();
+    
+    return new Promise((resolve, reject) => {
+      const id = this.callId++;
+      this.callbacks.set(id, { resolve, reject });
+      
+      this.worker.postMessage({
+        id,
+        method,
+        connectionString,
+        query,
+        params
+      });
+    });
+  }
+  
+  // Clean up the worker when done
+  terminate() {
+    if (this.worker) {
+      this.worker.terminate();
+      this.worker = null;
+      this.callbacks.clear();
+    }
+  }
+}  
+  // Specialized query methods
+  async select(table, conditions = {}, fields = ['*']) {
+    const whereClause = Object.keys(conditions).length > 0 ? 
+      `WHERE ${Object.keys(conditions).map(k => `${k} = ?`).join(' AND ')}` : '';
+    const params = Object.values(conditions);
+    const query = `SELECT ${fields.join(', ')} FROM ${table} ${whereClause}`;
+    
+    return this.executeQuery(this.connectionString, query, params);
+  }
+  
+  async insert(table, data) {
+    const fields = Object.keys(data);
+    const placeholders = fields.map(() => '?').join(', ');
+    const values = Object.values(data);
+    const query = `INSERT INTO ${table} (${fields.join(', ')}) VALUES (${placeholders})`;
+    
+    return this.executeQuery(this.connectionString, query, values);
+  }
+  
+  async update(table, data, conditions) {
+    const setClause = Object.keys(data).map(k => `${k} = ?`).join(', ');
+    const whereClause = Object.keys(conditions).map(k => `${k} = ?`).join(' AND ');
+    const params = [...Object.values(data), ...Object.values(conditions)];
+    const query = `UPDATE ${table} SET ${setClause} WHERE ${whereClause}`;
+    
+    return this.executeQuery(this.connectionString, query, params);
+  }
+  
+  async delete(table, conditions) {
+    const whereClause = Object.keys(conditions).map(k => `${k} = ?`).join(' AND ');
+    const params = Object.values(conditions);
+    const query = `DELETE FROM ${table} WHERE ${whereClause}`;
+    
+    return this.executeQuery(this.connectionString, query, params);
+  }
+  
+  // Transaction support
+  async beginTransaction() {
+    return this.executeQuery(this.connectionString, 'BEGIN TRANSACTION');
+  }
+  
+  async commitTransaction() {
+    return this.executeQuery(this.connectionString, 'COMMIT');
+  }
+  
+  async rollbackTransaction() {
+    return this.executeQuery(this.connectionString, 'ROLLBACK');
+  }
+  
+  // Stored procedure support
+  async callProcedure(procedureName, params = []) {
+    const placeholders = params.map((_, i) => `?`).join(', ');
+    const query = `CALL ${procedureName}(${placeholders})`;
+    
+    return this.executeQuery(this.connectionString, query, params);
+  }
 }
