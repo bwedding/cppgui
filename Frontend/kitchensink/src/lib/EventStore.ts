@@ -18,8 +18,6 @@ export const useEventStore = create<EventStore>((set, get) => ({
       const messageString = JSON.stringify(event);
       const jsonTime = performance.now();
       console.log('Sending event from useEventStore:', event);
-      // Todo: Check if they are using strings or methods to capture clicks
-      //window.chrome.webview.postMessage(messageString);
       try {
         const result = window.chrome.webview.hostObjects.sync.native.SendClick(messageString);
         // Use sync call for long running calls. Button clicks should always use sync. 
@@ -56,6 +54,9 @@ export const useEventStore = create<EventStore>((set, get) => ({
   initialize: () => {
     if (window.chrome?.webview) 
     {
+      // Initialize form capture for all forms on the page
+      initFormCapture();
+
       // Set up listener for messages from the host
       window.chrome.webview.addEventListener('message', (event) => {
         // Handle incoming messages if needed
@@ -84,6 +85,68 @@ export const useEventStore = create<EventStore>((set, get) => ({
     }
   }
 }));
+
+// Initialize form capture utility
+function initFormCapture(): void {
+  document.addEventListener('submit', (event: Event) => {
+
+    if ((event.target as HTMLElement)?.tagName === 'FORM') 
+    {
+      const form = event.target as HTMLFormElement;
+      
+      // Skip forms with data-no-capture attribute
+      if (!form.hasAttribute('data-no-capture')) 
+      {
+        event.preventDefault();
+        
+        const formData: { [key: string]: string | string[] | boolean } = {};
+        const formElements = form.elements;
+        
+        for (let i = 0; i < formElements.length; i++) 
+        {
+          const element = formElements[i] as HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement;
+          
+          if (!element.name) continue;
+          
+          // Handle different input types
+          if (element.type === 'checkbox' || element.type === 'radio') 
+          {
+            const inputElement = element as HTMLInputElement;
+            if (inputElement.checked) {
+              formData[element.name] = inputElement.value;
+            }
+          } 
+          else if (element.type === 'select-multiple') 
+          {
+            const selectElement = element as HTMLSelectElement;
+            formData[element.name] = Array.from(selectElement.options)
+              .filter(option => option.selected)
+              .map(option => option.value);
+          } 
+          else if (element.name) 
+          {
+            formData[element.name] = element.value;
+          }
+        }
+        
+        const messageString = JSON.stringify(formData);
+        
+        try {
+          // Send the serialized JSON data to the backend
+          const result = window.chrome.webview.hostObjects.sync.native.SendForm(messageString);
+          console.log('Form captured successfully:', result);
+          
+          // Optional: Allow the form to continue normal submission after capture
+          // form.submit();
+        } catch (error) {
+          console.error('Error capturing form data:', error);
+        }
+      }
+    }
+  });
+}
+
+
 /*
 // Example usage:
 const Component = () => {
