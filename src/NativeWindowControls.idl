@@ -27,6 +27,7 @@ library NativeWindowControlsLib
         [id(6)] HRESULT FileSaveDialog([out, retval] BSTR* result);
         [id(7)] HRESULT BrowseForFolder([out, retval] BSTR* result);
         [id(8)] HRESULT OpenFolderDialog([out, retval] BSTR* result);
-        [id(9)] HRESULT SendClick([in] BSTR jsonData);
+        [id(9)] HRESULT SendClick([in] BSTR jsonData); 
+        [id(10)] HRESULT SendForm([in] BSTR jsonData);
     };
 }

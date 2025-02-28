@@ -54,12 +54,30 @@ export const useEventStore = create<EventStore>((set, get) => ({
   },
 
   initialize: () => {
-    if (window.chrome?.webview) {
+    if (window.chrome?.webview) 
+    {
       // Set up listener for messages from the host
       window.chrome.webview.addEventListener('message', (event) => {
         // Handle incoming messages if needed
         const message = event.data;
         // Process message...
+      });
+      document.addEventListener('submit', (event) => {
+        if ((event.target as HTMLElement)?.tagName === 'FORM') {
+            event.preventDefault(); // Prevent the default form submission
+            const formData: { [key: string]: string } = {};
+            const formElements = (event.target as HTMLFormElement).elements;
+            for (let element of formElements) {
+                const inputElement = element as HTMLInputElement;
+                if (inputElement.name) {
+                    formData[inputElement.name] = inputElement.value;
+                }
+            }
+            const messageString = JSON.stringify(formData);
+            // Send the serialized JSON data to the backend
+            const result = window.chrome.webview.hostObjects.sync.native.SendForm(messageString);
+            console.log('Backend response:', result);
+        };
       });
     } else {
       console.warn('WebView2 not available');

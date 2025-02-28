@@ -27,6 +27,11 @@ interface NativeHost {
     (item: string): number;  // Sync version
     async(item: string): Promise<number>;  // Async version
   };
+  SendForm: {
+    (item: string): number;  // Sync version
+    async(item: string): Promise<number>;  // Async version
+  };
+
 }
 
 declare global {

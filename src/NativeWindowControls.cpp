@@ -380,9 +380,9 @@ STDMETHODIMP NativeWindowControls::Invoke(
     RETURN_IF_FAILED(GetTypeInfo(0, lcid, &typeInfo));
 
     if (pDispParams) {
-        //spdlog::info("Args count: {}", pDispParams->cArgs);
+        spdlog::info("Args count: {}", pDispParams->cArgs);
         if (pDispParams->cArgs > 0) {
-            //spdlog::info("First arg type: {}", pDispParams->rgvarg[0].vt);
+            spdlog::info("First arg type: {}", pDispParams->rgvarg[0].vt);
         }
     }
 
@@ -672,6 +672,37 @@ STDMETHODIMP NativeWindowControls::SendClick(const BSTR jsonData)
     SPDLOG_TRACE("Exiting");
     return S_OK;     // Return success for the method call itself
 }
+
+STDMETHODIMP NativeWindowControls::SendForm(const BSTR jsonData)
+{
+
+    SPDLOG_TRACE("Entering");
+    if (!jsonData) return E_INVALIDARG;
+
+    std::wstring wstr(jsonData);
+    std::string str(wstr.begin(), wstr.end());
+    // Parse the JSON data
+    const auto json = nlohmann::json::parse(str);
+
+    spdlog::trace(json.dump());
+    HeartControl::UIEvent evt{
+        "auto-manual-control",
+        "User interface",
+        str,
+        system_clock::time_point{}
+    };
+    const WindowApp* mWinApp = WindowApp::GetInstance();
+
+    auto& mEvtMgr = mWinApp->GetEventManager();
+
+    const int eventId = mEvtMgr.registerEvent(std::move(evt));
+
+    PostMessage(hwnd, WM_USER_EVENT, 0, eventId);
+
+    SPDLOG_TRACE("Exiting");
+    return S_OK;     // Return success for the method call itself
+}
+
 // Helper function to convert PWSTR to VARIANT
 void NativeWindowControls::SetStringResult(VARIANT* pVarResult, const std::wstring& str)
 {

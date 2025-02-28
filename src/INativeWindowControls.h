@@ -15,4 +15,5 @@ interface __declspec(uuid("bf3778c3-a587-4ad3-afc3-e3bef12d301d")) INativeWindow
     virtual HRESULT STDMETHODCALLTYPE BrowseForFolder(BSTR* result) = 0;
     virtual HRESULT STDMETHODCALLTYPE OpenFolderDialog(BSTR* result) = 0;
     virtual HRESULT STDMETHODCALLTYPE SendClick(BSTR jsonData) = 0;
+    virtual HRESULT STDMETHODCALLTYPE SendForm(BSTR jsonData) = 0;
 };

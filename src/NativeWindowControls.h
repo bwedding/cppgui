@@ -22,6 +22,8 @@ public:
     explicit NativeWindowControls(const HWND window) : hwnd(window) { SPDLOG_TRACE("Entering"); }
 
     STDMETHODIMP SendClick(BSTR jsonData) override;
+
+    STDMETHODIMP SendForm(BSTR jsonData) override;
  
     STDMETHODIMP GetTypeInfoCount(UINT* pctinfo) override;
 
@@ -40,7 +42,6 @@ public:
     STDMETHODIMP  StartWindowDrag() override;
     STDMETHODIMP  FileOpenDialog(BSTR* pVarResult) override;
     STDMETHODIMP  FileSaveDialog(BSTR* pVarResult) override;
-  
     STDMETHODIMP  BrowseForFolder(BSTR* pVarResult) override;
     STDMETHODIMP  OpenFolderDialog(BSTR* pVarResult) override;
     static void SetStringResult(VARIANT* pVarResult, const std::wstring& str);
