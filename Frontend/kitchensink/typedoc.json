@@ -1,0 +1,15 @@
+{
+    "entryPoints": ["src"],
+    "entryPointStrategy": "expand",
+    "out": "docs",
+    "exclude": ["**/node_modules/**", "**/dist/**"],
+    "excludeExternals": true,
+    "excludePrivate": true,
+    "excludeProtected": true,
+    "theme": "default",
+    "includeVersion": true,
+    "categorizeByGroup": true,
+    "searchInComments": true,
+    "disableSources": false,
+    "includeInterfaceDeclarations": true
+  }

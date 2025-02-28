@@ -1,4 +1,4 @@
-import React from "react";
+import React, { memo } from "react";
 import { Card } from "../ui/card.tsx";
 import {
   Tooltip,
@@ -23,7 +23,7 @@ interface StatusIndicatorProps {
   tooltipText: string;
 }
 
-const StatusIndicator = ({
+const StatusIndicator = memo(({
   icon: Icon,
   label,
   status = "normal",
@@ -50,7 +50,7 @@ const StatusIndicator = ({
       </Tooltip>
     </TooltipProvider>
   );
-};
+});
 
 interface StatusBarProps {
   indicators?: Array<{
@@ -116,7 +116,7 @@ const defaultIndicators = [
   },
 ];
 
-const StatusBar = ({ indicators = defaultIndicators }: StatusBarProps) => {
+const StatusBar = memo(({ indicators = defaultIndicators }: StatusBarProps) => {
   return (
     <div className="w-full h-12 bg-neutral-900 border-none flex items-center justify-between px-6 mr-0 mt-2">
       <div className="flex items-center gap-4">
@@ -141,6 +141,6 @@ const StatusBar = ({ indicators = defaultIndicators }: StatusBarProps) => {
       </div>
     </div>
   );
-};
+});
 
 export default StatusBar;

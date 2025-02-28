@@ -1,13 +1,16 @@
 import { memo, useMemo } from "react";
 import { AlertTriangle, AlertCircle } from "lucide-react";
-import { useAtomValue, Atom } from 'jotai';
 import type { PressureSensor } from '../../types/types.ts';
 import { Card } from "@/components/ui/card.tsx";
+import { ReadonlySignal } from "@preact/signals-react";
+import { useSignals } from "@preact/signals-react/runtime";
+import { useAtomValue, Atom } from 'jotai';
 
 interface MetricCardProps {
   title: string;
   unit: string;
-  sensorAtom: Atom<PressureSensor | null>;  
+  sensorAtom?: Atom<PressureSensor | null>;  
+  sensorSignal?: ReadonlySignal<PressureSensor | null>; 
   showArrows?: boolean;
   arrowValue?: number;
 }
@@ -134,10 +137,16 @@ const HiLoPressureCard = memo(({
   title,
   unit,
   sensorAtom,
+  sensorSignal,
   showArrows = false,
   arrowValue = 15,
 }: MetricCardProps) => {
-  const sensor = useAtomValue(sensorAtom);
+  // Enable signal reactivity
+  useSignals();
+  
+  // Support both atom and signal for backward compatibility
+  const sensorFromAtom = sensorAtom ? useAtomValue(sensorAtom) : null;
+  const sensor = sensorSignal?.value || sensorFromAtom;
   
   // Status is determined based on both mean value and min/max pressure range
   const getStatus = (): "normal" | "warning" | "error" => {
@@ -149,7 +158,7 @@ const HiLoPressureCard = memo(({
       
       // If the data is invalid, display as normal
       if (isNaN(meanValue) || isNaN(minValue)) return "normal";
-      
+
       // For demo purposes, we use static values to determine warning/error
       if (minValue < -10) return "warning";
       if (minValue < -15) return "error";
@@ -186,6 +195,7 @@ const HiLoPressureCard = memo(({
     prevProps.title === nextProps.title &&
     prevProps.unit === nextProps.unit &&
     prevProps.sensorAtom === nextProps.sensorAtom &&
+    prevProps.sensorSignal === nextProps.sensorSignal &&
     prevProps.showArrows === nextProps.showArrows &&
     prevProps.arrowValue === nextProps.arrowValue
   );

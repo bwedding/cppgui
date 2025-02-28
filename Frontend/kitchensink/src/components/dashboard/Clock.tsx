@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, memo } from 'react';
+import { useState, useEffect, useMemo, memo, useCallback } from 'react';
 import { Card } from '@/components/ui/card.tsx';
 import { useAtom } from 'jotai';
 import { isRunningAtom, elapsedTimeAtom } from './stopwatchAtoms.ts';
@@ -159,7 +159,21 @@ const ClockStopwatch = memo(() => {
 
 ClockStopwatch.displayName = 'ClockStopwatch';
 
-export const StatusBarClock = () => {
+// Memoized components for the StatusBarClock
+const StatusBarTimeDisplay = memo(({ time }: { time: string }) => (
+  <span>{time}</span>
+));
+StatusBarTimeDisplay.displayName = 'StatusBarTimeDisplay';
+
+const StatusBarStopwatchDisplay = memo(({ stopwatch }: { stopwatch: string }) => (
+  <>
+    <div className="border-l border-neutral-700 mx-4 h-4" />
+    <span className="text-green-400">⏱{stopwatch}</span>
+  </>
+));
+StatusBarStopwatchDisplay.displayName = 'StatusBarStopwatchDisplay';
+
+export const StatusBarClock = memo(() => {
   const [time, setTime] = useState(new Date());
   const [isRunning] = useAtom(isRunningAtom);
   const [elapsedTime, setElapsedTime] = useAtom(elapsedTimeAtom);
@@ -170,16 +184,19 @@ export const StatusBarClock = () => {
     return () => clearInterval(timer);
   }, []);
 
+  // Use callback for the elapsed time updater function
+  const updateElapsedTime = useCallback(() => {
+    setElapsedTime(prev => prev + 1);
+  }, [setElapsedTime]);
+
   // Stopwatch effect - update when running
   useEffect(() => {
     if (!isRunning) return;
     
-    const timer = setInterval(() => {
-      setElapsedTime(prev => prev + 1);
-    }, 1000);
+    const timer = setInterval(updateElapsedTime, 1000);
     
     return () => clearInterval(timer);
-  }, [isRunning, setElapsedTime]);
+  }, [isRunning, updateElapsedTime]);
 
   // Memoize formatted values
   const formattedValues = useMemo(() => ({
@@ -192,12 +209,9 @@ export const StatusBarClock = () => {
       <Tooltip>
         <TooltipTrigger>
           <div className="flex items-center text-sm text-neutral-400">
-            <span>{formattedValues.time}</span>
+            <StatusBarTimeDisplay time={formattedValues.time} />
             {isRunning && (
-              <>
-                <div className="border-l border-neutral-700 mx-4 h-4" />
-                <span className="text-green-400">⏱{formattedValues.stopwatch}</span>
-              </>
+              <StatusBarStopwatchDisplay stopwatch={formattedValues.stopwatch} />
             )}
           </div>
         </TooltipTrigger>
@@ -207,7 +221,7 @@ export const StatusBarClock = () => {
       </Tooltip>
     </TooltipProvider>
   );
-};
+});
 
 StatusBarClock.displayName = 'StatusBarClock';
 

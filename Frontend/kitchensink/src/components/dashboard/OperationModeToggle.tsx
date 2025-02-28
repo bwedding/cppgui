@@ -21,7 +21,6 @@ const MANUAL_STATE = 'manual';
 const OperationModeToggle = ({
   isChecked, 
   switchId = 'auto-manual-control',
-  eventMetadata = {}, 
   noEvent = false,
   onToggle, 
   leftLabel = "Manual",
@@ -35,12 +34,19 @@ const OperationModeToggle = ({
     onToggle(!isChecked)
     if (noEvent) return
 
+    const newState = !isChecked ? AUTO_STATE : MANUAL_STATE
+    
     const event: SwitchToggleEvent = {
       type: 'SWITCH_TOGGLE',
-      switchId,
-      state: !isChecked ? AUTO_STATE : MANUAL_STATE,
+      switchId: `manual-or-auto-mode`,
+      state: newState,
       source: 'user-interface',
-      timestamp: Date.now()
+      timestamp: Date.now(),
+      metadata: {
+        control: 'operation-mode',
+        parameter: 'mode',
+        currentState: newState
+      }
     };
     console.log('Sending switch toggle event', event);
     sendEvent(event)
@@ -54,6 +60,8 @@ const OperationModeToggle = ({
       
       <button
         role="switch"
+        name="auto-manual-control"
+        data-backend='{"control":"operation-mode","parameter":"mode","currentState":"AUTO_STATE or MANUAL_STATE depending on isChecked"}'
         aria-checked={isChecked}
         onClick={handleToggle}
         className={`

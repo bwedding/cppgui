@@ -30,6 +30,8 @@ const InternalPressureSensors: React.FC<InternalPressureSensorsProps> = () => {
             <div className="flex">
               <input
                 type="number"
+                name="leftAtrialPressure"
+                id="leftAtrialPressure"
                 value={leftAtrialPressure}
                 onChange={(e) => setLeftAtrialPressure(parseInt(e.target.value) || 0)}
                 className="bg-neutral-900 border border-neutral-700 text-white py-0 px-2 rounded-l w-16 text-center focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"

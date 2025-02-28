@@ -4,15 +4,70 @@ import { HeartMonitorData } from '../types/types.ts';
 import { WebView2WebMessageReceivedEventArgs } from '../types/window.ts';
 import { atomWithStorage } from 'jotai/utils';
 import { HistoryData } from '../types/history.ts';
+import { signal, computed } from "@preact/signals-react";
 
 // Initialize the default store
 const store = getDefaultStore();
+export const heartMonitorSignal = signal<HeartMonitorData | null>(null);
+
+// Derived signals for specific sections 
+export const timestampSignal = computed(() => heartMonitorSignal.value?.Timestamp);
+export const systemIdSignal = computed(() => heartMonitorSignal.value?.SystemId);
+
+// Status Data signals
+export const statusDataSignal = computed(() => heartMonitorSignal.value?.StatusData);
+export const canStatusSignal = computed(() => statusDataSignal.value?.CANStatus);
+export const strokesSignal = computed(() => statusDataSignal.value?.Strokes);
+
+// Left/Right Heart signals
+export const leftHeartSignal = computed(() => heartMonitorSignal.value?.LeftHeart);
+export const rightHeartSignal = computed(() => heartMonitorSignal.value?.RightHeart);
+
+// Sensors signals
+export const sensorsSignal = computed(() => heartMonitorSignal.value?.Sensors);
+export const artPressSignal = computed(() => sensorsSignal.value?.artPress);
+export const papSignal = computed(() => sensorsSignal.value?.pap);
+export const cvpSignal = computed(() => sensorsSignal.value?.cvp);
+export const aopSignal = computed(() => sensorsSignal.value?.aop);
+export const ivcSignal = computed(() => sensorsSignal.value?.ivc);
+
+// Heart Rate signal
+export const heartRateSignal = computed(() => heartMonitorSignal.value?.HeartRate);
+
+// Operation State signal
+export const operationStateSignal = computed(() => heartMonitorSignal.value?.OperationState);
+
+// Heart Status signal
+export const heartStatusSignal = computed(() => heartMonitorSignal.value?.HeartStatus);
+
+// Flow Limit signal
+export const flowLimitSignal = computed(() => heartMonitorSignal.value?.FlowLimit);
 
 // Root atom that holds the complete state - made writable for internal updates
 export const heartMonitorAtom = atom<HeartMonitorData | null, [HeartMonitorData], void>(
     null,
     (_get, set, update) => set(heartMonitorAtom, update)
 );
+
+function updateHeartMonitor(update: HeartMonitorData) {
+  //console.log('Updating heartMonitor Signal data:', update);
+  heartMonitorSignal.value = update;
+  console.log('Heartrate in heartMonitor Signal data:', heartMonitorSignal.value);
+  
+  // Update jotai store as well during transition period
+  store.set(heartMonitorAtom, update);
+  
+  // If we have the history signals imported, we could update them here
+  // This will need to be moved to a separate function once we import the history signals
+  // to avoid circular dependencies
+}
+
+// Create a separate function to update history signals
+// This will be called after initializing the signals
+export function setupHistorySignalUpdates() 
+{
+  // We'll implement this later after importing history signals
+}
 
 // Alarm Settings
 export interface AlarmSettings {
@@ -40,6 +95,7 @@ export interface PressureCardVisibility {
   [metricId: string]: boolean;
 }
 
+export const pressureCardVisibilitySignal = computed(() => store.get(pressureCardVisibilityAtom));
 export const pressureCardVisibilityAtom = atomWithStorage<PressureCardVisibility>('pressureCardVisibility', {
   MAP: true,
   PAP: true,
@@ -393,6 +449,7 @@ export const apiClient = {
             // Validate and update
             if (isHeartMonitorData(data)) {
                 store.set(heartMonitorAtom, data);
+                updateHeartMonitor(data);
                 //console.log('Heart monitor data updated');
             }
         });
@@ -590,14 +647,30 @@ export const heartMetricsAtom = atom((get) => ({
     flowLimit: get(heartMonitorAtom)?.FlowLimit
 }));
 
-// Sensor readings atom
-export const sensorReadingsAtom = atom((get) => ({
-    aop: get(heartMonitorAtom)?.AoPSensor,
-    cvp: get(heartMonitorAtom)?.CVPSensor,
-    pap: get(heartMonitorAtom)?.PAPSensor,
-    artPress: get(heartMonitorAtom)?.ArtPressSensor,
-    ivc: get(heartMonitorAtom)?.IVCSensorVal
+// Sensor readings signal
+export const sensorReadingsSignal = computed(() => ({
+    aop: heartMonitorSignal.value?.AoPSensor,
+    cvp: heartMonitorSignal.value?.CVPSensor,
+    pap: heartMonitorSignal.value?.PAPSensor,
+    artPress: heartMonitorSignal.value?.ArtPressSensor,
+    ivc: heartMonitorSignal.value?.IVCSensorVal
 }));
+
+// Atrial Pressures signal for left and right pressure values
+export const atrialPressuresSignal = computed(() => {
+  return {
+    left: leftHeartSignal.value?.IntPressure,
+    right: rightHeartSignal.value?.IntPressure
+  };
+});
+
+// Cardiac Output signal for left and right values
+export const cardiacOutputSignal = computed(() => {
+  return {
+    left: leftHeartSignal.value?.CardiacOutput,
+    right: rightHeartSignal.value?.CardiacOutput
+  };
+});
 
 // Atrial Pressures atom for left and right pressure values
 export const AtrialPressuresAtom = atom((get) => {

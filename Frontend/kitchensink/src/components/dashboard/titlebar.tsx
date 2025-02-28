@@ -154,6 +154,7 @@ const TitleBar: React.FC = () => {
                 <Square size={18} />
               </button>
               <button
+                name="exit"
                 onClick={handleQuit}
                 className="pl-0 pr-2 hover:bg-neutral-900 white hover:text-neutral-100"
               >

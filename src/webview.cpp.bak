@@ -6,7 +6,6 @@
 #include "APIBridge.h"
 #include "NativeDatabaseAccess.h"
 #include "CommunicationManager.h"
-#include <WebView2.h>
 #include <WebView2EnvironmentOptions.h>
 #include <wrl/event.h>
 
@@ -15,81 +14,6 @@
 using namespace Microsoft::WRL;
                                    
 extern HANDLE g_webviewReadyEvent;
-
-void WebView2Manager::RecreateWebView()
-{
-    // Cleanup existing webview
-    if (m_webview) {
-        m_webview->Release();
-    }
-
-    // Create a new environment and webview
-    // This is simplified - you'd need to use your actual initialization code
-    CreateCoreWebView2EnvironmentWithOptions(nullptr, nullptr, nullptr,
-        Callback<ICoreWebView2CreateCoreWebView2EnvironmentCompletedHandler>(
-            [this](HRESULT result, ICoreWebView2Environment* env) -> HRESULT {
-                env->CreateCoreWebView2Controller(m_hWnd,
-                    Callback<ICoreWebView2CreateCoreWebView2ControllerCompletedHandler>(
-                        [this](HRESULT result, ICoreWebView2Controller* controller) -> HRESULT {
-                            // Store the controller and get the webview
-                            m_webviewController = controller;
-                            m_webviewController->get_CoreWebView2(&m_webview);
-
-                            // Re-initialize webview here
-                            Initialize(m_hWnd);
-                            return S_OK;
-                        }).Get());
-                return S_OK;
-            }).Get());
-}
-
-const wchar_t* GetProcessFailedKindString(COREWEBVIEW2_PROCESS_FAILED_KIND kind)
-{
-    switch (kind) {
-    case COREWEBVIEW2_PROCESS_FAILED_KIND_BROWSER_PROCESS_EXITED:
-        return L"BROWSER_PROCESS_EXITED";
-    case COREWEBVIEW2_PROCESS_FAILED_KIND_RENDER_PROCESS_EXITED:
-        return L"RENDER_PROCESS_EXITED";
-    case COREWEBVIEW2_PROCESS_FAILED_KIND_RENDER_PROCESS_UNRESPONSIVE:
-        return L"RENDER_PROCESS_UNRESPONSIVE";
-    case COREWEBVIEW2_PROCESS_FAILED_KIND_FRAME_RENDER_PROCESS_EXITED:
-        return L"FRAME_RENDER_PROCESS_EXITED";
-    case COREWEBVIEW2_PROCESS_FAILED_KIND_UTILITY_PROCESS_EXITED:
-        return L"UTILITY_PROCESS_EXITED";
-    case COREWEBVIEW2_PROCESS_FAILED_KIND_SANDBOX_HELPER_PROCESS_EXITED:
-        return L"SANDBOX_HELPER_PROCESS_EXITED";
-    case COREWEBVIEW2_PROCESS_FAILED_KIND_GPU_PROCESS_EXITED:
-        return L"GPU_PROCESS_EXITED";
-    case COREWEBVIEW2_PROCESS_FAILED_KIND_PPAPI_PLUGIN_PROCESS_EXITED:
-        return L"PPAPI_PLUGIN_PROCESS_EXITED";
-    case COREWEBVIEW2_PROCESS_FAILED_KIND_PPAPI_BROKER_PROCESS_EXITED:
-        return L"PPAPI_BROKER_PROCESS_EXITED";
-    case COREWEBVIEW2_PROCESS_FAILED_KIND_UNKNOWN_PROCESS_EXITED:
-        return L"UNKNOWN_PROCESS_EXITED";
-    default:
-        return L"UNKNOWN";
-    }
-}
-
-const wchar_t* GetProcessFailedReasonString(COREWEBVIEW2_PROCESS_FAILED_REASON reason)
-{
-    switch (reason) {
-    case COREWEBVIEW2_PROCESS_FAILED_REASON_UNEXPECTED:
-        return L"UNEXPECTED";
-    case COREWEBVIEW2_PROCESS_FAILED_REASON_UNRESPONSIVE:
-        return L"UNRESPONSIVE";
-    case COREWEBVIEW2_PROCESS_FAILED_REASON_TERMINATED:
-        return L"TERMINATED";
-    case COREWEBVIEW2_PROCESS_FAILED_REASON_CRASHED:
-        return L"CRASHED";
-    case COREWEBVIEW2_PROCESS_FAILED_REASON_LAUNCH_FAILED:
-        return L"LAUNCH_FAILED";
-    case COREWEBVIEW2_PROCESS_FAILED_REASON_OUT_OF_MEMORY:
-        return L"OUT_OF_MEMORY";
-    default:
-        return L"UNKNOWN";
-    }
-}
 
 std::wstring WebView2Manager::GetUIPath()
 {
@@ -107,6 +31,7 @@ std::wstring WebView2Manager::GetUIPath()
     return localFolder;
 }
 
+constexpr long MEMORY_THRESHOLD = 0x1FFFFFFFFL;  // 512Mb
 
 // Add periodic memory monitoring
 void WebView2Manager::CheckMemoryUsage() const
@@ -123,9 +48,9 @@ void WebView2Manager::CheckMemoryUsage() const
             if (GetProcessMemoryInfo(hProcess, &pmc, sizeof(pmc)))
             {
 	            // Memory usage in bytes
-                if (const SIZE_T memoryUsage = pmc.WorkingSetSize; memoryUsage > m_memoryThreshold)
+                if (const SIZE_T memoryUsage = pmc.WorkingSetSize; memoryUsage > MEMORY_THRESHOLD)
                 {
-                    MemoryUsageHigh(memoryUsage, m_memoryThreshold);
+                    // Take action - perhaps reload or suspend WebView
                 }
             }
             CloseHandle(hProcess);
@@ -133,7 +58,7 @@ void WebView2Manager::CheckMemoryUsage() const
     }
 }
 
-void WebView2Manager::NavigateToPage(const std::wstring& page) 
+void WebView2Manager::NavigateToPage(const std::wstring& page) const
 {
     SPDLOG_TRACE("Entering");
 
@@ -149,7 +74,7 @@ void WebView2Manager::NavigateToPage(const std::wstring& page)
     // Basic path sanitization - prevent directory traversal
     if (page.find(L"..") != std::wstring::npos)
     {
-        spdlog::error("Invalid page path contains '..'");
+        //spdlog::error("Invalid page path contains '..'");
         return;
     }
 
@@ -157,7 +82,7 @@ void WebView2Manager::NavigateToPage(const std::wstring& page)
 
     if (destination.length() >= MAX_PATH)
     {
-        spdlog::error("Path exceeds MAX_PATH");
+        //spdlog::error("Path exceeds MAX_PATH");
         return;
     }
 
@@ -165,9 +90,9 @@ void WebView2Manager::NavigateToPage(const std::wstring& page)
     if (attrs == INVALID_FILE_ATTRIBUTES)
     {
         DWORD error = GetLastError();
-
+        // Convert wstring to string for spdlog
         std::string narrow_dest(destination.begin(), destination.end());
-       
+        // Create a 404 page with the attempted path
         const std::wstring html404 = L"<html><head><title>404 - Page Not Found</title>"
             L"<style>"
             L"body { font-family: Arial, sans-serif; text-align: center; padding-top: 50px; }"
@@ -182,18 +107,15 @@ void WebView2Manager::NavigateToPage(const std::wstring& page)
             L"<p class='error-path'>Rebuild the front end UI and/or check your paths. " + L"</p>"
             L"</body></html>";
 
-        if (m_html404.empty())
-            m_html404 = html404;
-        m_webview->NavigateToString(m_html404.c_str());
-
-        spdlog::error("Failed to find page: {} Error: {}", narrow_dest, error);
+        m_webview->NavigateToString(html404.c_str());
+        //spdlog::error("Failed to find page: {} Error: {}", narrow_dest, error);
         return;
     }
 
     if (!(attrs & FILE_ATTRIBUTE_NORMAL) && (attrs & FILE_ATTRIBUTE_DIRECTORY))
     {
         std::string narrow_dest(destination.begin(), destination.end());
-        spdlog::error("Path is a directory, not a file: {}", narrow_dest);
+        //spdlog::error("Path is a directory, not a file: {}", narrow_dest);
         return;
     }
 
@@ -202,6 +124,8 @@ void WebView2Manager::NavigateToPage(const std::wstring& page)
 
 WebView2Manager& WebView2Manager::GetInstance() 
 {
+    //SPDLOG_TRACE("Entering");
+
     static WebView2Manager instance;
     return instance;
 }
@@ -273,7 +197,6 @@ HRESULT WebView2Manager::ConfigureWebView(const HWND hWnd)
     SetupMessageHandlers();
 
     // Always start at home
-    // TODO Move this out of here to its own method
     const std::wstring destination = L"index.html";
     NavigateToPage(destination);
 
@@ -290,57 +213,36 @@ void WebView2Manager::ConfigureWebViewSettings()
     // Note: This should be disabled in production since we don't want JS Alerts popping up all the time
     settings->put_AreDefaultScriptDialogsEnabled(true);
     settings->put_IsWebMessageEnabled(true);
-    settings->put_AreDevToolsEnabled(true);             // TODO May want to disable for production.
-    settings->put_AreDefaultContextMenusEnabled(true);  // TODO May want to disable for production.
-    settings->put_IsBuiltInErrorPageEnabled(false);     // This is set to false to disable built in error page for navigation failure and render process failure.
+    settings->put_AreDevToolsEnabled(true);
     settings->put_IsStatusBarEnabled(false);
     settings->put_AreHostObjectsAllowed(true);  // Required for native interop
-    settings->put_IsZoomControlEnabled(true);   // Might want to disable this in the future. For now I'll leave it to handle different monitor resolutions
+    settings->put_IsZoomControlEnabled(true);  // Might want to disable this in the future. For now I'll leave it to handle different monitor resolutions
     auto nativeCtrls = Microsoft::WRL::Make<NativeWindowControls>(m_hWnd);
 
     // Create VARIANT to hold the COM object
     VARIANT var = {};
     var.vt = VT_DISPATCH;
-    HRESULT hr = nativeCtrls.Get()->QueryInterface(IID_IDispatch, reinterpret_cast<void**>(&var.pdispVal));
-    if (FAILED(hr)) 
-    {
-        SPDLOG_ERROR("Failed to get IDispatch interface for native controls. HRESULT: 0x{:08X}", static_cast<unsigned int>(hr));
-
-        // Attempt to provide a more specific error message based on common HRESULT values
-        if (hr == E_NOINTERFACE) 
-        {
-            SPDLOG_ERROR("The object doesn't support the requested interface");
-        }
-        else if (hr == E_POINTER) 
-        {
-            SPDLOG_ERROR("Invalid pointer");
-        }
-        // Can't run without this so I'm just going to blow up.
-        throw std::runtime_error("Critical error: Failed to initialize native controls");
+    HRESULT hr = nativeCtrls.Get()->QueryInterface(IID_IDispatch, (void**)&var.pdispVal);
+    if (FAILED(hr)) {
+        // Handle error
+        return;
     }
-
-    // Add our NativeWindowControls as a host object
+    // Add it as a host object
     m_webview->AddHostObjectToScript(L"native", &var);
-    ComPtr<ApiBridge> apiBridge = Make<ApiBridge>(GetInstance().GetWebView());
 
-    // Wrap the COM object in a VARIANT
+    ComPtr<ApiBridge> apiBridge = Make<ApiBridge>(GetInstance().GetWebView());
     VARIANT variant;
     VariantInit(&variant);
     variant.vt = VT_DISPATCH; // Set the type to IDispatch
     variant.pdispVal = apiBridge.Get(); // Assign the COM object
-    // Add our API Bridge as host object
     m_webview->AddHostObjectToScript(L"bridge", &variant);
-}
 
-void HandleUnresponsiveRenderer(ICoreWebView2* webview, const HWND hWnd)
-{
-    // You might want to show a dialog to the user here
-    // For example:
-    if (MessageBox(hWnd, L"The web page is not responding. Do you want to terminate it?",
-        L"Page Unresponsive", MB_YESNO | MB_ICONWARNING) == IDYES) {
-        // Terminate the page - this is a simplified approach
-        webview->Reload();
-    }
+    ComPtr<NativeDatabaseAccess> databaseAccess = Make<NativeDatabaseAccess>(GetInstance().GetWebView());
+    VARIANT dbvariant;
+    VariantInit(&dbvariant);
+    dbvariant.pdispVal = static_cast<INativeDatabaseAccess*>(databaseAccess.Get()); // Cast to specific interface
+    dbvariant.vt = VT_DISPATCH;
+    m_webview->AddHostObjectToScript(L"dbAccess", &dbvariant);
 }
 
 void WebView2Manager::SetupNavigationHandlers() const
@@ -357,7 +259,7 @@ void WebView2Manager::SetupNavigationHandlers() const
                 if (!success) {
                     COREWEBVIEW2_WEB_ERROR_STATUS webErrorStatus;
                     args->get_WebErrorStatus(&webErrorStatus);
-                    spdlog::error("Navigation failed with error status: {}", static_cast<int>(webErrorStatus));
+                    //spdlog::error("Navigation failed with error status: {}", (int)webErrorStatus);
                 }
                 return S_OK;
             }).Get(),
@@ -366,72 +268,18 @@ void WebView2Manager::SetupNavigationHandlers() const
     // Handle process failures
     m_webview->add_ProcessFailed(
         Callback<ICoreWebView2ProcessFailedEventHandler>(
-            [this](ICoreWebView2* sender, ICoreWebView2ProcessFailedEventArgs* args) mutable -> HRESULT
+            [this](ICoreWebView2*, ICoreWebView2ProcessFailedEventArgs* args) -> HRESULT
             {
                 COREWEBVIEW2_PROCESS_FAILED_KIND kind;
                 args->get_ProcessFailedKind(&kind);
-
-                // Variables for extended information
-                LPWSTR processDescription = nullptr;
-                COREWEBVIEW2_PROCESS_FAILED_REASON reason = COREWEBVIEW2_PROCESS_FAILED_REASON_UNEXPECTED;
-                int exitCode = 0;
-
-                // Try to get the extended information from ICoreWebView2ProcessFailedEventArgs2
-                Microsoft::WRL::ComPtr<ICoreWebView2ProcessFailedEventArgs2> args2;
-                if (SUCCEEDED(args->QueryInterface(IID_PPV_ARGS(&args2)))) {
-                    args2->get_Reason(&reason);
-                    args2->get_ExitCode(&exitCode);
-                    args2->get_ProcessDescription(&processDescription);
-                }
-
-                // Log the failure details
-                const wchar_t* kindStr = GetProcessFailedKindString(kind);
-                const wchar_t* reasonStr = GetProcessFailedReasonString(reason);
-
-                wchar_t logMessage[1024];
-                swprintf_s(logMessage, L"WebView process failure detected:\n"
-                    L"  Kind: %s\n"
-                    L"  Reason: %s\n"
-                    L"  Exit Code: %d\n"
-                    L"  Process: %s",
-                    kindStr, reasonStr, exitCode,
-                    processDescription ? processDescription : L"Unknown");
-
-                spdlog::error(logMessage);
-
-                // Clean up the process description
-                if (processDescription) 
-                {
-                    CoTaskMemFree(processDescription);
-                }
-
+                // TODO: Capture the process failure here and restart the webview
+                // 
                 // Handle process failure based on kind
-                switch (kind)
-            	{
-                case COREWEBVIEW2_PROCESS_FAILED_KIND_BROWSER_PROCESS_EXITED:
-                    // Critical failure, need to recreate the WebView
-                    const_cast<WebView2Manager*>(this)->RecreateWebView();
-                    break;
-
-                case COREWEBVIEW2_PROCESS_FAILED_KIND_RENDER_PROCESS_EXITED:
-                    // Renderer crashed, can usually recover by reloading
-                    sender->Reload();
-                    break;
-
-                case COREWEBVIEW2_PROCESS_FAILED_KIND_RENDER_PROCESS_UNRESPONSIVE:
-                    // Renderer is hung, might need user decision to terminate
-                    HandleUnresponsiveRenderer(sender, m_hWnd);
-                    break;
-
-                default:
-                    // For other failures, try a simple reload
-                    sender->Reload();
-                    break;
-                }
-
+                // You might want to reload the webview or notify the user
                 return S_OK;
             }).Get(),
                 nullptr);
+
 }
 
 std::string WideToUtf8(const wchar_t* wide) 
@@ -588,16 +436,14 @@ HRESULT WebView2Manager::Reload() const
 {
     SPDLOG_TRACE("Entering");
 
-    spdlog::error("WebView2Manager::Reload()\n");
+    //spdlog::info("WebView2Manager::Reload()\n");
     if (!m_webview) 
     {
-        spdlog::error("WebView2Manager::Reload() no webview member\n");
         return E_POINTER;
     }
 
     if (GetCurrentThreadId() != m_uiThreadId) 
     {
-        spdlog::error("WebView2Manager::Reload() not on the ui thread\n");
         return E_FAIL;
     }
 
@@ -621,3 +467,6 @@ HRESULT WebView2Manager::Reload() const
         return ex.code();
     }
 }
+
+
+

@@ -1,19 +1,18 @@
 import React, { useMemo, useEffect, useState } from "react";
 import { useAtomValue } from "jotai";
 import { 
-  sensorReadingsAtom as mainSensorReadingsAtom,
-  AtrialPressuresAtom as mainAtrialPressuresAtom,
-  CardiacOutputAtom as mainCardiacOutputAtom,
-  pressureCardVisibilityAtom as mainPressureCardVisibilityAtom
+  sensorReadingsSignal as mainSensorReadingsSignal,
+  atrialPressuresSignal as mainAtrialPressuresSignal,
+  cardiacOutputSignal as mainCardiacOutputSignal,
+  pressureCardVisibilitySignal as mainPressureCardVisibilitySignal
 } from "@/lib/datastore";
-
-import {
-  sensorReadingsAtom as subsetSensorReadingsAtom,
-  AtrialPressuresAtom as subsetAtrialPressuresAtom,
-  CardiacOutputAtom as subsetCardiacOutputAtom,
-  pressureCardVisibilityAtom as subsetPressureCardVisibilityAtom
+import { 
+  sensorReadingsSignal as subsetSensorReadingsSignal,
+  atrialPressuresSignal as subsetAtrialPressuresSignal,
+  cardiacOutputSignal as subsetCardiacOutputSignal,
+  pressureCardVisibilitySignal as subsetPressureCardVisibilitySignal
 } from "@/lib/subset-datastore";
-
+import { useSignals } from '@preact/signals-react/runtime';
 import PressureCard from "./PressureCard";
 import ClockStopwatch from "./Clock";
 import GridLayout from "react-grid-layout";
@@ -33,17 +32,21 @@ interface OperatingRoomContentProps {
 }
 
 const OperatingRoomContent: React.FC<OperatingRoomContentProps> = ({ isSubset = false }) => {
-  // Use the appropriate atoms based on isSubset prop
-  const sensorReadingsAtom = isSubset ? subsetSensorReadingsAtom : mainSensorReadingsAtom;
-  const AtrialPressuresAtom = isSubset ? subsetAtrialPressuresAtom : mainAtrialPressuresAtom;
-  const CardiacOutputAtom = isSubset ? subsetCardiacOutputAtom : mainCardiacOutputAtom;
-  const pressureCardVisibilityAtom = isSubset ? subsetPressureCardVisibilityAtom : mainPressureCardVisibilityAtom;
+  // Enable signals reactivity
+  useSignals();
+  
+  // Use the appropriate signals based on isSubset prop
+  const atrialPressuresSignal = isSubset ? subsetAtrialPressuresSignal : mainAtrialPressuresSignal;
+  const cardiacOutputSignal = isSubset ? subsetCardiacOutputSignal : mainCardiacOutputSignal;
+  const pressureCardVisibilitySignal = isSubset ? subsetPressureCardVisibilitySignal : mainPressureCardVisibilitySignal;
 
-  // Read atoms directly without creating derived atoms
-  const sensorReadings = useAtomValue(sensorReadingsAtom);
-  const atrialPressures = useAtomValue(AtrialPressuresAtom);
-  const cardiacOutput = useAtomValue(CardiacOutputAtom);
-  const pressureCardVisibility = useAtomValue(pressureCardVisibilityAtom);
+  // Read data from signals
+  const sensorReadings = isSubset 
+    ? subsetSensorReadingsSignal.value
+    : mainSensorReadingsSignal.value;
+  const atrialPressures = atrialPressuresSignal.value;
+  const cardiacOutput = cardiacOutputSignal.value;
+  const pressureCardVisibility = pressureCardVisibilitySignal.value;
 
   // Memoize all card configurations in a single array
   const allCards = useMemo(() => [

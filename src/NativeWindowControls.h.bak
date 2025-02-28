@@ -17,12 +17,8 @@ class NativeWindowControls final : public RuntimeClass<
     std::mutex m_connectionMutex;
 
     wil::com_ptr<ITypeLib> m_typeLib;
-
-public:
-    explicit NativeWindowControls(const HWND window) : hwnd(window) { SPDLOG_TRACE("Entering"); }
-
-    STDMETHODIMP SendClick(BSTR jsonData) override;
- 
+    static void SetStringResult(VARIANT* pVarResult, const std::wstring& str);
+    static std::string ReadFileContent(const std::wstring& wFilePath);
     STDMETHODIMP GetTypeInfoCount(UINT* pctinfo) override;
 
     STDMETHODIMP GetTypeInfo(UINT iTInfo, LCID lcid, ITypeInfo** ppTInfo) override;
@@ -32,6 +28,10 @@ public:
     STDMETHODIMP Invoke(
         DISPID dispIdMember, REFIID riid, LCID lcid, WORD wFlags, DISPPARAMS* pDispParams,
         VARIANT* pVarResult, EXCEPINFO* pExcepInfo, UINT* puArgErr) override;
+public:
+    explicit NativeWindowControls(const HWND window) : hwnd(window) { SPDLOG_TRACE("Entering"); }
+
+    STDMETHODIMP SendClick(BSTR jsonData) override;
 
     // Window control methods
     STDMETHODIMP  MinimizeWindow() override;
@@ -43,6 +43,4 @@ public:
   
     STDMETHODIMP  BrowseForFolder(BSTR* pVarResult) override;
     STDMETHODIMP  OpenFolderDialog(BSTR* pVarResult) override;
-    static void SetStringResult(VARIANT* pVarResult, const std::wstring& str);
-    static std::string ReadFileContent(const std::wstring& wFilePath);
 };

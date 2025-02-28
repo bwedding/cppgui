@@ -36,7 +36,7 @@ public:
     [[nodiscard]] HRESULT PostMessageToWebView(const std::wstring& message) const;
     [[nodiscard]] HRESULT ExecuteScript(const std::wstring& script) const;
 
-    void NavigateToPage(const std::wstring& page);
+    void NavigateToPage(const std::wstring& page) const;
     [[nodiscard]] HRESULT Reload() const;
     static void Close();
     bool CloseWebView(bool cleanupUserDataFolder);
@@ -46,41 +46,16 @@ public:
     [[nodiscard]] ICoreWebView2Controller* GetController() const { return m_webviewController.Get(); }
     [[nodiscard]] ICoreWebView2Environment* GetEnvironment() const { return m_webviewEnvironment.get(); }
 
-    using MemoryUsageCallback = std::function<void(SIZE_T currentUsage, SIZE_T threshold)>;
-
-    // Method to set the callback
-    void SetMemoryUsageHighLimit(const SIZE_T threshold)
-    {
-        // Let's set a reasonable minimum of 5Mb
-        if (threshold > 5000000 && threshold << sizeof(long))
-            m_memoryThreshold = threshold;
-    };
-
-    void SetMemoryUsageHighCallback(MemoryUsageCallback callback) {
-        m_memoryUsageCallback = std::move(callback);
-    }
-
     ~WebView2Manager() = default;
     WebView2Manager(const WebView2Manager&) = delete;
     WebView2Manager& operator=(const WebView2Manager&) = delete;
     WebView2Manager(WebView2Manager&&) = delete;
     WebView2Manager& operator=(WebView2Manager&&) = delete;
-    void Set404Page(const std::wstring pg) { m_html404 = pg; };
+
 private:
     HWND m_hWnd = nullptr;
-    MemoryUsageCallback m_memoryUsageCallback;
-    std::wstring m_html404;
-    long m_memoryThreshold = 0x1FFFFFFFFL;  // 512Mb default
-
-    void MemoryUsageHigh(SIZE_T currentUsage, SIZE_T threshold) const {
-        if (m_memoryUsageCallback) {
-            m_memoryUsageCallback(currentUsage, threshold);
-        }
-    }
 
     // Private methods
-    void RecreateWebView();
-
     HRESULT CreateWebViewController(HWND hWnd, ICoreWebView2Environment* env);
     HRESULT ConfigureWebView(HWND hWnd);
     void ConfigureWebViewSettings();

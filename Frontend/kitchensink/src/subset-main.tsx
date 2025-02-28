@@ -1,30 +1,22 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
-import { Provider, useAtom } from 'jotai';
+import { Provider } from 'jotai';
+import { useSignals } from '@preact/signals-react/runtime';
 import { 
-  sensorReadingsAtom, 
-  leftHeartAtom, 
-  rightHeartAtom,
-  stopwatchAtom,
-  initializeMessageHandling 
+  initializeMessageHandling,
+  sensorReadingsSignal,
+  leftHeartSignal,
+  rightHeartSignal,
+  stopwatchSignal
 } from './lib/subset-datastore';
 import SubsetOperatingRoomView from './components/dashboard/SubsetOperatingRoomView'
 import './index.css';
 
 // Component to initialize message handling
 const MessageHandler: React.FC = () => {
-  const [, setSensorReadings] = useAtom(sensorReadingsAtom);
-  const [, setLeftHeart] = useAtom(leftHeartAtom);
-  const [, setRightHeart] = useAtom(rightHeartAtom);
-  const [, setStopwatch] = useAtom(stopwatchAtom);
-
   React.useEffect(() => {
-    initializeMessageHandling({
-      setSensorReadings,
-      setLeftHeart,
-      setRightHeart,
-      setStopwatch
-    });
+    // Initialize message handling with signals
+    initializeMessageHandling({ useSignals: true });
   }, []);
 
   return null;

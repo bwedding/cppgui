@@ -4,13 +4,6 @@ import DashboardTabs from "./dashboard/DashboardTabs.tsx";
 import TitleBar from "./dashboard/titlebar.tsx";
 import Footer from "./dashboard/Footer.tsx";
 import OperatingRoomView from "./dashboard/OperatingRoomView.tsx";
-import { useAtomValue } from "jotai";
-import { 
-  sensorReadingsAtom, 
-  leftHeartAtom,
-  rightHeartAtom,
-  heartMetricsAtom 
-} from "lib/datastore";
 
 interface HomeProps {
   initialMode?: "auto" | "manual";

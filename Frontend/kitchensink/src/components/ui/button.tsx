@@ -66,7 +66,28 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
       onClick?.(e)
 
       // Don't dispatch event if noEvent is true or button is disabled
-      if (noEvent || props.disabled) return
+      if (noEvent || props.disabled) {
+        console.log('Button click event not dispatched:', { 
+          noEvent, 
+          disabled: props.disabled, 
+          buttonId: buttonId || props.id || props.name || 'unnamed-button' 
+        });
+        return;
+      }
+
+      // Get data from data-backend attribute if present
+      let backendData = {}
+      if (props['data-backend']) {
+        try {
+          if (typeof props['data-backend'] === 'string') {
+            backendData = JSON.parse(props['data-backend'])
+          } else {
+            backendData = props['data-backend']
+          }
+        } catch (error) {
+          console.error('Failed to parse data-backend attribute:', error)
+        }
+      }
 
       // Dispatch the button click event
       sendEvent({
@@ -75,17 +96,18 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
         value: true,
         source: 'user-interface',
         timestamp: Date.now(),
-        action: eventMetadata.action || '',
-        control: eventMetadata.control || '',
-        parameter: eventMetadata.parameter || '',
-        currentState: eventMetadata.currentState || 0,
+        action: backendData.action || eventMetadata.action || '',
+        control: backendData.control || eventMetadata.control || '',
+        parameter: backendData.parameter || eventMetadata.parameter || '',
+        currentState: backendData.currentState || eventMetadata.currentState || 0,
         metadata: {
           ...eventMetadata,
+          ...backendData,
           variant,
           size,
         }
       })
-    }, [sendEvent, onClick, noEvent, props.disabled, buttonId, props.id, props.name, variant, size, eventMetadata])
+    }, [sendEvent, onClick, noEvent, props.disabled, buttonId, props.id, props.name, variant, size, eventMetadata, props['data-backend']])
 
     return (
       <Comp

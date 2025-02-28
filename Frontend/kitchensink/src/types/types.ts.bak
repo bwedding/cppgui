@@ -101,11 +101,6 @@ export interface SwitchToggleEvent extends BaseEvent {
   type: 'SWITCH_TOGGLE';
   switchId: string;
   state: string;
-  metadata?: {
-    control: string;
-    parameter: string;
-    currentState: string;
-  };
 }
 
 export interface MenuSelectEvent extends BaseEvent {

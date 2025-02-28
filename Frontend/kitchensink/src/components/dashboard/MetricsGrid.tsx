@@ -4,11 +4,13 @@ import OperationModeToggle from "./OperationModeToggle.tsx";
 import React, { useRef, useEffect, useMemo } from 'react';
 import PhysiologicalControl from "./PhysiologicalControl.tsx";
 import DualMetricCard from "./DualMetricCard.tsx";
-import { useAtomValue, atom, useSetAtom } from 'jotai';
-import { leftHeartAtom, rightHeartAtom } from '@/lib/datastore.ts';
+import { useSetAtom } from 'jotai';
+import { leftHeartSignal, rightHeartSignal } from '@/lib/datastore.ts';
 import { PressureSensor } from '@/types/types.ts';
 import HiLoPressureCard from "./HiLoPressureCard.tsx";
 import PressureChart from "./RealTimeChart.tsx";
+import { useSignals } from "@preact/signals-react/runtime";
+import { computed } from "@preact/signals-react";
 
 import { 
   leftOutflowPressureHistoryAtom,
@@ -17,8 +19,6 @@ import {
   rightThermistorTempHistoryAtom,
   leftSensorTempHistoryAtom,
   rightSensorTempHistoryAtom,
-  //leftStrokeVolumeHistoryAtom,
-  //rightStrokeVolumeHistoryAtom,
   leftStrokeLengthHistoryAtom,
   rightStrokeLengthHistoryAtom,
   leftCardiacOutputHistoryAtom,
@@ -28,9 +28,7 @@ import {
 } from '@/lib/datastore.ts';
 import { HistoryData } from '@/types/history.ts';
 import InternalPressureSensors from './InternalPressureSensors';
-
 interface HeartMetrics {
-  //StrokeVolume: string;
   PowerConsumption: PressureSensor;
   IntPressure: PressureSensor;
   MedicalPressure: PressureSensor;
@@ -54,10 +52,6 @@ interface DataRateGaugeRef {
   addMessage: (message: any) => void;
 }
 
-interface PressureGaugeRef {
-  updateValues: (primary: number, high: number, low: number) => void;
-}
-
 interface WebView2WebMessageReceivedEventArgs {
   data: any;
 }
@@ -78,38 +72,29 @@ const defaultMetrics: HeartMetrics = {
   OutflowPressure: "0"
 };
 
-const createPressureAtom = (showingLeftHeart: boolean) => atom((get) => {
-  const heart = get(showingLeftHeart ? leftHeartAtom : rightHeartAtom);
-  if (!heart?.IntPressure) return null;
-  return {
-    primary: parseFloat(heart.IntPressure.MeanValue),
-    high: heart.IntPressureMax,
-    low: heart.IntPressureMin
-  };
-});
-
 // Memoized history atom selector
 const createHistoryAtoms = (isLeftHeart: boolean) => ({
   outflowHistory: isLeftHeart ? leftOutflowPressureHistoryAtom : rightOutflowPressureHistoryAtom,
   thermistorHistory: isLeftHeart ? leftThermistorTempHistoryAtom : rightThermistorTempHistoryAtom,
   sensorHistory: isLeftHeart ? leftSensorTempHistoryAtom : rightSensorTempHistoryAtom,
-  //strokeVolumeHistory: isLeftHeart ? leftStrokeVolumeHistoryAtom : rightStrokeVolumeHistoryAtom,
   strokeLengthHistory: isLeftHeart ? leftStrokeLengthHistoryAtom : rightStrokeLengthHistoryAtom,
   cardiacOutputHistory: isLeftHeart ? leftCardiacOutputHistoryAtom : rightCardiacOutputHistoryAtom,
   powerConsumptionHistory: isLeftHeart ? leftPowerConsumptionHistoryAtom : rightPowerConsumptionHistoryAtom
 });
 
-// Memoized pressure sensor atom
-const createPressureSensorAtom = (isLeftHeart: boolean) => atom((get) => {
-  const heartData = get(isLeftHeart ? leftHeartAtom : rightHeartAtom);
-  if (!heartData?.IntPressure) return null;
-  
-  return {
-    ...heartData.IntPressure,
-    MinValue: heartData.IntPressureMin?.toString() ?? "0",
-    MaxValue: heartData.IntPressureMax?.toString() ?? "0"
-  };
-});
+// Create a computed signal for pressure sensor data
+const createPressureSensorSignal = (isLeftHeart: boolean) => {
+  return computed(() => {
+    const heartData = isLeftHeart ? leftHeartSignal.value : rightHeartSignal.value;
+    if (!heartData?.IntPressure) return null;
+    
+    return {
+      ...heartData.IntPressure,
+      MinValue: heartData.IntPressureMin?.toString() ?? "0",
+      MaxValue: heartData.IntPressureMax?.toString() ?? "0"
+    };
+  });
+};
 
 // Memoized update history function
 const updateHistory = (
@@ -156,7 +141,7 @@ const TopRowMetrics = React.memo(({ metrics, historyAtoms, isLeftHeart }: {
         <HiLoPressureCard
           title="Left Atrium Pressure (Internal)"
           unit="mmHg"
-          sensorAtom={createPressureSensorAtom(true)}
+          sensorSignal={createPressureSensorSignal(true)}
           showArrows
           arrowValue={15}
         />
@@ -166,7 +151,7 @@ const TopRowMetrics = React.memo(({ metrics, historyAtoms, isLeftHeart }: {
         <HiLoPressureCard
           title="Right Atrium Pressure (Internal)"
           unit="mmHg"
-          sensorAtom={createPressureSensorAtom(false)}
+          sensorSignal={createPressureSensorSignal(false)}
           showArrows
           arrowValue={15}
         />
@@ -403,40 +388,18 @@ const PressureSensorSection = React.memo(() => (
 PressureSensorSection.displayName = 'PressureSensorSection';
 
 const MetricsGrid: React.FC<MetricsGridProps> = React.memo(({ leftMetrics = defaultMetrics, rightMetrics = defaultMetrics }) => {
-  const leftHeart = useAtomValue(leftHeartAtom);
-  const rightHeart = useAtomValue(rightHeartAtom);
+  // Make component reactive to signals
+  useSignals();
+  
+  // Access the signal values directly
+  const leftHeart = leftHeartSignal.value || defaultMetrics;
+  const rightHeart = rightHeartSignal.value || defaultMetrics;
+  
   const [isChecked, setIsChecked] = React.useState(false);  
   const dataRateGaugeRef = useRef<DataRateGaugeRef>(null);
   const [showingLeftHeart, setShowingLeftHeart] = React.useState(true);
   
-  const pressureAtom = useMemo(() => createPressureAtom(showingLeftHeart), [showingLeftHeart]);
-
-  const dataRateAtom = useMemo(() => atom((get) => {
-    const leftData = get(leftHeartAtom);
-    const rightData = get(rightHeartAtom);
-    if (leftData) {
-      dataRateGaugeRef.current?.addMessage(leftData);
-    }
-    if (rightData) {
-      dataRateGaugeRef.current?.addMessage(rightData);
-    }
-    return { leftData, rightData };
-  }), []);
-  
-  useAtomValue(dataRateAtom);
-
-  useEffect(() => {
-    const handler = (event: WebView2WebMessageReceivedEventArgs) => {
-      dataRateGaugeRef.current?.addMessage(event.data);
-    };
-
-    if (window.chrome?.webview) {
-      window.chrome.webview.addEventListener('message', handler);
-      return () => window.chrome?.webview.removeEventListener('message', handler);
-    }
-  }, []);
-
-  return (
+    return (
     <div className="space-y-8 mt-8">
       <div className="mx-4 mt-8">
         <div className="flex flex-col md:flex-row items-center justify-center rounded-lg p-2 sm:p-4 shadow-[inset_0_0_0_1px_rgb(82,82,91)] gap-4 overflow-hidden">

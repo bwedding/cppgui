@@ -1,0 +1,28 @@
+{
+  "name": "jsx-element-extractor",
+  "version": "1.0.0",
+  "description": "Tool to extract UI elements from JSX/TSX files",
+  "main": "index.js",
+  "bin": {
+    "extractor": "./index.js"
+  },
+  "scripts": {
+    "extract": "node index.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "react",
+    "jsx",
+    "tsx",
+    "parser",
+    "ui",
+    "elements",
+    "accessibility"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "@babel/parser": "^7.22.5",
+    "@babel/traverse": "^7.22.5"
+  }
+}

@@ -1,5 +1,6 @@
 // src/lib/subset-datastore.ts
 import { atom } from 'jotai';
+import { signal, computed } from "@preact/signals-react";
 
 // Types
 interface PressureSensor {
@@ -33,48 +34,48 @@ interface SensorReadings {
   ivc?: PressureSensor;
 }
 
-// Create atoms with debug logging
-const createLoggingAtom = <T>(initialValue: T, name: string) => {
-  const baseAtom = atom<T>(initialValue);
-  const writableAtom = atom(
-    (get) => get(baseAtom),
-    (get, set, update: T) => {
-      console.log(`Updating ${name} atom:`, update);
-      set(baseAtom, update);
-      console.log(`New ${name} value:`, get(baseAtom));
-    }
-  );
-  return writableAtom;
-};
+// Signals
+export const sensorReadingsSignal = signal<SensorReadings>({});
+export const leftHeartSignal = signal<HeartMetrics | null>(null);
+export const rightHeartSignal = signal<HeartMetrics | null>(null);
+export const stopwatchSignal = signal<number>(0);
 
-// Atoms
-export const sensorReadingsAtom = createLoggingAtom<SensorReadings>({}, 'sensorReadings');
-export const leftHeartAtom = createLoggingAtom<HeartMetrics | null>(null, 'leftHeart');
-export const rightHeartAtom = createLoggingAtom<HeartMetrics | null>(null, 'rightHeart');
-export const stopwatchAtom = createLoggingAtom<number>(0, 'stopwatch');
-
-// Atrial Pressures atom for left and right pressure values
-export const AtrialPressuresAtom = atom((get) => {
-  const leftHeart = get(leftHeartAtom);
-  const rightHeart = get(rightHeartAtom);
+// Derived signals
+export const atrialPressuresSignal = computed(() => {
   return {
-    left: leftHeart?.MedicalPressure,
-    right: rightHeart?.MedicalPressure
+    left: leftHeartSignal.value?.MedicalPressure,
+    right: rightHeartSignal.value?.MedicalPressure
   };
 });
 
-// Cardiac Output atom for left and right values
-export const CardiacOutputAtom = atom((get) => {
-  const leftHeart = get(leftHeartAtom);
-  const rightHeart = get(rightHeartAtom);
+export const cardiacOutputSignal = computed(() => {
   return {
-    left: leftHeart?.CardiacOutput,
-    right: rightHeart?.CardiacOutput
+    left: leftHeartSignal.value?.CardiacOutput,
+    right: rightHeartSignal.value?.CardiacOutput
   };
 });
 
-// Default visibility settings for subset view
-export const pressureCardVisibilityAtom = atom({
+// Import from jotai/utils
+import { atomWithStorage } from 'jotai/utils';
+import { getDefaultStore } from 'jotai';
+
+// Initialize the default store
+const store = getDefaultStore();
+
+// Pressure card visibility
+interface PressureCardVisibility {
+  MAP: boolean;
+  PAP: boolean;
+  CVP: boolean;
+  AOP: boolean;
+  LAP: boolean;
+  RAP: boolean;
+  IVC: boolean;
+  LCO: boolean;
+  RCO: boolean;
+}
+
+export const pressureCardVisibilityAtom = atomWithStorage<PressureCardVisibility>('pressureCardVisibility', {
   MAP: true,
   PAP: true,
   CVP: true,
@@ -82,33 +83,33 @@ export const pressureCardVisibilityAtom = atom({
   LAP: true,
   RAP: true,
   IVC: true,
+  LCO: true,
   RCO: true,
-  LCO: true
 });
 
-// Helper function to convert number pressure reading to string format
-function convertPressureReading(reading: { MaxValue: number, MinValue: number, MeanValue: number }): PressureSensor {
-  // Remove quotes and ensure we have clean numbers
-  const maxValue = typeof reading.MaxValue === 'string' ? parseFloat(reading.MaxValue) : reading.MaxValue;
-  const minValue = typeof reading.MinValue === 'string' ? parseFloat(reading.MinValue) : reading.MinValue;
-  const meanValue = typeof reading.MeanValue === 'string' ? parseFloat(reading.MeanValue) : reading.MeanValue;
+export const pressureCardVisibilitySignal = computed(() => store.get(pressureCardVisibilityAtom));
+
+// Helper function to convert numeric pressure readings to string format
+function convertPressureReading(reading: any): PressureSensor {
+  if (!reading) {
+    return { MaxValue: "0", MinValue: "0", MeanValue: "0" };
+  }
   
   return {
-    MaxValue: maxValue.toString(),
-    MinValue: minValue.toString(),
-    MeanValue: meanValue.toString()
+    MaxValue: reading.MaxValue?.toString() || "0",
+    MinValue: reading.MinValue?.toString() || "0",
+    MeanValue: reading.MeanValue?.toString() || "0",
+    BackColor: reading.BackColor
   };
 }
 
-// Message handler setup
-export function initializeMessageHandling(setAtoms: {
-  setSensorReadings: (value: SensorReadings) => void;
-  setLeftHeart: (value: HeartMetrics | null) => void;
-  setRightHeart: (value: HeartMetrics | null) => void;
-  setStopwatch: (value: number) => void;
-}) {
-  console.log("Initializing message handling in child window");
-  
+// Initialize message handling
+export function initializeMessageHandling(options: {
+  setSensorReadings?: (readings: SensorReadings) => void;
+  setLeftHeart?: (heart: HeartMetrics) => void;
+  setRightHeart?: (heart: HeartMetrics) => void;
+  setStopwatch?: (time: number) => void;
+} = {}) {
   window.addEventListener('message', (event) => {
     const { type, data } = event.data;
     
@@ -123,7 +124,14 @@ export function initializeMessageHandling(setAtoms: {
           aop: data.aop ? convertPressureReading(data.aop) : undefined,
           ivc: data.ivc ? convertPressureReading(data.ivc) : undefined
         };
-        setAtoms.setSensorReadings(convertedSensors);
+        
+        // Update signal directly
+        sensorReadingsSignal.value = convertedSensors;
+        
+        // Also update atom if setter provided (for backward compatibility)
+        if (options.setSensorReadings) {
+          options.setSensorReadings(convertedSensors);
+        }
         break;
       case 'UPDATE_LEFT_HEART':
       case 'UPDATE_RIGHT_HEART':
@@ -144,14 +152,32 @@ export function initializeMessageHandling(setAtoms: {
           CpuLoad: "0",
           OutflowPressure: "0"
         };
+        
+        // Update signal directly
         if (type === 'UPDATE_LEFT_HEART') {
-          setAtoms.setLeftHeart(heartMetrics);
+          leftHeartSignal.value = heartMetrics;
+          
+          // Also update atom if setter provided (for backward compatibility)
+          if (options.setLeftHeart) {
+            options.setLeftHeart(heartMetrics);
+          }
         } else {
-          setAtoms.setRightHeart(heartMetrics);
+          rightHeartSignal.value = heartMetrics;
+          
+          // Also update atom if setter provided (for backward compatibility)
+          if (options.setRightHeart) {
+            options.setRightHeart(heartMetrics);
+          }
         }
         break;
       case 'UPDATE_STOPWATCH':
-        setAtoms.setStopwatch(data);
+        // Update signal directly
+        stopwatchSignal.value = data;
+        
+        // Also update atom if setter provided (for backward compatibility)
+        if (options.setStopwatch) {
+          options.setStopwatch(data);
+        }
         break;
     }
   });

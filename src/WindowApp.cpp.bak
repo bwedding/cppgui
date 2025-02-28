@@ -79,8 +79,11 @@ LRESULT WindowApp::HandleMessage(const HWND hWnd, const UINT message, const WPAR
 	{
 		if (auto pmessage = reinterpret_cast<std::wstring*>(wParam))
 		{
-			// TODO Add error handling
-			WebView2Manager::GetInstance().PostMessageToWebView(*pmessage);
+			auto result = WebView2Manager::GetInstance().PostMessageToWebView(*pmessage);
+			if (result != S_OK)
+			{
+				spdlog::error("Failed to post message to WebView2: {}", result);
+			}
 			delete pmessage;
 		}
 		return 0;
@@ -389,13 +392,6 @@ int WindowApp::Run(const HINSTANCE hInstance, const int nShowCmd)
 		return 1;
 	}
 
-	// Monitor memory usage
-	WebView2Manager::GetInstance().SetMemoryUsageHighCallback([](SIZE_T usage, SIZE_T threshold) 
-	{
-		SPDLOG_WARN("WebView memory usage high: {} bytes (threshold: {} bytes)", usage, threshold);
-		// Try to reload the webview. We may want to do more here later.
-		WebView2Manager::GetInstance().Reload();
-	});
 
 	// Prepare the params
 	HeartControl::SubscribeParams params;

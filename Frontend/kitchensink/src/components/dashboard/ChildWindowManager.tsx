@@ -1,28 +1,14 @@
 import React, { useEffect, useRef, useCallback } from 'react';
 import { useAtomValue } from 'jotai';
 import { 
-  sensorReadingsAtom, 
+  sensorReadingsSignal, 
   leftHeartAtom, 
   rightHeartAtom,
   updateChildWindowSensors,
   updateChildWindowHearts
 } from '@/lib/datastore.ts';
-
-interface HeartData {
-  StrokeVolume: string;
-  PowerConsumption: { MaxValue: string; MinValue: string; MeanValue: string; };
-  IntPressure: { MaxValue: string; MinValue: string; MeanValue: string; };
-  MedicalPressure: { MaxValue: string; MinValue: string; MeanValue: string; };
-  IntPressureMin: number;
-  IntPressureMax: number;
-  CardiacOutput: { MaxValue: string; MinValue: string; MeanValue: string; };
-  ActualStrokeLen: string;
-  TargetStrokeLen: string;
-  SensorTemperature: string;
-  ThermistorTemperature: string;
-  CpuLoad: string;
-  OutflowPressure: string;
-}
+import { HeartData } from '@/types/types.ts';
+import { useSignals } from '@preact/signals-react/runtime';
 
 interface ChildWindowManagerProps {
   childWindow: Window | null;
@@ -37,7 +23,11 @@ const ChildWindowManager: React.FC<ChildWindowManagerProps> = ({
   stopwatchTime,
   setStopwatchTime
 }) => {
-  const sensorReadings = useAtomValue(sensorReadingsAtom);
+  // Enable signals reactivity
+  useSignals();
+  
+  // Use signal for sensor readings
+  const sensorReadings = sensorReadingsSignal.value;
   const leftHeart = useAtomValue(leftHeartAtom) as HeartData;
   const rightHeart = useAtomValue(rightHeartAtom) as HeartData;
 
