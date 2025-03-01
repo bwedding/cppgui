@@ -1,4 +1,6 @@
 #include "WindowApp.h"
+#include <commctrl.h> // For window subclassing
+#pragma comment(lib, "comctl32.lib")
 #include <iostream>
 #include <dwmapi.h>
 #pragma comment(lib, "dwmapi.lib")
@@ -75,6 +77,20 @@ LRESULT WindowApp::HandleMessage(const HWND hWnd, const UINT message, const WPAR
 {
 	switch (message)
 	{
+	case WM_CREATE:
+	{
+		// Enable snap layouts by setting the Windows 11 corner preference
+		// This makes your window participate in the new snap layout UI
+		DWMNCRENDERINGPOLICY policy = DWMNCRP_ENABLED;
+		DwmSetWindowAttribute(m_hWnd, DWMWA_NCRENDERING_POLICY, &policy, sizeof(policy));
+
+		// Set rounded corners for Windows 11 style
+		int cornerPreference = DWMWCP_ROUND;
+		DwmSetWindowAttribute(m_hWnd, DWMWA_WINDOW_CORNER_PREFERENCE, &cornerPreference, sizeof(cornerPreference));
+
+		return 0;
+	}
+
 	case WM_POST_MSG_TO_WEBVIEW: // Used to send JSON strings to the webview
 	{
 		if (auto pmessage = reinterpret_cast<std::wstring*>(wParam))
@@ -183,7 +199,6 @@ LRESULT WindowApp::HandleMessage(const HWND hWnd, const UINT message, const WPAR
 	case WM_NCHITTEST:  // This allows grabbing the border to resize
 	{
 		POINT pt = { GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam) };
-
 		RECT rc;
 		GetWindowRect(hWnd, &rc);
 
@@ -197,6 +212,13 @@ LRESULT WindowApp::HandleMessage(const HWND hWnd, const UINT message, const WPAR
 		const bool top = pt.y < rc.top + RESIZE_BORDER;
 		const bool bottom = pt.y >= rc.bottom - RESIZE_BORDER;
 
+		// Define title bar area for dragging (you may need to adjust this)
+		// This assumes you have a custom title bar that's TITLEBAR_HEIGHT pixels tall
+		const int TITLEBAR_HEIGHT = 32; // Adjust to match your title bar height
+		const bool inTitleBar = (pt.y >= rc.top && pt.y < rc.top + TITLEBAR_HEIGHT &&
+			pt.x >= rc.left && pt.x < rc.right &&
+			!left && !right && !top);
+
 		// Handle corners
 		if (top && left)     return HTTOPLEFT;
 		if (top && right)    return HTTOPRIGHT;
@@ -209,8 +231,58 @@ LRESULT WindowApp::HandleMessage(const HWND hWnd, const UINT message, const WPAR
 		if (top)             return HTTOP;
 		if (bottom)          return HTBOTTOM;
 
+		// Return HTCAPTION for title bar to enable dragging and snap functionality
+		if (inTitleBar)      return HTCAPTION;
+
 		return HTCLIENT;
 	}
+	case WM_WINDOWPOSCHANGING:
+	{
+		WINDOWPOS* wp = (WINDOWPOS*)lParam;
+
+		// Skip if the window is minimized or maximized
+		if (IsIconic(hWnd) || IsZoomed(hWnd))
+			break;
+
+		// Only apply snapping when the window is actually being moved
+		if (wp->flags & SWP_NOMOVE)
+			break;
+
+		// Get the work area (screen area minus taskbar)
+		RECT workArea;
+		HMONITOR hMonitor = MonitorFromWindow(hWnd, MONITOR_DEFAULTTONEAREST);
+		MONITORINFO mi = { sizeof(MONITORINFO) };
+		GetMonitorInfo(hMonitor, &mi);
+		workArea = mi.rcWork;
+
+		// Define snap distance
+		const int SNAP_DISTANCE = 20;
+
+		// Get window size
+		RECT rcWindow;
+		GetWindowRect(hWnd, &rcWindow);
+		int width = rcWindow.right - rcWindow.left;
+		int height = rcWindow.bottom - rcWindow.top;
+
+		// Check for snapping to left edge
+		if (abs(wp->x - workArea.left) < SNAP_DISTANCE)
+			wp->x = workArea.left;
+
+		// Check for snapping to right edge
+		if (abs((wp->x + width) - workArea.right) < SNAP_DISTANCE)
+			wp->x = workArea.right - width;
+
+		// Check for snapping to top edge
+		if (abs(wp->y - workArea.top) < SNAP_DISTANCE)
+			wp->y = workArea.top;
+
+		// Check for snapping to bottom edge
+		if (abs((wp->y + height) - workArea.bottom) < SNAP_DISTANCE)
+			wp->y = workArea.bottom - height;
+
+		return 0;
+	}
+
 	case WM_PAINT:  // We don't paint the resize border because it's transparent
 	{
 		PAINTSTRUCT ps;
@@ -247,6 +319,322 @@ LRESULT WindowApp::HandleMessage(const HWND hWnd, const UINT message, const WPAR
 	return 0;
 }
 
+void WindowApp::EnableSnapLayouts(HWND hwnd)
+{
+	// Check Windows version
+	OSVERSIONINFOEX osvi = { sizeof(OSVERSIONINFOEX) };
+	DWORDLONG dwlConditionMask = 0;
+	VER_SET_CONDITION(dwlConditionMask, VER_MAJORVERSION, VER_GREATER_EQUAL);
+	VER_SET_CONDITION(dwlConditionMask, VER_MINORVERSION, VER_GREATER_EQUAL);
+	VER_SET_CONDITION(dwlConditionMask, VER_BUILDNUMBER, VER_GREATER_EQUAL);
+	osvi.dwMajorVersion = 10;
+	osvi.dwMinorVersion = 0;
+	osvi.dwBuildNumber = 22000; // Windows 11
+
+	if (VerifyVersionInfo(&osvi, VER_MAJORVERSION | VER_MINORVERSION | VER_BUILDNUMBER, dwlConditionMask))
+	{
+		// Set window to participate in Snap Layouts
+		BOOL value = TRUE;
+		DwmSetWindowAttribute(hwnd, DWMWA_USE_HOSTBACKDROPBRUSH, &value, sizeof(value));
+
+		// Set rounded corners for Windows 11
+		int cornerPreference = DWMWCP_ROUND;
+		DwmSetWindowAttribute(hwnd, DWMWA_WINDOW_CORNER_PREFERENCE, &cornerPreference, sizeof(cornerPreference));
+	}
+}
+
+BOOL g_isDragging = FALSE;
+RECT g_lastWindowRect = { 0 };
+
+LRESULT CALLBACK CustomSnapSubclassProc(HWND hWnd, UINT uMsg, WPARAM wParam,
+	LPARAM lParam, UINT_PTR uIdSubclass,
+	DWORD_PTR dwRefData)
+{
+	switch (uMsg)
+	{
+	case WM_SYSCOMMAND:
+		// Detect the start of window dragging
+		if ((wParam & 0xFFF0) == SC_MOVE) {
+			g_isDragging = TRUE;
+			GetWindowRect(hWnd, &g_lastWindowRect);
+		}
+		break;
+
+	case WM_EXITSIZEMOVE:
+		// End of dragging operation
+		g_isDragging = FALSE;
+		break;
+
+	case WM_WINDOWPOSCHANGED:
+		
+		// Window has been moved - check for snapping
+		if (g_isDragging) {
+			WINDOWPOS* pwp = (WINDOWPOS*)lParam;
+
+			// Skip if not a move
+			if (pwp->flags & SWP_NOMOVE)
+				break;
+
+			// Get current monitor's work area
+			HMONITOR hMonitor = MonitorFromWindow(hWnd, MONITOR_DEFAULTTONEAREST);
+			MONITORINFO mi = { sizeof(MONITORINFO) };
+			GetMonitorInfo(hMonitor, &mi);
+			RECT workArea = mi.rcWork;
+
+			// Get current window rect and size
+			RECT rcWindow;
+			GetWindowRect(hWnd, &rcWindow);
+			int width = rcWindow.right - rcWindow.left;
+			int height = rcWindow.bottom - rcWindow.top;
+
+			// Check if we need to snap
+			const int SNAP_DISTANCE = 16;
+			BOOL needSnap = FALSE;
+			int newX = rcWindow.left;
+			int newY = rcWindow.top;
+
+			// Debug info - print current position
+			OutputDebugString(TEXT("Window position: "));
+			TCHAR buffer[256];
+			_stprintf_s(buffer, TEXT("Left: %d, Right: %d, workArea.right: %d, Distance: %d\n"),
+				rcWindow.left, rcWindow.right, workArea.right,
+				abs(rcWindow.right - workArea.right));
+			OutputDebugString(buffer);
+
+			// Left edge
+			if (abs(rcWindow.left - workArea.left) < SNAP_DISTANCE) {
+				newX = workArea.left;
+				needSnap = TRUE;
+				OutputDebugString(TEXT("Should snap to left edge\n"));
+			}
+
+			// Right edge
+			if (abs(rcWindow.right - workArea.right) < SNAP_DISTANCE) {
+				newX = workArea.right - width;
+				needSnap = TRUE;
+				OutputDebugString(TEXT("Should snap to right edge\n"));
+			}
+
+			// Top edge
+			if (abs(rcWindow.top - workArea.top) < SNAP_DISTANCE) {
+				newY = workArea.top;
+				needSnap = TRUE;
+				OutputDebugString(TEXT("Should snap to top edge\n"));
+			}
+
+			// Bottom edge
+			if (abs(rcWindow.bottom - workArea.bottom) < SNAP_DISTANCE) {
+				newY = workArea.bottom - height;
+				needSnap = TRUE;
+				OutputDebugString(TEXT("Should snap to bottom edge\n"));
+			}
+
+			// Debug info - print calculated positions
+			_stprintf_s(buffer, TEXT("needSnap: %d, newX: %d, rcWindow.left: %d, newY: %d, rcWindow.top: %d\n"),
+				needSnap, newX, rcWindow.left, newY, rcWindow.top);
+			OutputDebugString(buffer);
+
+			// If the window needs to snap
+			if (needSnap) {
+				// Always apply the snap position, even if it seems the same
+				// This ensures the window snaps precisely
+				_stprintf_s(buffer, TEXT("Applying snap to X: %d, Y: %d\n"), newX, newY);
+				OutputDebugString(buffer);
+
+				// Use PostMessage to avoid interfering with the current message processing
+				SetWindowPos(hWnd, NULL, newX, newY, 0, 0, SWP_NOSIZE | SWP_NOZORDER | SWP_NOACTIVATE);
+			}
+
+			// Save current position for next comparison
+			g_lastWindowRect = rcWindow;
+		}
+		break;
+	}
+
+	return DefSubclassProc(hWnd, uMsg, wParam, lParam);
+}
+
+// Add this function to enable Windows 11 background effects
+void EnableBackdropEffects(HWND hwnd)
+{
+	// Check if running on Windows 11
+	OSVERSIONINFOEX osvi = { sizeof(OSVERSIONINFOEX) };
+	DWORDLONG dwlConditionMask = 0;
+	VER_SET_CONDITION(dwlConditionMask, VER_BUILDNUMBER, VER_GREATER_EQUAL);
+	osvi.dwBuildNumber = 22000; // Windows 11
+	BOOL isWin11 = VerifyVersionInfo(&osvi, VER_BUILDNUMBER, dwlConditionMask);
+
+	if (isWin11) {
+		// For Windows 11, enable Mica effect
+		// DWMWA_SYSTEMBACKDROP_TYPE = 38
+		int backdropType = 2; // 2 = DWMSBT_MAINWINDOW (Mica)
+		DwmSetWindowAttribute(hwnd, 38, &backdropType, sizeof(backdropType));
+
+		// Enable rounded corners
+		// DWMWA_WINDOW_CORNER_PREFERENCE = 33
+		int cornerPreference = 2; // DWMWCP_ROUND
+		DwmSetWindowAttribute(hwnd, 33, &cornerPreference, sizeof(cornerPreference));
+	}
+	else {
+		// For Windows 10, try to enable Acrylic
+		// This requires a bit more work
+		//ACCENT_POLICY policy = { 0 };
+		//policy.AccentState = 3; // ACCENT_ENABLE_BLURBEHIND
+
+		//WINDOWCOMPOSITIONATTRIBDATA data = { 0 };
+		//data.Attrib = WCA_ACCENT_POLICY;
+		//data.pvData = &policy;
+		//data.cbData = sizeof(policy);
+
+		//// This requires SetWindowCompositionAttribute which isn't directly available
+		//// You might need to dynamically load user32.dll and get the function pointer
+		//typedef BOOL(WINAPI* pSetWindowCompositionAttribute)(HWND, WINDOWCOMPOSITIONATTRIBDATA*);
+		//HMODULE hUser = GetModuleHandle(TEXT("user32.dll"));
+		//if (hUser) {
+		//	pSetWindowCompositionAttribute setWindowComposition =
+		//		(pSetWindowCompositionAttribute)GetProcAddress(hUser, "SetWindowCompositionAttribute");
+		//	if (setWindowComposition) {
+		//		setWindowComposition(hwnd, &data);
+		//	}
+		//}
+	}
+}
+
+// Subclass procedure to handle window snapping
+LRESULT CALLBACK SnapWindowSubclassProc(HWND hWnd, UINT uMsg, WPARAM wParam,
+	LPARAM lParam, UINT_PTR uIdSubclass,
+	DWORD_PTR dwRefData)
+{
+	switch (uMsg)
+	{
+	case WM_MOVING:
+	case WM_WINDOWPOSCHANGING:
+	{
+		auto pwp = (WINDOWPOS*)lParam;
+
+		// Even if SWP_NOMOVE is set, we want to check if we're in a drag operation
+		DWORD dwThreadID = GetCurrentThreadId();
+		GUITHREADINFO gti = { sizeof(GUITHREADINFO) };
+		if (!GetGUIThreadInfo(dwThreadID, &gti) || !(gti.flags & GUI_INMOVESIZE)) {
+			// We're not in a move/size operation, so skip snapping
+			break;
+		}
+
+		// We're in a move operation, so process snapping regardless of SWP_NOMOVE
+		// Get current monitor's work area
+		HMONITOR hMonitor = MonitorFromWindow(hWnd, MONITOR_DEFAULTTONEAREST);
+		MONITORINFO mi = { sizeof(MONITORINFO) };
+		GetMonitorInfo(hMonitor, &mi);
+		RECT workArea = mi.rcWork;
+
+		// Get window rect and dimensions
+		RECT rcWindow;
+		GetWindowRect(hWnd, &rcWindow);
+		int width = rcWindow.right - rcWindow.left;
+		int height = rcWindow.bottom - rcWindow.top;
+
+		// The current position might be in pwp even with SWP_NOMOVE
+		// or we can use the current window position
+		int x = (pwp->flags & SWP_NOMOVE) ? rcWindow.left : pwp->x;
+		int y = (pwp->flags & SWP_NOMOVE) ? rcWindow.top : pwp->y;
+
+		// Check for snapping to screen edges
+		const int SNAP_DISTANCE = 16;
+		bool snapped = false;
+
+		// Left edge
+		if (abs(x - workArea.left) < SNAP_DISTANCE) {
+			pwp->x = workArea.left;
+			// Clear the SWP_NOMOVE flag to allow position changes
+			pwp->flags &= ~SWP_NOMOVE;
+			snapped = true;
+		}
+
+		// Right edge
+		if (abs((x + width) - workArea.right) < SNAP_DISTANCE) {
+			pwp->x = workArea.right - width;
+			pwp->flags &= ~SWP_NOMOVE;
+			snapped = true;
+		}
+
+		// Top edge
+		if (abs(y - workArea.top) < SNAP_DISTANCE) {
+			pwp->y = workArea.top;
+			pwp->flags &= ~SWP_NOMOVE;
+			snapped = true;
+		}
+
+		// Bottom edge
+		if (abs((y + height) - workArea.bottom) < SNAP_DISTANCE) {
+			pwp->y = workArea.bottom - height;
+			pwp->flags &= ~SWP_NOMOVE;
+			snapped = true;
+		}
+
+		return snapped ? TRUE : 0;
+	}
+
+	// For Windows 11 snap layout support
+	case WM_NCHITTEST:
+	{
+		// Let the default processing handle this message first
+		LRESULT lResult = DefSubclassProc(hWnd, uMsg, wParam, lParam);
+
+		// If it's not a client area, return the default result
+		if (lResult != HTCLIENT)
+			return lResult;
+
+		// For Windows 11 snap layout support, we want to make the
+		// top edge of the window behave like a title bar for snapping
+		POINT pt = { GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam) };
+		RECT rc;
+		GetWindowRect(hWnd, &rc);
+
+		// Create a "virtual" title bar at the top of the window
+		// This is important for Windows 11 snap layouts
+		const int VIRTUAL_TITLEBAR_HEIGHT = 8; // Usually a thin strip is enough
+		if (pt.y >= rc.top && pt.y < rc.top + VIRTUAL_TITLEBAR_HEIGHT)
+			return HTCAPTION;
+
+		return lResult;
+	}
+	}
+
+	return DefSubclassProc(hWnd, uMsg, wParam, lParam);
+}
+
+
+// Apply the subclass procedure to your window
+// Call this after your window is created
+void WindowApp::EnableWindowSnapping(HWND hwnd)
+{
+	// Set up window subclassing
+	//SetWindowSubclass(hwnd, SnapWindowSubclassProc, 1, 0);
+	SetWindowSubclass(hwnd, CustomSnapSubclassProc, 1, 0);
+
+	// Enable Windows 11 snap features if available
+	BOOL isWin11 = FALSE;
+
+	// Check if running on Windows 11 (build 22000 or higher)
+	OSVERSIONINFOEX osvi = { sizeof(OSVERSIONINFOEX) };
+	DWORDLONG dwlConditionMask = 0;
+	VER_SET_CONDITION(dwlConditionMask, VER_BUILDNUMBER, VER_GREATER_EQUAL);
+	osvi.dwBuildNumber = 22000;
+	if (VerifyVersionInfo(&osvi, VER_BUILDNUMBER, dwlConditionMask)) {
+		isWin11 = TRUE;
+	}
+
+	if (isWin11) {
+		// Enable rounded corners if on Windows 11
+		int cornerPreference = 2; // DWMWCP_ROUND (2)
+		DwmSetWindowAttribute(hwnd, 33, &cornerPreference, sizeof(cornerPreference));
+
+		// Enable Windows 11 Snap Layouts
+		BOOL value = TRUE;
+		DwmSetWindowAttribute(hwnd, 35, &value, sizeof(value));  // DWMWA_USE_IMMERSIVE_DARK_MODE + 1
+	}
+}
+
 LRESULT CALLBACK WindowApp::WndProc(const HWND hWnd, const UINT message, const WPARAM wParam, const LPARAM lParam)
 {
 	WindowApp* pThis = nullptr;
@@ -258,6 +646,9 @@ LRESULT CALLBACK WindowApp::WndProc(const HWND hWnd, const UINT message, const W
 		SetWindowLongPtr(hWnd, GWLP_USERDATA, reinterpret_cast<LONG_PTR>(pThis));
 		pThis->m_hWnd = hWnd;  // Update the handle
 		pThis->InitializeEventManager();
+		pThis->EnableWindowSnapping(hWnd);
+		EnableBackdropEffects(hWnd);
+
 	}
 	else
 	{
@@ -303,9 +694,10 @@ HWND& WindowApp::CreateWindows(const HINSTANCE hInstance)
 {
 	SPDLOG_TRACE("Entering");
 
-	static HWND h_wnd = CreateWindow(
+	static HWND h_wnd = CreateWindowEx(
+		WS_EX_NOREDIRECTIONBITMAP | WS_EX_APPWINDOW,
 		szWindowClass, L"",
-		WS_POPUP | WS_VISIBLE,
+		WS_POPUP | WS_VISIBLE | WS_THICKFRAME | WS_MAXIMIZEBOX | WS_MINIMIZEBOX,
 		CW_USEDEFAULT, CW_USEDEFAULT, 1600, 1100,
 		nullptr, nullptr,
 		hInstance, this
@@ -321,11 +713,18 @@ HWND& WindowApp::CreateWindows(const HINSTANCE hInstance)
 	SetLayeredWindowAttributes(h_wnd, 0, 255, LWA_ALPHA);
 
 	// Set zero margins
-	const MARGINS margins = { 0, 0, 0, 0 };
-	DwmExtendFrameIntoClientArea(h_wnd, &margins);
+	/*const MARGINS margins = { 0, 0, 0, 0 };
+	DwmExtendFrameIntoClientArea(h_wnd, &margins);*/
 
 	const DWM_SYSTEMBACKDROP_TYPE backdropType = DWMSBT_MAINWINDOW; // or DWMSBT_TRANSIENTWINDOW
 	DwmSetWindowAttribute(h_wnd, DWMWA_SYSTEMBACKDROP_TYPE, &backdropType, sizeof(backdropType));
+
+	BOOL value = TRUE;
+	DwmSetWindowAttribute(h_wnd, DWMWA_WINDOW_CORNER_PREFERENCE, &value, sizeof(value));
+	
+	// Extend frame into client area to allow Mica to show through
+	MARGINS margins = { -1, -1, -1, -1 }; // Extend to entire client area
+	DwmExtendFrameIntoClientArea(h_wnd, &margins);
 
 	// Enable resizing
 	style = GetWindowLong(h_wnd, GWL_STYLE);

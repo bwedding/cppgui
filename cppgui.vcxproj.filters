@@ -490,4 +490,9 @@
       <Filter>docs</Filter>
     </Text>
   </ItemGroup>
+  <ItemGroup>
+    <Manifest Include="cppgui.exe.manifest">
+      <Filter>src</Filter>
+    </Manifest>
+  </ItemGroup>
 </Project>

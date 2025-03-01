@@ -27,6 +27,9 @@ private:
 	static LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);
 	static bool CreateWindowClass(HINSTANCE hInstance);
 	HWND& CreateWindows(HINSTANCE hInstance);
+	void EnableSnapLayouts(HWND hwnd);
+	void EnableWindowSnapping(HWND hwnd);
+
 public:
 	WindowApp() : m_hWnd(nullptr), m_hInstance(nullptr) {}
 	~WindowApp() = default;

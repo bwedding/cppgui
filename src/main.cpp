@@ -1,4 +1,6 @@
 #include "main.h"
+#include <commctrl.h> // For window subclassing
+#pragma comment(lib, "comctl32.lib")
 #include <iostream>
 #include "WindowApp.h"
 #include "WebView.h"
@@ -37,6 +39,15 @@ static void processMessage(wil::unique_cotaskmem_string::pointer* message)
     return;
 }
 
+void InitCommonControls()
+{
+	// Initialize common controls
+	INITCOMMONCONTROLSEX icex;
+	icex.dwSize = sizeof(INITCOMMONCONTROLSEX);
+	icex.dwICC = ICC_WIN95_CLASSES;
+	InitCommonControlsEx(&icex);
+}
+
 int CALLBACK WinMain(
 	const HINSTANCE hInstance,
 	const HINSTANCE hPrevInstance,
@@ -44,8 +55,8 @@ int CALLBACK WinMain(
 	const int nShowCmd
 )
 {
-    InitializeLog();
-
+	InitializeLog();
+	InitCommonControls();
 	WindowApp app;
 	SPDLOG_TRACE("Entering");
 	app.Run(hInstance, nShowCmd);

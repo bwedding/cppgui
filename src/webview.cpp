@@ -242,7 +242,7 @@ HRESULT WebView2Manager::CreateWebViewController(HWND hWnd, ICoreWebView2Environ
                     // make background black
                     ICoreWebView2Controller2* controller2;
                     if (SUCCEEDED(controller->QueryInterface(&controller2))) {
-	                    constexpr COREWEBVIEW2_COLOR color = { 255, 0, 0, 0 }; 
+	                    constexpr COREWEBVIEW2_COLOR color = { 0, 0, 0, 0 }; 
                         controller2->put_DefaultBackgroundColor(color);
                         controller2->Release();
                     }
