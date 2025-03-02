@@ -719,9 +719,6 @@ HWND& WindowApp::CreateWindows(const HINSTANCE hInstance)
 	const DWM_SYSTEMBACKDROP_TYPE backdropType = DWMSBT_MAINWINDOW; // or DWMSBT_TRANSIENTWINDOW
 	DwmSetWindowAttribute(h_wnd, DWMWA_SYSTEMBACKDROP_TYPE, &backdropType, sizeof(backdropType));
 
-	BOOL value = TRUE;
-	DwmSetWindowAttribute(h_wnd, DWMWA_WINDOW_CORNER_PREFERENCE, &value, sizeof(value));
-	
 	// Extend frame into client area to allow Mica to show through
 	MARGINS margins = { -1, -1, -1, -1 }; // Extend to entire client area
 	DwmExtendFrameIntoClientArea(h_wnd, &margins);
@@ -731,14 +728,9 @@ HWND& WindowApp::CreateWindows(const HINSTANCE hInstance)
 	style |= WS_SIZEBOX;
 	SetWindowLong(h_wnd, GWL_STYLE, style);
 
-	// Disable default frame rendering
-	constexpr DWMNCRENDERINGPOLICY ncrp = DWMNCRP_DISABLED;
-	DwmSetWindowAttribute(h_wnd, DWMWA_NCRENDERING_POLICY, &ncrp, sizeof(ncrp));
-
-	// Set transparent border and caption colors
+	//// Set transparent border and caption colors
 	constexpr COLORREF transparentColor = 0x00000000;
 	DwmSetWindowAttribute(h_wnd, DWMWA_BORDER_COLOR, &transparentColor, sizeof(transparentColor));
-	DwmSetWindowAttribute(h_wnd, DWMWA_CAPTION_COLOR, &transparentColor, sizeof(transparentColor));
 
 	// Enable rounded corners
 	constexpr DWM_WINDOW_CORNER_PREFERENCE preference = DWMWCP_ROUND; // or try DWMWCP_ROUNDSMALL
