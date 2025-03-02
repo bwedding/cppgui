@@ -965,6 +965,12 @@ int WindowApp::Run(const HINSTANCE hInstance, const int nShowCmd)
 				// Check if WebView2 is ready and do your work when it is
 				if (WebView2Manager::GetInstance().IsWebViewReady())
 				{
+					SYSTEMTIME t;
+					GetSystemTime(&t);
+
+					spdlog::info("WebView2 is now initialized at {}-{:02d}-{:02d} {:02d}:{:02d}:{:02d}.{:03d}",
+						t.wYear, t.wMonth, t.wDay, t.wHour, t.wMinute, t.wSecond, t.wMilliseconds);
+
 					// WebView2 is ready, you can now use it
 					// You may want to set a flag here to avoid checking repeatedly
 					spdlog::info("WebView2 is now ready!");

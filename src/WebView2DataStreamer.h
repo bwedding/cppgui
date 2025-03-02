@@ -36,6 +36,9 @@ public:
 
     // Initialize buffers (call on UI thread)
     void InitializeBuffers() {
+		if (!m_webView || !m_environment12) {
+            return;
+		}
         m_webView17 = m_webView.try_query<ICoreWebView2_17>();
         if (!m_webView17) {
             throw std::runtime_error("WebView2 does not support ICoreWebView2_17 interface");
@@ -113,6 +116,10 @@ private:
     // Stream data to WebView (UI thread only)
     void StreamData(const void* data, size_t dataSize) {
         // Determine which buffer to use
+		if (!m_sharedBuffer1 || !m_sharedBuffer2) {
+			//spdlog::error("Shared buffers not initialized");
+			return;
+		}
         auto activeBuffer = m_useBuffer1 ? m_sharedBuffer1.get() : m_sharedBuffer2.get();
 
         // Get stream for writing to shared buffer

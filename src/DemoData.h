@@ -249,7 +249,8 @@ void TestHighSpeedDataStreaming(WebView2DataStreamer& streamer, HWND hWnd)
 {
 	spdlog::info("Entering TestHighSpeedDataStreaming");
 	// Start a background thread
-	std::thread testThread([&streamer, hWnd]() {
+	std::thread testThread([&streamer, hWnd]() 
+	{
 		// Setup random number generator for test data
 		std::random_device rd;
 		std::mt19937 gen(rd());
@@ -271,7 +272,8 @@ void TestHighSpeedDataStreaming(WebView2DataStreamer& streamer, HWND hWnd)
 		auto nextSampleTime = startTime;
 		int sampleCount = 0;
 
-		while (true) {
+		while (true) 
+		{
 			auto currentTime = std::chrono::high_resolution_clock::now();
 
 			// Check if test duration exceeded
@@ -280,7 +282,8 @@ void TestHighSpeedDataStreaming(WebView2DataStreamer& streamer, HWND hWnd)
 				break;
 
 			// Check if it's time for the next sample
-			if (currentTime >= nextSampleTime) {
+			if (currentTime >= nextSampleTime) 
+			{
 				// Generate random sensor data
 				sensorData.temperature = tempDist(gen);
 				sensorData.pressure = pressureDist(gen);
@@ -293,7 +296,8 @@ void TestHighSpeedDataStreaming(WebView2DataStreamer& streamer, HWND hWnd)
 				streamer.QueueData(sensorData);
 
 				// Signal UI thread to process some data (don't do this for every sample)
-				if (sampleCount % 50 == 0) {
+				if (sampleCount % 50 == 0) 
+				{
 					PostMessage(hWnd, WM_USER_PROCESS_DATA_QUEUE, 0, 0);
 				}
 
