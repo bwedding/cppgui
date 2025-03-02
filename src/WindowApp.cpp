@@ -18,7 +18,11 @@
 
 TCHAR WindowApp::szWindowClass[] = L"DesktopApp";
 WindowApp* WindowApp::sInstance = nullptr;
-
+BOOL g_isDragging = FALSE;
+RECT g_lastWindowRect = { 0 };
+BOOL g_isSnapped = FALSE;
+DWORD g_lastSnapReleaseTime = 0;
+RECT g_snappedRect = { 0 };
 constexpr int RESIZE_BORDER = 1;
 
 // Add this function somewhere accessible
@@ -238,50 +242,105 @@ LRESULT WindowApp::HandleMessage(const HWND hWnd, const UINT message, const WPAR
 	}
 	case WM_WINDOWPOSCHANGING:
 	{
-		WINDOWPOS* wp = (WINDOWPOS*)lParam;
+		WINDOWPOS* pwp = (WINDOWPOS*)lParam;
 
-		// Skip if the window is minimized or maximized
-		if (IsIconic(hWnd) || IsZoomed(hWnd))
+		// Skip if not a move
+		if (pwp->flags & SWP_NOMOVE)
 			break;
 
-		// Only apply snapping when the window is actually being moved
-		if (wp->flags & SWP_NOMOVE)
-			break;
+		// Get current time to implement cooldown periods
+		DWORD currentTime = GetTickCount();
 
-		// Get the work area (screen area minus taskbar)
-		RECT workArea;
+		// Get current monitor's work area
 		HMONITOR hMonitor = MonitorFromWindow(hWnd, MONITOR_DEFAULTTONEAREST);
 		MONITORINFO mi = { sizeof(MONITORINFO) };
 		GetMonitorInfo(hMonitor, &mi);
-		workArea = mi.rcWork;
+		RECT workArea = mi.rcWork;
 
-		// Define snap distance
-		const int SNAP_DISTANCE = 20;
-
-		// Get window size
+		// Get current window rect and size
 		RECT rcWindow;
 		GetWindowRect(hWnd, &rcWindow);
 		int width = rcWindow.right - rcWindow.left;
 		int height = rcWindow.bottom - rcWindow.top;
 
-		// Check for snapping to left edge
-		if (abs(wp->x - workArea.left) < SNAP_DISTANCE)
-			wp->x = workArea.left;
+		// Define snap parameters
+		const int SNAP_DISTANCE = 16;        // Distance to trigger snapping
+		const int DETACH_THRESHOLD = 15;     // Distance needed to escape snapping
+		const DWORD SNAP_COOLDOWN = 500;     // Milliseconds to wait before snapping again
 
-		// Check for snapping to right edge
-		if (abs((wp->x + width) - workArea.right) < SNAP_DISTANCE)
-			wp->x = workArea.right - width;
+		// If window is currently snapped, check if we should release the snap
+		if (g_isSnapped)
+		{
+			// Compare current position with snapped position
+			int deltaX = abs(pwp->x - g_snappedRect.left);
+			int deltaY = abs(pwp->y - g_snappedRect.top);
 
-		// Check for snapping to top edge
-		if (abs(wp->y - workArea.top) < SNAP_DISTANCE)
-			wp->y = workArea.top;
+			// If moved enough, release the snap
+			if (deltaX > DETACH_THRESHOLD || deltaY > DETACH_THRESHOLD)
+			{
+				g_isSnapped = FALSE;
+				g_lastSnapReleaseTime = currentTime;
+			}
+			else
+			{
+				// Still snapped, maintain the snapped position
+				pwp->x = g_snappedRect.left;
+				pwp->y = g_snappedRect.top;
+				return 0;
+			}
+		}
 
-		// Check for snapping to bottom edge
-		if (abs((wp->y + height) - workArea.bottom) < SNAP_DISTANCE)
-			wp->y = workArea.bottom - height;
+		// Don't snap again immediately after releasing
+		if (currentTime - g_lastSnapReleaseTime < SNAP_COOLDOWN)
+			break;
 
-		return 0;
+		// Check for snapping
+		BOOL needSnap = FALSE;
+		int newX = pwp->x;
+		int newY = pwp->y;
+
+		// Left edge
+		if (abs(pwp->x - workArea.left) < SNAP_DISTANCE) {
+			newX = workArea.left;
+			needSnap = TRUE;
+		}
+
+		// Right edge
+		if (abs((pwp->x + width) - workArea.right) < SNAP_DISTANCE) {
+			newX = workArea.right - width;
+			needSnap = TRUE;
+		}
+
+		// Top edge
+		if (abs(pwp->y - workArea.top) < SNAP_DISTANCE) {
+			newY = workArea.top;
+			needSnap = TRUE;
+		}
+
+		// Bottom edge
+		if (abs((pwp->y + height) - workArea.bottom) < SNAP_DISTANCE) {
+			newY = workArea.bottom - height;
+			needSnap = TRUE;
+		}
+
+		// Apply snap if needed
+		if (needSnap) {
+			pwp->x = newX;
+			pwp->y = newY;
+
+			// Record that we're now snapped and the snapped position
+			g_isSnapped = TRUE;
+			g_snappedRect.left = newX;
+			g_snappedRect.top = newY;
+			g_snappedRect.right = newX + width;
+			g_snappedRect.bottom = newY + height;
+		}
 	}
+	break;
+	case WM_EXITSIZEMOVE:
+		// Reset snapping state when drag operation ends
+		g_isSnapped = FALSE;
+		break;
 
 	case WM_PAINT:  // We don't paint the resize border because it's transparent
 	{
@@ -342,9 +401,6 @@ void WindowApp::EnableSnapLayouts(HWND hwnd)
 		DwmSetWindowAttribute(hwnd, DWMWA_WINDOW_CORNER_PREFERENCE, &cornerPreference, sizeof(cornerPreference));
 	}
 }
-
-BOOL g_isDragging = FALSE;
-RECT g_lastWindowRect = { 0 };
 
 LRESULT CALLBACK CustomSnapSubclassProc(HWND hWnd, UINT uMsg, WPARAM wParam,
 	LPARAM lParam, UINT_PTR uIdSubclass,
