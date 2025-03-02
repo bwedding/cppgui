@@ -8,6 +8,7 @@
 #include "CommunicationManager.h"
 #include "CallbackRegistry.h"
 #include "EventManager.h"
+#include "WebView2DataStreamer.h"
 
 class WindowApp
 {
@@ -22,6 +23,7 @@ private:
 	HeartControl::EventDispatcher mEventDispatcher;
 	HeartControl::CallbackRegistry mCallbackRegistry;
 	std::unique_ptr<HeartControl::EventManager> mEventManager; // Changed to pointer
+	std::unique_ptr<WebView2DataStreamer> m_dataStreamer = nullptr;
 
 	LRESULT HandleMessage(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);
 	static LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);
@@ -29,6 +31,7 @@ private:
 	HWND& CreateWindows(HINSTANCE hInstance);
 	void EnableSnapLayouts(HWND hwnd);
 	void EnableWindowSnapping(HWND hwnd);
+	void CreateEnvironmentOnUIThread(HWND hWnd);
 
 public:
 	WindowApp() : m_hWnd(nullptr), m_hInstance(nullptr) {}

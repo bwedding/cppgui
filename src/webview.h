@@ -18,6 +18,7 @@ class  NativeWindowControls;
 class WebView2Manager
 {
     DWORD m_uiThreadId;
+    EventRegistrationToken m_webMessageToken = {}; // Initialize with empty token
 
 public:
 
@@ -66,11 +67,16 @@ public:
     WebView2Manager(WebView2Manager&&) = delete;
     WebView2Manager& operator=(WebView2Manager&&) = delete;
     void Set404Page(const std::wstring pg) { m_html404 = pg; };
+	bool IsWebViewReady() const { return m_isWebViewReady; }
+
 private:
+    void SetWebViewReady(bool ready) { m_isWebViewReady = ready; }
     HWND m_hWnd = nullptr;
     MemoryUsageCallback m_memoryUsageCallback;
     std::wstring m_html404;
     long m_memoryThreshold = 0x1FFFFFFFFL;  // 512Mb default
+    bool m_isWebViewReady = false;  // Set a flag indicating WebView is ready
+
 
     void MemoryUsageHigh(SIZE_T currentUsage, SIZE_T threshold) const {
         if (m_memoryUsageCallback) {
@@ -84,8 +90,8 @@ private:
     HRESULT CreateWebViewController(HWND hWnd, ICoreWebView2Environment* env);
     HRESULT ConfigureWebView(HWND hWnd);
     void ConfigureWebViewSettings();
-    void SetupNavigationHandlers() const;
-    void SetupMessageHandlers() const;
+    void SetupNavigationHandlers();
+    void SetupMessageHandlers();
     static std::wstring GetUIPath();
 
     // Private members

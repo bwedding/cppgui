@@ -343,7 +343,7 @@ void HandleUnresponsiveRenderer(ICoreWebView2* webview, const HWND hWnd)
     }
 }
 
-void WebView2Manager::SetupNavigationHandlers() const
+void WebView2Manager::SetupNavigationHandlers() 
 {
     //SPDLOG_TRACE("Entering");
 
@@ -351,7 +351,7 @@ void WebView2Manager::SetupNavigationHandlers() const
 
     m_webview->add_NavigationCompleted(
         Callback<ICoreWebView2NavigationCompletedEventHandler>(
-            [](ICoreWebView2*, ICoreWebView2NavigationCompletedEventArgs* args) -> HRESULT {
+            [this](ICoreWebView2*, ICoreWebView2NavigationCompletedEventArgs* args) -> HRESULT {
                 BOOL success;
                 args->get_IsSuccess(&success);
                 if (!success) {
@@ -359,6 +359,9 @@ void WebView2Manager::SetupNavigationHandlers() const
                     args->get_WebErrorStatus(&webErrorStatus);
                     spdlog::error("Navigation failed with error status: {}", static_cast<int>(webErrorStatus));
                 }
+                else
+                    this->SetWebViewReady(true);
+
                 return S_OK;
             }).Get(),
                 &token);
@@ -445,11 +448,10 @@ std::string WideToUtf8(const wchar_t* wide)
     return utf8;
 }
 
-void WebView2Manager::SetupMessageHandlers() const
+void WebView2Manager::SetupMessageHandlers()
 {
     //SPDLOG_TRACE("Entering");
 
-    EventRegistrationToken token;
     m_webview->add_WebMessageReceived(
         Callback<ICoreWebView2WebMessageReceivedEventHandler>(
             [this](ICoreWebView2*, ICoreWebView2WebMessageReceivedEventArgs* args) -> HRESULT {
@@ -471,10 +473,9 @@ void WebView2Manager::SetupMessageHandlers() const
 
                     // Queue the event - use the reference to avoid copying
                     auto result = WindowApp::TriggerEvent(std::move(event));
-
-                    //auto& eventQueue = WindowApp::GetInstance()->GetEventQueue();
-                    //eventQueue.enqueue(std::move(event));
-
+					if (FAILED(result)) {
+						spdlog::error("Failed to trigger event from web message");
+					}
                 }
                 catch (const std::exception& e) {
                     spdlog::error("Error processing web message: {}", e.what());
@@ -482,7 +483,7 @@ void WebView2Manager::SetupMessageHandlers() const
                 
                 return S_OK;
             }).Get(),
-                &token);
+                &m_webMessageToken);
 }
 
 // Example usages:
@@ -557,12 +558,16 @@ void WebView2Manager::Close()
 {
     SPDLOG_TRACE("Entering");
 
-    //if (m_webview)
-    //{
-    //    m_webview->Close();
-    //    m_webview = nullptr;
-    //}
-    //m_webviewEnvironment = nullptr;
+    if (GetInstance().m_webview)
+    {
+        if (GetInstance().m_webMessageToken.value != 0) {
+            GetInstance().m_webview->remove_WebMessageReceived(GetInstance().m_webMessageToken);
+            GetInstance().m_webMessageToken = {}; // Reset the token
+        }
+        GetInstance().Close();
+        GetInstance().m_webview = nullptr;
+    }
+    GetInstance().m_webviewEnvironment = nullptr;
 
 }
 
@@ -573,6 +578,12 @@ bool WebView2Manager::CloseWebView(bool cleanupUserDataFolder)
 
     if (m_webviewController)
     {
+		// Remove the WebMessageReceived event handler to avoid leaking memory
+        if (m_webMessageToken.value != 0) {
+            m_webview->remove_WebMessageReceived(m_webMessageToken);
+            m_webMessageToken = {}; // Reset the token
+        }
+
         m_webviewController->Close();
         m_webviewController = nullptr;
         m_webview = nullptr;

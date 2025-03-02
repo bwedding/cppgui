@@ -248,6 +248,7 @@
   <ItemGroup>
     <None Include=".gitignore" />
     <None Include="libs\sqlite3.def" />
+    <None Include="Notifications.md" />
     <None Include="packages.config" />
     <None Include="src\architecture.md" />
     <None Include="src\packages.config" />
@@ -263,6 +264,7 @@
     <ClInclude Include="src\CommunicationManager.h" />
     <ClInclude Include="src\ControlMode.h" />
     <ClInclude Include="src\DatabaseTypes.h" />
+    <ClInclude Include="src\DataBuffer.h" />
     <ClInclude Include="src\DemoData.h" />
     <ClInclude Include="src\EventDispatcher.h" />
     <ClInclude Include="src\EventManager.h" />
@@ -272,6 +274,7 @@
     <ClInclude Include="src\main.h" />
     <ClInclude Include="src\NativeDatabaseAccess.h" />
     <ClInclude Include="src\NativeWindowControls.h" />
+    <ClInclude Include="src\Notifications.h" />
     <ClInclude Include="src\spdlog\async.h" />
     <ClInclude Include="src\spdlog\async_logger-inl.h" />
     <ClInclude Include="src\spdlog\async_logger.h" />
@@ -383,6 +386,7 @@
     <ClInclude Include="src\USBDevice.h" />
     <ClInclude Include="src\USBListener.h" />
     <ClInclude Include="src\webview.h" />
+    <ClInclude Include="src\WebView2DataStreamer.h" />
     <ClInclude Include="src\WindowApp.h" />
   </ItemGroup>
   <ItemGroup>
@@ -401,6 +405,7 @@
     <ClCompile Include="src\main.cpp" />
     <ClCompile Include="src\NativeDatabaseAccess.cpp" />
     <ClCompile Include="src\NativeWindowControls.cpp" />
+    <ClCompile Include="src\Notifications.cpp" />
     <ClCompile Include="src\SystemUtils.cpp" />
     <ClCompile Include="src\USBListener.cpp" />
     <ClCompile Include="src\webview.cpp" />

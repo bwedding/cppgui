@@ -15,6 +15,8 @@
 #include "UIMapper.h"
 #include "DemoData.h"
 #include <tchar.h>
+#include "Notifications.h"
+#include "WebView2DataStreamer.h"
 
 TCHAR WindowApp::szWindowClass[] = L"DesktopApp";
 WindowApp* WindowApp::sInstance = nullptr;
@@ -24,6 +26,7 @@ BOOL g_isSnapped = FALSE;
 DWORD g_lastSnapReleaseTime = 0;
 RECT g_snappedRect = { 0 };
 constexpr int RESIZE_BORDER = 1;
+static Notifications notification;
 
 // Add this function somewhere accessible
 void processAutoManualControlEvent(const HeartControl::UIEvent& event) {
@@ -45,6 +48,9 @@ void processAutoManualControlEvent(const HeartControl::UIEvent& event) {
 void TestSubscribe()
 {
 	SPDLOG_TRACE("Entering");
+	//notification.ShowModernToastNotification(L"Subscribing", L"Test Subscribing to the auto-manual-control event!");
+	notification.ShowRichToastNotification();
+
 	auto& mEvtMgr = WindowApp::GetInstance()->GetEventManager();
 
 	// Register it and get the callbackId
@@ -94,7 +100,41 @@ LRESULT WindowApp::HandleMessage(const HWND hWnd, const UINT message, const WPAR
 
 		return 0;
 	}
+	case WM_USER_CREATE_ENVIRONMENT:
+	{
+		// Create environment interfaces on UI thread
+		wil::com_ptr<ICoreWebView2Environment> baseEnvironment = WebView2Manager::GetInstance().GetEnvironment();
+		wil::com_ptr<ICoreWebView2Environment12> environment12 = baseEnvironment.try_query<ICoreWebView2Environment12>();
 
+		// Store these for later use
+		//m_environment = baseEnvironment;
+		//m_environment12 = environment12;
+
+		// If you need to perform additional actions with these environments:
+		if (environment12)
+		{
+			// Initialize your WebView2DataStreamer or other components
+			m_dataStreamer = std::make_unique<WebView2DataStreamer>(
+				WebView2Manager::GetInstance().GetWebView(), environment12);
+
+			spdlog::info("Environment interfaces created successfully on UI thread");
+		}
+		else
+		{
+			spdlog::error("Failed to query ICoreWebView2Environment12 interface");
+		}
+
+		return 0;
+	}
+	case WM_USER_PROCESS_DATA_QUEUE:
+	{
+		if (m_dataStreamer) 
+		{
+			// Process up to 50 items at a time to avoid blocking UI
+			m_dataStreamer->ProcessQueue(50);
+		}
+		return 0;
+	}
 	case WM_POST_MSG_TO_WEBVIEW: // Used to send JSON strings to the webview
 	{
 		if (auto pmessage = reinterpret_cast<std::wstring*>(wParam))
@@ -249,7 +289,7 @@ LRESULT WindowApp::HandleMessage(const HWND hWnd, const UINT message, const WPAR
 			break;
 
 		// Get current time to implement cooldown periods
-		DWORD currentTime = GetTickCount();
+		DWORD currentTime = GetTickCount64();
 
 		// Get current monitor's work area
 		HMONITOR hMonitor = MonitorFromWindow(hWnd, MONITOR_DEFAULTTONEAREST);
@@ -376,6 +416,12 @@ LRESULT WindowApp::HandleMessage(const HWND hWnd, const UINT message, const WPAR
 	}
 
 	return 0;
+}
+
+void WindowApp::CreateEnvironmentOnUIThread(HWND hWnd)
+{
+	// Post a message to the window to create the environment on the UI thread
+	PostMessage(hWnd, WM_USER_CREATE_ENVIRONMENT, 0, 0);
 }
 
 void WindowApp::EnableSnapLayouts(HWND hwnd)
@@ -704,6 +750,7 @@ void WindowApp::EnableWindowSnapping(HWND hwnd)
 LRESULT CALLBACK WindowApp::WndProc(const HWND hWnd, const UINT message, const WPARAM wParam, const LPARAM lParam)
 {
 	WindowApp* pThis = nullptr;
+	SetCurrentProcessExplicitAppUserModelID(L"YourAppId");
 
 	if (message == WM_NCCREATE)
 	{
@@ -883,14 +930,12 @@ int WindowApp::Run(const HINSTANCE hInstance, const int nShowCmd)
 		});
 
 	auto& commManager = CommunicationManager::Instance();
-	Timer timer(3000, [&commManager]
-	{
-
-			StartSendingData();
-			TestSubscribe();
-	});
 
 	MSG msg = {};
+
+	static bool webviewReady = false;
+	static bool dataStreamerReady = false;
+	static bool dataStreamerInitialized = false;
 
 	while (true)
 	{
@@ -912,7 +957,41 @@ int WindowApp::Run(const HINSTANCE hInstance, const int nShowCmd)
 			}
 		}
 		else
-			Sleep(0);  // Yield when no messages
+		{
+			if (webviewReady && dataStreamerReady)
+				Sleep(0);
+			else
+			{
+				// Check if WebView2 is ready and do your work when it is
+				if (WebView2Manager::GetInstance().IsWebViewReady())
+				{
+					// WebView2 is ready, you can now use it
+					// You may want to set a flag here to avoid checking repeatedly
+					spdlog::info("WebView2 is now ready!");
+					webviewReady = true; // Set flag to avoid checking repeatedly
+
+					if (!dataStreamerInitialized)
+					{
+						CreateEnvironmentOnUIThread(m_hWnd);
+						dataStreamerInitialized = true;
+					}
+					std::this_thread::sleep_for(10ms);
+					if (!m_dataStreamer)
+						continue;
+						
+					dataStreamerReady = true;
+					TestHighSpeedDataStreaming(*m_dataStreamer, m_hWnd);
+					StartSendingData();
+					TestSubscribe();
+				}
+				else
+				{
+					// Still waiting, but allow message processing to continue
+					spdlog::info("Waiting for WebView2 to be ready...");
+					Sleep(50); // Small delay to avoid excessive logging
+				}
+			}
+		}
 	}
 
 	return static_cast<int>(msg.wParam);

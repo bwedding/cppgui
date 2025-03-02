@@ -1,5 +1,6 @@
 ﻿#pragma once
 #include "WindowApp.h"
+#include "WebView2DataStreamer.h"
 #include "NativeDatabaseAccess.h"
 #include <chrono>
 #include <thread>
@@ -8,6 +9,9 @@
 #include "SystemData.h"
 #include "sqlite3.h"
 #include "webview.h"
+#include "DataBuffer.h"
+#include <iostream>
+
 
 // Test function to create a sample SQLite database
 bool CreateTestDatabase(const std::wstring& dbPath) {
@@ -241,6 +245,87 @@ public:
 	}
 };
 
+void TestHighSpeedDataStreaming(WebView2DataStreamer& streamer, HWND hWnd) 
+{
+	spdlog::info("Entering TestHighSpeedDataStreaming");
+	// Start a background thread
+	std::thread testThread([&streamer, hWnd]() {
+		// Setup random number generator for test data
+		std::random_device rd;
+		std::mt19937 gen(rd());
+		std::uniform_real_distribution<float> tempDist(20.0f, 30.0f);
+		std::uniform_real_distribution<float> pressureDist(990.0f, 1010.0f);
+		std::uniform_real_distribution<float> humidityDist(30.0f, 80.0f);
+		std::uniform_real_distribution<float> voltageDist(11.8f, 12.2f);
+
+		// Create our sensor data struct
+		SensorData sensorData;
+
+		// Test duration and frequency
+		const int testDurationSeconds = 30;
+		const int targetFrequencyHz = 1000;
+		const auto targetPeriod = std::chrono::microseconds(1000000 / targetFrequencyHz);
+
+		// Start time tracking
+		auto startTime = std::chrono::high_resolution_clock::now();
+		auto nextSampleTime = startTime;
+		int sampleCount = 0;
+
+		while (true) {
+			auto currentTime = std::chrono::high_resolution_clock::now();
+
+			// Check if test duration exceeded
+			if (std::chrono::duration_cast<std::chrono::seconds>(currentTime - startTime).count()
+				>= testDurationSeconds)
+				break;
+
+			// Check if it's time for the next sample
+			if (currentTime >= nextSampleTime) {
+				// Generate random sensor data
+				sensorData.temperature = tempDist(gen);
+				sensorData.pressure = pressureDist(gen);
+				sensorData.humidity = humidityDist(gen);
+				sensorData.voltage = voltageDist(gen);
+				sensorData.timestamp = std::chrono::duration_cast<std::chrono::microseconds>(
+					currentTime.time_since_epoch()).count();
+
+				// Queue data for processing on UI thread
+				streamer.QueueData(sensorData);
+
+				// Signal UI thread to process some data (don't do this for every sample)
+				if (sampleCount % 50 == 0) {
+					PostMessage(hWnd, WM_USER_PROCESS_DATA_QUEUE, 0, 0);
+				}
+
+				// Increment sample count
+				sampleCount++;
+
+				// Calculate next sample time
+				nextSampleTime += targetPeriod;
+			}
+
+			// Yield the CPU
+			std::this_thread::yield();
+		}
+
+		// Final processing of any remaining data
+		PostMessage(hWnd, WM_USER_PROCESS_DATA_QUEUE, 0, 0);
+
+		// Report statistics
+		auto endTime = std::chrono::high_resolution_clock::now();
+		auto elapsedTime = std::chrono::duration_cast<std::chrono::milliseconds>(endTime - startTime).count();
+		double actualFrequency = static_cast<double>(sampleCount) / (elapsedTime / 1000.0);
+
+		spdlog::info("Test completed:");
+		spdlog::info("  Samples generated: {}", sampleCount);
+		spdlog::info("  Elapsed time: {} ms", elapsedTime);
+		spdlog::info("  Actual frequency: {} Hz", actualFrequency);
+		});
+
+	// Detach the thread to let it run independently
+	testThread.detach();
+}
+
 void SendData()
 {
 	SPDLOG_TRACE("Entering");
@@ -250,6 +335,7 @@ void SendData()
 
 	CreateTestDatabase(L"C:\\temp\\test_database.db");
 	TestDatabaseAccess();
+
 	while (true)
 	{
 		// Turn on for high speed load testing. This is NOT JSON data but will be recieved and counted
