@@ -407,6 +407,7 @@
     <ClCompile Include="src\WindowApp.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <Manifest Include="app.manifest" />
     <Manifest Include="cppgui.exe.manifest" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

@@ -494,5 +494,6 @@
     <Manifest Include="cppgui.exe.manifest">
       <Filter>src</Filter>
     </Manifest>
+    <Manifest Include="app.manifest" />
   </ItemGroup>
 </Project>

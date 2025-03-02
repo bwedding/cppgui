@@ -365,6 +365,35 @@ LRESULT CALLBACK CustomSnapSubclassProc(HWND hWnd, UINT uMsg, WPARAM wParam,
 		g_isDragging = FALSE;
 		break;
 
+	case WM_DPICHANGED:
+	{
+		spdlog::info("WM_DPICHANGED received");
+		// The RECT* passed in lParam contains the suggested new window size
+		RECT* prcNewWindow = (RECT*)lParam;
+
+		// Resize the window to the recommended size
+		SetWindowPos(hWnd,
+			NULL,
+			prcNewWindow->left,
+			prcNewWindow->top,
+			prcNewWindow->right - prcNewWindow->left,
+			prcNewWindow->bottom - prcNewWindow->top,
+			SWP_NOZORDER | SWP_NOACTIVATE);
+
+		// If you have a WebView2 controller, resize it to match the new window size
+		auto ctrlr = WebView2Manager::GetInstance().GetController();
+		if (ctrlr) {
+			RECT bounds;
+			GetClientRect(hWnd, &bounds);
+			ctrlr->put_Bounds(bounds);
+
+			// Notify WebView2 that the parent window position has changed
+			ctrlr->NotifyParentWindowPositionChanged();
+		}
+
+		return 0;  // Return 0 to indicate the message was handled
+	}
+
 	case WM_WINDOWPOSCHANGED:
 		
 		// Window has been moved - check for snapping
@@ -388,58 +417,39 @@ LRESULT CALLBACK CustomSnapSubclassProc(HWND hWnd, UINT uMsg, WPARAM wParam,
 			int height = rcWindow.bottom - rcWindow.top;
 
 			// Check if we need to snap
-			const int SNAP_DISTANCE = 16;
+			const int SNAP_DISTANCE = 10;
 			BOOL needSnap = FALSE;
 			int newX = rcWindow.left;
 			int newY = rcWindow.top;
-
-			// Debug info - print current position
-			OutputDebugString(TEXT("Window position: "));
-			TCHAR buffer[256];
-			_stprintf_s(buffer, TEXT("Left: %d, Right: %d, workArea.right: %d, Distance: %d\n"),
-				rcWindow.left, rcWindow.right, workArea.right,
-				abs(rcWindow.right - workArea.right));
-			OutputDebugString(buffer);
 
 			// Left edge
 			if (abs(rcWindow.left - workArea.left) < SNAP_DISTANCE) {
 				newX = workArea.left;
 				needSnap = TRUE;
-				OutputDebugString(TEXT("Should snap to left edge\n"));
 			}
 
 			// Right edge
 			if (abs(rcWindow.right - workArea.right) < SNAP_DISTANCE) {
 				newX = workArea.right - width;
 				needSnap = TRUE;
-				OutputDebugString(TEXT("Should snap to right edge\n"));
 			}
 
 			// Top edge
 			if (abs(rcWindow.top - workArea.top) < SNAP_DISTANCE) {
 				newY = workArea.top;
 				needSnap = TRUE;
-				OutputDebugString(TEXT("Should snap to top edge\n"));
 			}
 
 			// Bottom edge
 			if (abs(rcWindow.bottom - workArea.bottom) < SNAP_DISTANCE) {
 				newY = workArea.bottom - height;
 				needSnap = TRUE;
-				OutputDebugString(TEXT("Should snap to bottom edge\n"));
 			}
-
-			// Debug info - print calculated positions
-			_stprintf_s(buffer, TEXT("needSnap: %d, newX: %d, rcWindow.left: %d, newY: %d, rcWindow.top: %d\n"),
-				needSnap, newX, rcWindow.left, newY, rcWindow.top);
-			OutputDebugString(buffer);
 
 			// If the window needs to snap
 			if (needSnap) {
 				// Always apply the snap position, even if it seems the same
 				// This ensures the window snaps precisely
-				_stprintf_s(buffer, TEXT("Applying snap to X: %d, Y: %d\n"), newX, newY);
-				OutputDebugString(buffer);
 
 				// Use PostMessage to avoid interfering with the current message processing
 				SetWindowPos(hWnd, NULL, newX, newY, 0, 0, SWP_NOSIZE | SWP_NOZORDER | SWP_NOACTIVATE);
