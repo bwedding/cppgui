@@ -651,16 +651,15 @@ STDMETHODIMP NativeWindowControls::SendClick(const BSTR jsonData)
     const auto json = nlohmann::json::parse(str);
 
     spdlog::trace(json.dump());
+    // TODO add code to populate event with actual data
     HeartControl::UIEvent evt{
         "auto-manual-control",
         "User interface",
         str,
         system_clock::time_point{}
     };
-    const WindowApp* mWinApp = WindowApp::GetInstance();
-
-    auto &mEvtMgr = mWinApp->GetEventManager();
-
+    
+    auto& mEvtMgr = WindowApp::GetInstance()->GetEventManager();
     const int eventId = mEvtMgr.registerEvent(std::move(evt));
 
     PostMessage(hwnd, WM_USER_EVENT, 0, eventId);
