@@ -321,8 +321,9 @@ void WebView2Manager::ConfigureWebViewSettings()
 
     // Add our NativeWindowControls as a host object
     m_webview->AddHostObjectToScript(L"native", &var);
-    ComPtr<ApiBridge> apiBridge = Make<ApiBridge>(GetInstance().GetWebView());
+    VariantClear(&var);
 
+    ComPtr<ApiBridge> apiBridge = Make<ApiBridge>(GetInstance().GetWebView());
     // Wrap the COM object in a VARIANT
     VARIANT variant;
     VariantInit(&variant);
@@ -330,6 +331,7 @@ void WebView2Manager::ConfigureWebViewSettings()
     variant.pdispVal = apiBridge.Get(); // Assign the COM object
     // Add our API Bridge as host object
     m_webview->AddHostObjectToScript(L"bridge", &variant);
+    VariantClear(&variant);
 }
 
 void HandleUnresponsiveRenderer(ICoreWebView2* webview, const HWND hWnd)

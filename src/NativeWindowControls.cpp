@@ -368,20 +368,15 @@ STDMETHODIMP NativeWindowControls::Invoke(
     DISPID dispIdMember, REFIID riid, const LCID lcid, const WORD wFlags, DISPPARAMS* pDispParams,
     VARIANT* pVarResult, EXCEPINFO* pExcepInfo, UINT* puArgErr)
 {
-
-    OutputDebugString(L"Invoke called with dispid: ");
-    wchar_t buffer[16];
-    _itow_s(dispIdMember, buffer, 10);
-    OutputDebugString(buffer);
-    OutputDebugString(L"\n");
-
     //SPDLOG_TRACE("Entering");
     wil::com_ptr<ITypeInfo> typeInfo;
     RETURN_IF_FAILED(GetTypeInfo(0, lcid, &typeInfo));
 
-    if (pDispParams) {
+    if (pDispParams) 
+    {
         spdlog::info("Args count: {}", pDispParams->cArgs);
-        if (pDispParams->cArgs > 0) {
+        if (pDispParams->cArgs > 0) 
+        {
             spdlog::info("First arg type: {}", pDispParams->rgvarg[0].vt);
         }
     }
@@ -582,7 +577,8 @@ STDMETHODIMP  NativeWindowControls::FileSaveDialog(BSTR* pVarResult)
         pFileSave->Release();
     }
 
-    if (SUCCEEDED(hr) && pVarResult) {
+    if (SUCCEEDED(hr) && pVarResult) 
+    {
         *pVarResult = SysAllocString(selectedFile.c_str());
     }
     SPDLOG_TRACE("Exiting");

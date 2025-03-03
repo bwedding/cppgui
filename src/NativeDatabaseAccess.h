@@ -47,12 +47,59 @@ private:
     std::unordered_map<std::wstring, bool> m_activeTransactions;
 
     // Parameterized query management
-    struct QueryParameter {
+    struct QueryParameter 
+    {
         std::wstring name;
         VARIANT value;
-    };
 
-    struct ParameterizedQuery {
+        QueryParameter() {
+            VariantInit(&value);
+        }
+        ~QueryParameter() {
+            VariantClear(&value);
+        }
+        // Copy constructor (to properly handle deep copies)
+        QueryParameter(const QueryParameter& other) {
+            name = other.name;
+            VariantInit(&value);
+            VariantCopy(&value, &other.value);
+        }
+
+        // Copy assignment operator
+        QueryParameter& operator=(const QueryParameter& other) {
+            if (this != &other) 
+            {
+                name = other.name;
+                VariantClear(&value);  // Clear existing value
+                VariantInit(&value);
+                VariantCopy(&value, &other.value);
+            }
+            return *this;
+        }
+
+        // Move constructor
+        QueryParameter(QueryParameter&& other) noexcept : name(std::move(other.name)), value(other.value) 
+        {
+            VariantInit(&other.value); // Reinitialize the moved-from variant
+        }
+
+        // Move assignment operator
+        QueryParameter& operator=(QueryParameter&& other) noexcept 
+        {
+            if (this != &other) 
+            {
+                name = std::move(other.name);
+                VariantClear(&value);
+                value = other.value;
+                VariantInit(&other.value); // Reinitialize the moved-from variant
+            }
+            return *this;
+        }
+    };
+    
+
+    struct ParameterizedQuery 
+    {
         std::wstring query;
         std::vector<QueryParameter> parameters;
     };
@@ -77,7 +124,8 @@ private:
         VARIANT* pVarResult, EXCEPINFO* pExcepInfo, UINT* puArgErr) override;
 
 public:
-    NativeDatabaseAccess(ICoreWebView2* webview) : m_webview(webview) {
+    NativeDatabaseAccess(ICoreWebView2* webview) : m_webview(webview) 
+    {
         SPDLOG_TRACE("NativeDatabaseAccess created");
     }
     ~NativeDatabaseAccess() { SPDLOG_TRACE("NativeDatabaseAccess destroyed"); }
