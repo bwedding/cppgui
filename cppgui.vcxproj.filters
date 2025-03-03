@@ -441,6 +441,7 @@
     <ClInclude Include="src\WebView2DataStreamer.h">
       <Filter>include</Filter>
     </ClInclude>
+    <ClInclude Include="Generated\InputHandler.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include=".gitignore" />
@@ -510,5 +511,8 @@
       <Filter>src</Filter>
     </Manifest>
     <Manifest Include="app.manifest" />
+  </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="Scripts\generate-handlers.js" />
   </ItemGroup>
 </Project>

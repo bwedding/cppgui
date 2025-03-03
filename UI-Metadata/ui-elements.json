@@ -1,0 +1,94 @@
+{
+  "elements": [
+    {
+      "type": "Button",
+      "name": "Button",
+      "attributes": {
+        "name": "`change-heartrate-${action}`",
+        "variant": "ghost",
+        "size": "icon",
+        "disabled": "disabled",
+        "onClick": "handleClick",
+        "data-backend": "{\"control\":\"change-heartrate\",\"parameter\":\"bpm\",\"currentState\":\"decrease or increase depending on action\"}",
+        "noEvent": "true"
+      },
+      "location": {
+        "file": "C:\\Users\\bruce\\source\\cppgui\\Frontend\\kitchensink\\src\\components\\dashboard\\HeartControl.tsx",
+        "line": 64,
+        "column": 4
+      }
+    },
+    {
+      "type": "Button",
+      "name": "button",
+      "attributes": {
+        "role": "switch",
+        "name": "auto-manual-control",
+        "data-backend": "{\"control\":\"operation-mode\",\"parameter\":\"mode\",\"currentState\":\"AUTO_STATE or MANUAL_STATE depending on isChecked\"}",
+        "aria-checked": "isChecked",
+        "onClick": "handleToggle"
+      },
+      "location": {
+        "file": "C:\\Users\\bruce\\source\\cppgui\\Frontend\\kitchensink\\src\\components\\dashboard\\OperationModeToggle.tsx",
+        "line": 61,
+        "column": 6
+      }
+    }
+  ],
+  "summary": {
+    "totalElements": 2,
+    "byType": {
+      "Button": 2
+    },
+    "byFile": {
+      "C:\\Users\\bruce\\source\\cppgui\\Frontend\\kitchensink\\src\\components\\dashboard\\HeartControl.tsx": {
+        "Button": 1
+      },
+      "C:\\Users\\bruce\\source\\cppgui\\Frontend\\kitchensink\\src\\components\\dashboard\\OperationModeToggle.tsx": {
+        "Button": 1
+      }
+    },
+    "specialSections": {
+      "inputsMissingIdentifiers": [],
+      "elementsWithBackendData": [
+        {
+          "type": "Button",
+          "name": "Button",
+          "location": {
+            "file": "C:\\Users\\bruce\\source\\cppgui\\Frontend\\kitchensink\\src\\components\\dashboard\\HeartControl.tsx",
+            "line": 64,
+            "column": 4
+          },
+          "backendData": "{\"control\":\"change-heartrate\",\"parameter\":\"bpm\",\"currentState\":\"decrease or increase depending on action\"}",
+          "attributes": {
+            "name": "`change-heartrate-${action}`",
+            "variant": "ghost",
+            "size": "icon",
+            "disabled": "disabled",
+            "onClick": "handleClick",
+            "data-backend": "{\"control\":\"change-heartrate\",\"parameter\":\"bpm\",\"currentState\":\"decrease or increase depending on action\"}",
+            "noEvent": "true"
+          }
+        },
+        {
+          "type": "Button",
+          "name": "button",
+          "location": {
+            "file": "C:\\Users\\bruce\\source\\cppgui\\Frontend\\kitchensink\\src\\components\\dashboard\\OperationModeToggle.tsx",
+            "line": 61,
+            "column": 6
+          },
+          "backendData": "{\"control\":\"operation-mode\",\"parameter\":\"mode\",\"currentState\":\"AUTO_STATE or MANUAL_STATE depending on isChecked\"}",
+          "attributes": {
+            "role": "switch",
+            "name": "auto-manual-control",
+            "data-backend": "{\"control\":\"operation-mode\",\"parameter\":\"mode\",\"currentState\":\"AUTO_STATE or MANUAL_STATE depending on isChecked\"}",
+            "aria-checked": "isChecked",
+            "onClick": "handleToggle"
+          }
+        }
+      ],
+      "elementsWithDefaultNames": []
+    }
+  }
+}

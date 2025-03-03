@@ -1,0 +1,14 @@
+{
+  "inputs": [
+    {
+      "type": "button",
+      "id": "`change-heartrate-${action}`",
+      "event": "click"
+    },
+    {
+      "type": "button",
+      "id": "auto-manual-control",
+      "event": "click"
+    }
+  ]
+}

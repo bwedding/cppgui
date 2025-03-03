@@ -287,21 +287,68 @@ const generateReport = (elements) => {
   return summary;
 };
 
+// NEW FUNCTION: Generate compact JSON format
+const generateCompactJson = (elements) => {
+  // Filter only elements with data-backend attribute
+  const backendElements = elements.filter(el => el.attributes && el.attributes['data-backend']);
+  
+  // Map to the compact format
+  const inputs = backendElements.map(element => {
+    // Determine element type (lowercase)
+    let elementType = element.name.toLowerCase();
+    
+    // Determine ID (use id if available, otherwise use name, or null if neither exists)
+    let elementId = element.attributes.id || element.attributes.name || null;
+    
+    // Determine event type based on element type
+    let eventType;
+    if (elementType.includes('button')) {
+      eventType = 'click';
+    } else if (elementType.includes('check') || elementType.includes('radio') || 
+               elementType.includes('select') || elementType.includes('switch') ||
+               elementType.includes('slider')) {
+      eventType = 'change';
+    } else if (elementType.includes('input') || elementType.includes('text')) {
+      eventType = 'input';
+    } else {
+      eventType = 'change'; // Default event type
+    }
+    
+    return {
+      type: elementType,
+      id: elementId,
+      event: eventType
+    };
+  });
+  
+  return { inputs };
+};
+
 // Export results to JSON
 const exportResults = (elements, outputPath, options = {}) => {
-  const results = {
-    elements,
-    summary: generateReport(elements)
-  };
+  let results;
   
-  if (options.markdownOutput) {
+  if (options.compactFormat) {
+    // Use the new compact format
+    results = generateCompactJson(elements);
+    fs.writeFileSync(outputPath, JSON.stringify(results, null, 2));
+    console.log(`Compact JSON results exported to ${outputPath}`);
+  } else if (options.markdownOutput) {
     // Export as Markdown if requested
+    results = {
+      elements,
+      summary: generateReport(elements)
+    };
     const markdownContent = generateMarkdownReport(results);
     const markdownPath = outputPath.replace(/\.json$/, '.md');
     fs.writeFileSync(markdownPath, markdownContent);
     console.log(`Markdown results exported to ${markdownPath}`);
   } else {
     // Default JSON output
+    results = {
+      elements,
+      summary: generateReport(elements)
+    };
     fs.writeFileSync(outputPath, JSON.stringify(results, null, 2));
     console.log(`JSON results exported to ${outputPath}`);
   }
@@ -418,8 +465,10 @@ const extractElements = (targetPath, outputPath = './element-extraction-results.
   }
   if (options.markdownOutput) {
     console.log('Output format: Markdown');
+  } else if (options.compactFormat) {
+    console.log('Output format: Compact JSON');
   } else {
-    console.log('Output format: JSON (use --markdown to output as Markdown)');
+    console.log('Output format: JSON (use --markdown for Markdown or --compact for compact JSON)');
   }
   
   // Check if path exists
@@ -440,23 +489,29 @@ const extractElements = (targetPath, outputPath = './element-extraction-results.
     
     console.log(`Found ${elements.length} UI elements`);
     
-    // Generate report
-    const report = generateReport(elements);
-    
-    // Log special section info
-    if (report.specialSections.inputsMissingIdentifiers.length > 0) {
-      console.log(`\n⚠️ Warning: Found ${report.specialSections.inputsMissingIdentifiers.length} inputs without name or id attributes`);
-      console.log(`Check the report for details\n`);
-    }
-    
-    if (report.specialSections.elementsWithDefaultNames.length > 0) {
-      console.log(`\n⚠️ Warning: Found ${report.specialSections.elementsWithDefaultNames.length} elements with missing or default names`);
-      console.log(`Check the report for details\n`);
-    }
-    
-    if (report.specialSections.elementsWithBackendData.length > 0) {
-      console.log(`\n📊 Found ${report.specialSections.elementsWithBackendData.length} elements with data-backend attribute`);
-      console.log(`Check the report for details\n`);
+    // If we're using compact format, we only care about backend elements
+    if (options.compactFormat) {
+      const backendElements = elements.filter(el => el.attributes && el.attributes['data-backend']);
+      console.log(`Of which ${backendElements.length} have data-backend attribute`);
+    } else {
+      // Generate report
+      const report = generateReport(elements);
+      
+      // Log special section info
+      if (report.specialSections.inputsMissingIdentifiers.length > 0) {
+        console.log(`\n⚠️ Warning: Found ${report.specialSections.inputsMissingIdentifiers.length} inputs without name or id attributes`);
+        console.log(`Check the report for details\n`);
+      }
+      
+      if (report.specialSections.elementsWithDefaultNames.length > 0) {
+        console.log(`\n⚠️ Warning: Found ${report.specialSections.elementsWithDefaultNames.length} elements with missing or default names`);
+        console.log(`Check the report for details\n`);
+      }
+      
+      if (report.specialSections.elementsWithBackendData.length > 0) {
+        console.log(`\n📊 Found ${report.specialSections.elementsWithBackendData.length} elements with data-backend attribute`);
+        console.log(`Check the report for details\n`);
+      }
     }
     
     // Export results
@@ -471,12 +526,63 @@ const extractElements = (targetPath, outputPath = './element-extraction-results.
   }
 };
 
-// Example usage
-// extractElements('./src');
+// Command line argument processing
+const processCommandLineArgs = () => {
+  const args = process.argv.slice(2);
+  const options = {
+    backendOnly: false,
+    includeClassNames: false,
+    markdownOutput: false,
+    compactFormat: false
+  };
+  
+  let targetPath = null;
+  let outputPath = './element-extraction-results.json';
+  
+  for (let i = 0; i < args.length; i++) {
+    const arg = args[i];
+    
+    if (arg === '--backend-only') {
+      options.backendOnly = true;
+    } else if (arg === '--include-classnames') {
+      options.includeClassNames = true;
+    } else if (arg === '--markdown') {
+      options.markdownOutput = true;
+    } else if (arg === '--compact') {
+      options.compactFormat = true;
+    } else if (arg === '--output' && i + 1 < args.length) {
+      outputPath = args[++i];
+    } else if (!arg.startsWith('--') && targetPath === null) {
+      targetPath = arg;
+    }
+  }
+  
+  if (!targetPath) {
+    console.error('Error: Target path is required');
+    console.log('Usage: node script.js <target-path> [options]');
+    console.log('Options:');
+    console.log('  --backend-only         Extract only elements with data-backend attribute');
+    console.log('  --include-classnames   Include className attributes in output');
+    console.log('  --markdown            Output results as Markdown instead of JSON');
+    console.log('  --compact             Output in compact JSON format for inputs with data-backend');
+    console.log('  --output <file-path>   Specify output file path');
+    process.exit(1);
+  }
+  
+  return { targetPath, outputPath, options };
+};
 
+// Export for module usage
 module.exports = {
   extractElements,
   processDirectory,
   extractElementsFromFile,
-  generateReport
+  generateReport,
+  generateCompactJson
 };
+
+// Direct execution
+if (require.main === module) {
+  const { targetPath, outputPath, options } = processCommandLineArgs();
+  extractElements(targetPath, outputPath, options);
+}

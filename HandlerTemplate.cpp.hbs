@@ -1,0 +1,48 @@
+// AUTO-GENERATED - DO NOT MODIFY
+#pragma once
+
+#include <string>
+#include <unordered_map>
+#include <functional>
+#include <stdexcept>
+
+// Custom exception for unimplemented handlers
+class NotImplementedException : public std::runtime_error {
+public:
+    NotImplementedException(const std::string& handlerName) 
+        : std::runtime_error("Handler not implemented: " + handlerName) {}
+};
+
+class InputHandler {
+public:
+    using HandlerFunc = std::function<void()>;
+
+    void HandleEvent(const std::string& elementId) {
+        static const std::unordered_map<std::string, HandlerFunc> handlers = {
+            {{{#each inputs}}}
+            {{{#if @last}}}
+            {"{{id}}", [this] { Handle{{pascalCase id}}(); }}
+            {{{else}}}
+            {"{{id}}", [this] { Handle{{pascalCase id}}(); }},
+            {{{/if}}}
+            {{{/each}}}
+        };
+
+        if (auto it = handlers.find(elementId); it != handlers.end()) {
+            it->second();
+        } else {
+            LogError("Unknown element:", elementId);
+        }
+    }
+
+    {{{#each inputs}}}
+    virtual void Handle{{pascalCase id}}() {
+        throw NotImplementedException("Handle{{pascalCase id}}");
+    }
+    {{{/each}}}
+
+private:
+    void LogError(const std::string& message, const std::string& elementId) {
+        // Add your logging implementation here
+    }
+};

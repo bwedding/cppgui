@@ -918,7 +918,7 @@ int WindowApp::Run(const HINSTANCE hInstance, const int nShowCmd)
 	// Usage example:
 	UIMapper uiMapper(GetEventManager());
 
-	//// Map a button to a simple function
+	//// Map a button to a function
 	uiMapper.mapButton("start", []
 	{
 		startProcess();
