@@ -61,7 +61,18 @@ public:
         m_memoryUsageCallback = std::move(callback);
     }
 
-    ~WebView2Manager() = default;
+    ~WebView2Manager() 
+    {
+        if (GetInstance().m_webview)
+        {
+            if (GetInstance().m_webMessageToken.value != 0) {
+                GetInstance().m_webview->remove_WebMessageReceived(GetInstance().m_webMessageToken);
+                GetInstance().m_webMessageToken = {}; // Reset the token
+            }
+            GetInstance().m_webview = nullptr;
+        }
+        GetInstance().m_webviewEnvironment = nullptr;
+    }
     WebView2Manager(const WebView2Manager&) = delete;
     WebView2Manager& operator=(const WebView2Manager&) = delete;
     WebView2Manager(WebView2Manager&&) = delete;

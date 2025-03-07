@@ -408,11 +408,28 @@ LRESULT WindowApp::HandleMessage(const HWND hWnd, const UINT message, const WPAR
 		break;
 	}
 	case WM_DESTROY:  // Shutdown
+		
+		PostQuitMessage(0);
+		break;
+	case WM_CLOSE:cd 
+		WebView2Manager::Close();
+		Sleep(100);
 		PostQuitMessage(0);
 		break;
 	default:
-
-		return DefWindowProc(hWnd, message, wParam, lParam);
+		try {
+			if (hWnd != nullptr && IsWindow(hWnd)) {
+				return DefWindowProc(hWnd, message, wParam, lParam);
+			}
+		}
+		catch (const std::exception& ex) {
+			// Log the exception details
+			OutputDebugStringA(ex.what());
+		}
+		catch (...) {
+			// Catch any other exceptions
+			OutputDebugStringA("Unknown exception occurred in DefWindowProc.");
+		}
 	}
 
 	return 0;

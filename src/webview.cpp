@@ -566,7 +566,6 @@ void WebView2Manager::Close()
             GetInstance().m_webview->remove_WebMessageReceived(GetInstance().m_webMessageToken);
             GetInstance().m_webMessageToken = {}; // Reset the token
         }
-        GetInstance().Close();
         GetInstance().m_webview = nullptr;
     }
     GetInstance().m_webviewEnvironment = nullptr;
@@ -586,7 +585,6 @@ bool WebView2Manager::CloseWebView(bool cleanupUserDataFolder)
             m_webMessageToken = {}; // Reset the token
         }
 
-        m_webviewController->Close();
         m_webviewController = nullptr;
         m_webview = nullptr;
     }
