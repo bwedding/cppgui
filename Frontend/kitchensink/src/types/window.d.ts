@@ -44,6 +44,7 @@ declare global {
         removeEventListener(type: string, listener: (event: WebView2WebMessageReceivedEventArgs) => void): void;
       };
     };
+    hostApp: any;
   }
 }
 

@@ -89,6 +89,21 @@ const TitleBar: React.FC = () => {
     }
   }, []);
 
+  function sendClickEvent(elementId: string, type: string, value: any = null) {
+  // Create the data object
+  const data = {
+    elementId: elementId,
+    type: type,
+    value: value
+  };
+  
+  // Convert to JSON
+  const jsonData = JSON.stringify(data);
+  console.log("Sending:" + jsonData);
+  // Send to C# host object
+  window.chrome.webview.hostObjects.hostApp.SendClick(jsonData);
+}
+
   return (
     <>
       <ChildWindowManager 
@@ -111,6 +126,12 @@ const TitleBar: React.FC = () => {
               className="w-full h-full object-contain"
             />
           </div>
+          <button
+            onClick={() => sendClickEvent('logo', 'click')}
+            className="w-8 h-8 bg-red-600 rounded-full flex items-center justify-center cursor-pointer"
+          >
+            <span className="text-sm font-medium">{user.initials}</span>
+          </button>
            {/* Center section */}
           <div className="flex-1 text-center">
             <h1 className="text-lg text-neutral-500 font-semibold">Animal Trial Monitor v1.0</h1>
