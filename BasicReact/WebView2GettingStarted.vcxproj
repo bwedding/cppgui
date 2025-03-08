@@ -233,6 +233,7 @@
     <ClCompile Include="libs\shell.c" />
     <ClCompile Include="libs\sqlite3.c" />
     <ClCompile Include="NativeDatabaseAccess.cpp" />
+    <ClCompile Include="TestDB.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="libs\sqlite3.def" />

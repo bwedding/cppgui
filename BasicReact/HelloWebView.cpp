@@ -23,10 +23,7 @@
 
 #include "MSVCDebugFormatter.h"
 #include "AsyncRollingFileAppender.h"
-#include "NativeDatabaseAccess.h"
-#include "sqlite3.h"
-#include <iostream>
-
+#include "TestDB.h"
 
 using namespace Microsoft::WRL;
 
@@ -60,79 +57,6 @@ enum
 };
 
 // Test function to create a sample SQLite database
-bool CreateTestDatabase(const std::wstring& dbPath) {
-	sqlite3* db = nullptr;
-	std::string path = std::string(dbPath.begin(), dbPath.end());
-
-	if (sqlite3_open(path.c_str(), &db) != SQLITE_OK) {
-		OutputDebugStringA("Failed to create database");
-		return false;
-	}
-
-	// Create a test table
-	const char* createTableSQL =
-		"CREATE TABLE IF NOT EXISTS test_users ("
-		"id INTEGER PRIMARY KEY AUTOINCREMENT,"
-		"name TEXT NOT NULL,"
-		"email TEXT,"
-		"age INTEGER);";
-
-	char* errMsg = nullptr;
-	if (sqlite3_exec(db, createTableSQL, nullptr, nullptr, &errMsg) != SQLITE_OK) {
-		OutputDebugStringA(errMsg);
-		sqlite3_free(errMsg);
-		sqlite3_close(db);
-		return false;
-	}
-
-	// Insert some test data
-	const char* insertDataSQL =
-		"INSERT INTO test_users (name, email, age) VALUES "
-		"('John Doe', 'john@example.com', 30),"
-		"('Jane Smith', 'jane@example.com', 28),"
-		"('Bob Johnson', 'bob@example.com', 45);";
-
-	if (sqlite3_exec(db, insertDataSQL, nullptr, nullptr, &errMsg) != SQLITE_OK) {
-		OutputDebugStringA(errMsg);
-		sqlite3_free(errMsg);
-		sqlite3_close(db);
-		return false;
-	}
-
-	sqlite3_close(db);
-	return true;
-}
-
-void TestDatabaseAccess() 
-{
-	// Create a test database or use an existing one
-	std::wstring dbPath = L"C:\\temp\\test_database.db";
-	CreateTestDatabase(dbPath);
-
-	// Now test the NativeDatabaseAccess class
-
-	//ComPtr<NativeDatabaseAccess> databaseAccess = Make<NativeDatabaseAccess>(webview);
-	ComPtr<NativeDatabaseAccess> databaseAccess = Make<NativeDatabaseAccess>(webview.get());
-
-	// For SQLite, connection string is just the file path with a prefix
-	std::wstring connStr = L"Data Source=" + dbPath;
-
-	// Test a simple query
-	BSTR result = nullptr;
-	HRESULT hr = databaseAccess->ExecuteQuery(SysAllocString(connStr.c_str()),
-		SysAllocString(L"SELECT * FROM test_users;"),
-		&result);
-
-	if (SUCCEEDED(hr) && result) {
-		// Output the JSON result
-		OutputDebugStringW(result);
-		SysFreeString(result);
-	}
-	else {
-		OutputDebugStringW(L"Query failed");
-	}
-}
-
 
 int CALLBACK WinMain(
 	_In_ HINSTANCE hInstance,
@@ -314,8 +238,8 @@ int CALLBACK WinMain(
 	
 	// <-- WebView2 sample code ends here -->
 
-	TestDatabaseAccess();
-	// Main message loop:
+	TestDatabaseAccess(webview);
+
 	MSG msg;
 	while (GetMessage(&msg, NULL, 0, 0))
 	{
@@ -326,9 +250,6 @@ int CALLBACK WinMain(
 	return (int)msg.wParam;
 }
 
-//  FUNCTION: WndProc(HWND, UINT, WPARAM, LPARAM)
-//  PURPOSE:  Processes messages for the main window.
-//  WM_DESTROY  - post a quit message and return
 LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
 	switch (message)
