@@ -24,6 +24,8 @@
 #include "MSVCDebugFormatter.h"
 #include "AsyncRollingFileAppender.h"
 #include "TestDB.h"
+#include "EventManager.h"
+
 
 using namespace Microsoft::WRL;
 
@@ -45,18 +47,10 @@ static wil::com_ptr<ICoreWebView2Controller> webviewController;
 
 // Pointer to WebView window
 static wil::com_ptr<ICoreWebView2> webview;
-
-//
-// Performance - measures time per a log call.
-//
-
-
-enum
-{
-	Console = 1
-};
-
-// Test function to create a sample SQLite database
+static CPPGUI::EventQueue mEventQueue;
+static CPPGUI::EventDispatcher mEventDispatcher;
+static CPPGUI::CallbackRegistry mCallbackRegistry;
+static std::unique_ptr<CPPGUI::EventManager> mEventManager; // Changed to pointer
 
 int CALLBACK WinMain(
 	_In_ HINSTANCE hInstance,
@@ -68,6 +62,7 @@ int CALLBACK WinMain(
 	static plog::DebugOutputAppender<plog::MSVCDebugFormatter<false>> debugOutputAppender;
 	static plog::RollingFileAppender<plog::TxtFormatter> fileAppender("MultiAppender.csv", 40000000, 7); 
 	plog::init(plog::debug, &fileAppender).addAppender(&debugOutputAppender);
+
 
 	LOGD << "Hello log!"; // short macro
 

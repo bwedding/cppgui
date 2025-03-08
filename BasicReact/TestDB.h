@@ -54,9 +54,6 @@ inline void TestDatabaseAccess(wil::com_ptr<ICoreWebView2> webview)
 	std::wstring dbPath = L"C:\\temp\\test_database.db";
 	CreateTestDatabase(dbPath);
 
-	// Now test the NativeDatabaseAccess class
-
-	//ComPtr<NativeDatabaseAccess> databaseAccess = Make<NativeDatabaseAccess>(webview);
 	ComPtr<NativeDatabaseAccess> databaseAccess = Make<NativeDatabaseAccess>(webview.get());
 
 	// For SQLite, connection string is just the file path with a prefix

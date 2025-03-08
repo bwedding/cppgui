@@ -233,6 +233,9 @@
     <ClCompile Include="libs\shell.c" />
     <ClCompile Include="libs\sqlite3.c" />
     <ClCompile Include="NativeDatabaseAccess.cpp" />
+    <ClCompile Include="NativeWindowControls.cpp" />
+    <ClCompile Include="NativeWindowControls_i.c" />
+    <ClCompile Include="SystemUtils.cpp" />
     <ClCompile Include="TestDB.h" />
   </ItemGroup>
   <ItemGroup>
@@ -242,15 +245,26 @@
   </ItemGroup>
   <ItemGroup>
     <Midl Include="..\src\DatabaseInterfaces.idl" />
+    <Midl Include="NativeWindowControls.idl" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="AppMessageIDs.h" />
     <ClInclude Include="AsyncRollingFileAppender.h" />
     <ClInclude Include="FastTxtFormatter.h" />
+    <ClInclude Include="INativeWindowControls.h" />
+    <ClInclude Include="include\CallbackRegistry.h" />
     <ClInclude Include="include\DatabaseInterfaces.h" />
     <ClInclude Include="include\DatabaseTypes.h" />
+    <ClInclude Include="include\EventDispatcher.h" />
+    <ClInclude Include="include\EventManager.h" />
+    <ClInclude Include="include\EventQueue.h" />
     <ClInclude Include="include\INativeDatabaseAccess.h" />
     <ClInclude Include="include\NativeDatabaseAccess.h" />
+    <ClInclude Include="include\UIEvent.h" />
     <ClInclude Include="MSVCDebugFormatter.h" />
+    <ClInclude Include="NativeWindowControls.h" />
+    <ClInclude Include="NativeWindowControls_h.h" />
+    <ClInclude Include="SystemUtils.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
