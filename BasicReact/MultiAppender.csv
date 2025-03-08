@@ -1,0 +1,4 @@
+﻿2025-03-08 23:48:37.973 DEBUG [31748] [WinMain@148] Hello log!
+2025-03-08 23:48:38.058 DEBUG [31748] [NativeDatabaseAccess::NativeDatabaseAccess@129] NativeDatabaseAccess created
+2025-03-08 23:48:38.059 DEBUG [31748] [NativeDatabaseAccess::ExecuteQuery@165] ExecuteQuery called
+2025-03-08 23:48:38.104 DEBUG [31748] [NativeDatabaseAccess::~NativeDatabaseAccess@131] NativeDatabaseAccess destroyed

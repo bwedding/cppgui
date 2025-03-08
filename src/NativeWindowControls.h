@@ -4,7 +4,7 @@
 #include "INativeWindowControls.h"
 #include <wil/com.h>
 #include <wrl/implements.h>
-#include "spdlog.h"
+#include "spdlog/spdlog.h"
 #include "nlohmann/json.hpp"
 
 using namespace Microsoft::WRL;

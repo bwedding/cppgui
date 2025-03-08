@@ -447,7 +447,6 @@
     <None Include=".gitignore" />
     <None Include="packages.config" />
     <None Include="src\architecture.md" />
-    <None Include="src\packages.config" />
     <None Include="src\spdlog\fmt\bundled\fmt.license.rst">
       <Filter>include\spdlog\fmt\bundled</Filter>
     </None>

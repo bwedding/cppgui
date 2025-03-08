@@ -19,7 +19,7 @@
 #pragma comment(lib, "advapi32.lib")
 
 // For PostgreSQL
-#include <libpq-fe.h>
+#include "libpq-fe.h"
 
 // For SQLite
 #include <sqlite3.h>

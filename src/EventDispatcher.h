@@ -7,7 +7,7 @@
 #include "UIEvent.h"
 #include <nlohmann/json.hpp>
 
-#include "spdlog.h"
+#include "spdlog/spdlog.h"
 using json = nlohmann::json;
 
 namespace HeartControl

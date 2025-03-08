@@ -3,7 +3,7 @@
 #include <shobjidl.h> // For modern file dialogs
 #include <wrl/implements.h>
 #include <wrl/client.h>
-#include "spdlog.h"
+#include "spdlog/spdlog.h"
 #include "nlohmann/json.hpp"
 #include "SystemUtils.h"
 #include "WindowApp.h"
