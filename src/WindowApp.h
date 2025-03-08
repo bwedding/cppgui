@@ -9,6 +9,7 @@
 #include "CallbackRegistry.h"
 #include "EventManager.h"
 #include "WebView2DataStreamer.h"
+#include <commctrl.h>
 
 class WindowApp
 {
@@ -33,9 +34,43 @@ private:
 	void EnableWindowSnapping(HWND hwnd);
 	void CreateEnvironmentOnUIThread(HWND hWnd);
 
+	// Static function as a trampoline to call the member function
+	static LRESULT CALLBACK CustomSnapSubclassProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam, UINT_PTR uIdSubclass, DWORD_PTR dwRefData) 
+	{
+		WindowApp* pThis = reinterpret_cast<WindowApp*>(dwRefData);
+		if (pThis) {
+			return pThis->mCustomSnapSubclassProc(hWnd, message, wParam, lParam, 1);
+		}
+		return DefSubclassProc(hWnd, message, wParam, lParam);
+	}
+
 public:
 	WindowApp() : m_hWnd(nullptr), m_hInstance(nullptr) {}
-	~WindowApp() = default;
+	~WindowApp()
+	{
+		auto ctr = webView2Manager.GetController();
+		auto env = webView2Manager.GetEnvironment();
+		auto wv = webView2Manager.GetWebView();
+		wv = nullptr;
+		env = nullptr;
+
+		if (ctr != nullptr)
+		{
+			// First detach from parent window if applicable
+			ctr->put_ParentWindow(nullptr);
+
+			// Release any event tokens/handlers you registered
+
+			// Explicitly release the reference before ComPtr's destructor runs
+			auto tempPtr = ctr;
+			ctr = nullptr;
+
+			// Optional: You could also try setting the raw pointer to null
+			// if you have access to the underlying raw pointer
+		}
+	}
+	WebView2Manager webView2Manager;
+	CommunicationManager communicationManager;
 
 	// Public accessor for the event manager
 	// Initialize the event manager once we have a valid window handle
@@ -63,5 +98,6 @@ public:
 
 	bool CreateViews(HINSTANCE& hInstance);
 	int Run(HINSTANCE hInstance, int nShowCmd);
+	LRESULT mCustomSnapSubclassProc(HWND hWnd, UINT uMsg, WPARAM wParam,
+		LPARAM lParam, UINT_PTR uIdSubclass);
 };
-

@@ -60,6 +60,7 @@ int CALLBACK WinMain(
 	WindowApp app;
 	SPDLOG_TRACE("Entering");
 	app.Run(hInstance, nShowCmd);
+	app.webView2Manager.CloseWebView(true);
 	SPDLOG_TRACE("Shutting Down Logger");
 	spdlog::shutdown();
     return 0;

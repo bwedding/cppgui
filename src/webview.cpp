@@ -99,6 +99,9 @@ std::wstring WebView2Manager::GetUIPath()
     GetCurrentDirectory(MAX_PATH, exePath.data());
     std::wstring localFolder = exePath;
 
+    // Run React basic
+    //PathCchAppend(localFolder.data(), MAX_PATH, L"Frontend\\UI\\dist\\");
+    // run kitchensink
     PathCchAppend(localFolder.data(), MAX_PATH, L"Frontend\\UI\\dist2\\");
 
     // Clean up any null padding. This IS necessary!
@@ -107,11 +110,12 @@ std::wstring WebView2Manager::GetUIPath()
     return localFolder;
 }
 
-
 // Add periodic memory monitoring
 void WebView2Manager::CheckMemoryUsage() const
 {
     SPDLOG_TRACE("Entering");
+    if (!m_webview)
+        return;
 
     UINT32 browserPid;
     if (SUCCEEDED(m_webview->get_BrowserProcessId(&browserPid)))
@@ -198,12 +202,6 @@ void WebView2Manager::NavigateToPage(const std::wstring& page)
     }
 
     m_webview->Navigate(destination.c_str());
-}
-
-WebView2Manager& WebView2Manager::GetInstance() 
-{
-    static WebView2Manager instance;
-    return instance;
 }
 
 HRESULT WebView2Manager::Initialize(HWND hWnd)
@@ -323,7 +321,7 @@ void WebView2Manager::ConfigureWebViewSettings()
     m_webview->AddHostObjectToScript(L"native", &var);
     VariantClear(&var);
 
-    ComPtr<ApiBridge> apiBridge = Make<ApiBridge>(GetInstance().GetWebView());
+    ComPtr<ApiBridge> apiBridge = Make<ApiBridge>(GetWebView());
     // Wrap the COM object in a VARIANT
     VARIANT variant;
     VariantInit(&variant);
@@ -461,7 +459,7 @@ void WebView2Manager::SetupMessageHandlers()
                 args->TryGetWebMessageAsString(&message);
                 spdlog::debug("Message from React app: {0}", WideToUtf8(message.get()));
 
-                CommunicationManager::Instance().HandleWebMessage(args);
+                WindowApp::GetInstance()->communicationManager.HandleWebMessage(args);
                 try {
                     auto jsonData = json::parse(WideToUtf8(message.get()));
 
@@ -560,16 +558,15 @@ void WebView2Manager::Close()
 {
     SPDLOG_TRACE("Entering");
 
-    if (GetInstance().m_webview)
+    if (m_webview)
     {
-        if (GetInstance().m_webMessageToken.value != 0) {
-            GetInstance().m_webview->remove_WebMessageReceived(GetInstance().m_webMessageToken);
-            GetInstance().m_webMessageToken = {}; // Reset the token
+        if (m_webMessageToken.value != 0) {
+            m_webview->remove_WebMessageReceived(m_webMessageToken);
+            m_webMessageToken = {}; // Reset the token
         }
-        GetInstance().m_webview = nullptr;
+        m_webview = nullptr;
     }
-    GetInstance().m_webviewEnvironment = nullptr;
-
+    m_webviewEnvironment = nullptr;
 }
 
 // Close the WebView and de-initialize related state. This doesn't close the app window.
@@ -580,12 +577,11 @@ bool WebView2Manager::CloseWebView(bool cleanupUserDataFolder)
     if (m_webviewController)
     {
 		// Remove the WebMessageReceived event handler to avoid leaking memory
-        if (m_webMessageToken.value != 0) {
+        if (m_webMessageToken.value != 0) 
+        {
             m_webview->remove_WebMessageReceived(m_webMessageToken);
             m_webMessageToken = {}; // Reset the token
         }
-
-        m_webviewController = nullptr;
         m_webview = nullptr;
     }
 
@@ -616,7 +612,8 @@ HRESULT WebView2Manager::Reload() const
         // Clear browser cache
         ComPtr<ICoreWebView2_3> webview2_3;
         HRESULT hr = m_webview.As(&webview2_3);
-        if (SUCCEEDED(hr)) {
+        if (SUCCEEDED(hr)) 
+        {
             hr = webview2_3->CallDevToolsProtocolMethod(
                 L"Network.clearBrowserCache",
                 L"{}",
@@ -628,7 +625,8 @@ HRESULT WebView2Manager::Reload() const
         }
         return m_webview->Reload();
     }
-    catch (const winrt::hresult_error& ex) {
+    catch (const winrt::hresult_error& ex) 
+    {
         return ex.code();
     }
 }

@@ -27,6 +27,7 @@ DWORD g_lastSnapReleaseTime = 0;
 RECT g_snappedRect = { 0 };
 constexpr int RESIZE_BORDER = 1;
 static Notifications notification;
+const int TITLEBAR_HEIGHT = 32; // Adjust to match your title bar height
 
 // Add this function somewhere accessible
 void processAutoManualControlEvent(const HeartControl::UIEvent& event) {
@@ -75,7 +76,6 @@ WindowApp* WindowApp::GetInstance()
 	return sInstance;
 }
 
-
 HRESULT WindowApp::TriggerEvent(const HeartControl::UIEvent& evt)
 {
 	auto& eventQueue = GetInstance()->GetEventQueue();
@@ -103,7 +103,7 @@ LRESULT WindowApp::HandleMessage(const HWND hWnd, const UINT message, const WPAR
 	case WM_USER_CREATE_ENVIRONMENT:
 	{
 		// Create environment interfaces on UI thread
-		wil::com_ptr<ICoreWebView2Environment> baseEnvironment = WebView2Manager::GetInstance().GetEnvironment();
+		wil::com_ptr<ICoreWebView2Environment> baseEnvironment = webView2Manager.GetEnvironment();
 		wil::com_ptr<ICoreWebView2Environment12> environment12 = baseEnvironment.try_query<ICoreWebView2Environment12>();
 
 		// Store these for later use
@@ -115,7 +115,7 @@ LRESULT WindowApp::HandleMessage(const HWND hWnd, const UINT message, const WPAR
 		{
 			// Initialize your WebView2DataStreamer or other components
 			m_dataStreamer = std::make_unique<WebView2DataStreamer>(
-				WebView2Manager::GetInstance().GetWebView(), environment12);
+				webView2Manager.GetWebView(), environment12);
 
 			spdlog::info("Environment interfaces created successfully on UI thread");
 		}
@@ -140,7 +140,7 @@ LRESULT WindowApp::HandleMessage(const HWND hWnd, const UINT message, const WPAR
 		if (auto pmessage = reinterpret_cast<std::wstring*>(wParam))
 		{
 			// TODO Add error handling
-			WebView2Manager::GetInstance().PostMessageToWebView(*pmessage);
+			webView2Manager.PostMessageToWebView(*pmessage);
 			delete pmessage;
 		}
 		return 0;
@@ -149,7 +149,7 @@ LRESULT WindowApp::HandleMessage(const HWND hWnd, const UINT message, const WPAR
 	{
 		if (auto pscript = reinterpret_cast<std::wstring*>(wParam))
 		{
-			const HRESULT hr = WebView2Manager::GetInstance().ExecuteScript(*pscript);  // This will now be on UI thread
+			const HRESULT hr = webView2Manager.ExecuteScript(*pscript);  // This will now be on UI thread
 			delete pscript;
 			return hr;
 		}
@@ -216,8 +216,7 @@ LRESULT WindowApp::HandleMessage(const HWND hWnd, const UINT message, const WPAR
 	{
 		if (wParam == 1) {
 			KillTimer(hWnd, 1);
-			auto& webview = WebView2Manager::GetInstance();
-			if (const auto controller = webview.GetController(); controller != nullptr)
+			if (const auto controller = webView2Manager.GetController(); controller != nullptr)
 			{
 				RECT bounds;
 				GetClientRect(hWnd, &bounds);
@@ -258,7 +257,7 @@ LRESULT WindowApp::HandleMessage(const HWND hWnd, const UINT message, const WPAR
 
 		// Define title bar area for dragging (you may need to adjust this)
 		// This assumes you have a custom title bar that's TITLEBAR_HEIGHT pixels tall
-		const int TITLEBAR_HEIGHT = 32; // Adjust to match your title bar height
+
 		const bool inTitleBar = (pt.y >= rc.top && pt.y < rc.top + TITLEBAR_HEIGHT &&
 			pt.x >= rc.left && pt.x < rc.right &&
 			!left && !right && !top);
@@ -408,14 +407,16 @@ LRESULT WindowApp::HandleMessage(const HWND hWnd, const UINT message, const WPAR
 		break;
 	}
 	case WM_DESTROY:  // Shutdown
-		
+	{
+	}
+	break;
+	case WM_CLOSE: 
+	{
+		StopData();
+		Sleep(10);
 		PostQuitMessage(0);
-		break;
-	case WM_CLOSE:cd 
-		WebView2Manager::Close();
-		Sleep(100);
-		PostQuitMessage(0);
-		break;
+	}
+	break;
 	default:
 		try {
 			if (hWnd != nullptr && IsWindow(hWnd)) {
@@ -465,9 +466,7 @@ void WindowApp::EnableSnapLayouts(HWND hwnd)
 	}
 }
 
-LRESULT CALLBACK CustomSnapSubclassProc(HWND hWnd, UINT uMsg, WPARAM wParam,
-	LPARAM lParam, UINT_PTR uIdSubclass,
-	DWORD_PTR dwRefData)
+LRESULT WindowApp::mCustomSnapSubclassProc(HWND hWnd, UINT uMsg, WPARAM wParam,	LPARAM lParam, UINT_PTR uIdSubclass)
 {
 	switch (uMsg)
 	{
@@ -500,7 +499,7 @@ LRESULT CALLBACK CustomSnapSubclassProc(HWND hWnd, UINT uMsg, WPARAM wParam,
 			SWP_NOZORDER | SWP_NOACTIVATE);
 
 		// If you have a WebView2 controller, resize it to match the new window size
-		auto ctrlr = WebView2Manager::GetInstance().GetController();
+		auto ctrlr = webView2Manager.GetController();
 		if (ctrlr) {
 			RECT bounds;
 			GetClientRect(hWnd, &bounds);
@@ -582,6 +581,7 @@ LRESULT CALLBACK CustomSnapSubclassProc(HWND hWnd, UINT uMsg, WPARAM wParam,
 
 	return DefSubclassProc(hWnd, uMsg, wParam, lParam);
 }
+
 
 // Add this function to enable Windows 11 background effects
 void EnableBackdropEffects(HWND hwnd)
@@ -826,8 +826,9 @@ HWND& WindowApp::CreateWindows(const HINSTANCE hInstance)
 
 	static HWND h_wnd = CreateWindowEx(
 		WS_EX_NOREDIRECTIONBITMAP | WS_EX_APPWINDOW,
-		szWindowClass, L"",
+		szWindowClass, L"Title",
 		WS_POPUP | WS_VISIBLE | WS_THICKFRAME | WS_MAXIMIZEBOX | WS_MINIMIZEBOX,
+		//WS_OVERLAPPEDWINDOW | WS_VISIBLE | WS_THICKFRAME | WS_MAXIMIZEBOX | WS_MINIMIZEBOX,
 		CW_USEDEFAULT, CW_USEDEFAULT, 1600, 1100,
 		nullptr, nullptr,
 		hInstance, this
@@ -841,10 +842,6 @@ HWND& WindowApp::CreateWindows(const HINSTANCE hInstance)
 	exStyle |= WS_EX_LAYERED;
 	SetWindowLongPtr(h_wnd, GWL_EXSTYLE, exStyle);
 	SetLayeredWindowAttributes(h_wnd, 0, 255, LWA_ALPHA);
-
-	// Set zero margins
-	/*const MARGINS margins = { 0, 0, 0, 0 };
-	DwmExtendFrameIntoClientArea(h_wnd, &margins);*/
 
 	const DWM_SYSTEMBACKDROP_TYPE backdropType = DWMSBT_MAINWINDOW; // or DWMSBT_TRANSIENTWINDOW
 	DwmSetWindowAttribute(h_wnd, DWMWA_SYSTEMBACKDROP_TYPE, &backdropType, sizeof(backdropType));
@@ -900,22 +897,23 @@ int WindowApp::Run(const HINSTANCE hInstance, const int nShowCmd)
 	if (!CreateViews(m_hInstance))
 		return -1;
 
+	communicationManager.Initialize(m_hWnd, &webView2Manager);
+
 	ShowWindow(m_hWnd, nShowCmd);
 	UpdateWindow(m_hWnd);
 
-	auto& webview = WebView2Manager::GetInstance();
-	if (const HRESULT hr = webview.Initialize(m_hWnd); FAILED(hr))
+	if (const HRESULT hr = webView2Manager.Initialize(m_hWnd); FAILED(hr))
 	{
 		MessageBox(nullptr, _T("Failed to initialize WebView2 environment"), _T("SRH Animal Monitor"), MB_OK);
 		return 1;
 	}
 
 	// Monitor memory usage
-	WebView2Manager::GetInstance().SetMemoryUsageHighCallback([](SIZE_T usage, SIZE_T threshold) 
+	webView2Manager.SetMemoryUsageHighCallback([this](SIZE_T usage, SIZE_T threshold)
 	{
 		SPDLOG_WARN("WebView memory usage high: {} bytes (threshold: {} bytes)", usage, threshold);
 		// Try to reload the webview. We may want to do more here later.
-		WebView2Manager::GetInstance().Reload();
+		webView2Manager.Reload();
 	});
 
 	// Prepare the params
@@ -946,7 +944,7 @@ int WindowApp::Run(const HINSTANCE hInstance, const int nShowCmd)
 		setTemperature(temp);
 		});
 
-	auto& commManager = CommunicationManager::Instance();
+	auto& commManager = communicationManager;
 
 	MSG msg = {};
 
@@ -980,7 +978,7 @@ int WindowApp::Run(const HINSTANCE hInstance, const int nShowCmd)
 			else
 			{
 				// Check if WebView2 is ready and do your work when it is
-				if (WebView2Manager::GetInstance().IsWebViewReady())
+				if (webView2Manager.IsWebViewReady())
 				{
 					SYSTEMTIME t;
 					GetSystemTime(&t);
@@ -1003,7 +1001,7 @@ int WindowApp::Run(const HINSTANCE hInstance, const int nShowCmd)
 						continue;
 						
 					dataStreamerReady = true;
-					TestHighSpeedDataStreaming(*m_dataStreamer, m_hWnd);
+					//TestHighSpeedDataStreaming(*m_dataStreamer, m_hWnd);
 					StartSendingData();
 					TestSubscribe();
 				}

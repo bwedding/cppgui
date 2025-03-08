@@ -27,9 +27,6 @@ public:
     {
     }
 
-    // Static methods as there's only 1 Webview Manager
-    static WebView2Manager& GetInstance();
-
     void CheckMemoryUsage() const;
 
     // Initialize and setup methods
@@ -39,7 +36,7 @@ public:
 
     void NavigateToPage(const std::wstring& page);
     [[nodiscard]] HRESULT Reload() const;
-    static void Close();
+    void Close();
     bool CloseWebView(bool cleanupUserDataFolder);
 
     // Getters for WebView2 components
@@ -61,22 +58,10 @@ public:
         m_memoryUsageCallback = std::move(callback);
     }
 
-    ~WebView2Manager() 
-    {
-        if (GetInstance().m_webview)
-        {
-            if (GetInstance().m_webMessageToken.value != 0) {
-                GetInstance().m_webview->remove_WebMessageReceived(GetInstance().m_webMessageToken);
-                GetInstance().m_webMessageToken = {}; // Reset the token
-            }
-            GetInstance().m_webview = nullptr;
-        }
-        GetInstance().m_webviewEnvironment = nullptr;
-    }
-    WebView2Manager(const WebView2Manager&) = delete;
-    WebView2Manager& operator=(const WebView2Manager&) = delete;
-    WebView2Manager(WebView2Manager&&) = delete;
-    WebView2Manager& operator=(WebView2Manager&&) = delete;
+    //WebView2Manager(const WebView2Manager&) = delete;
+    //WebView2Manager& operator=(const WebView2Manager&) = delete;
+    //WebView2Manager(WebView2Manager&&) = delete;
+    //WebView2Manager& operator=(WebView2Manager&&) = delete;
     void Set404Page(const std::wstring pg) { m_html404 = pg; };
 	bool IsWebViewReady() const { return m_isWebViewReady; }
 
@@ -103,7 +88,7 @@ private:
     void ConfigureWebViewSettings();
     void SetupNavigationHandlers();
     void SetupMessageHandlers();
-    static std::wstring GetUIPath();
+    std::wstring GetUIPath();
 
     // Private members
     ComPtr<ICoreWebView2Controller> m_webviewController;

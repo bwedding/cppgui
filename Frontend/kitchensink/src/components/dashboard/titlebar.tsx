@@ -101,7 +101,7 @@ const TitleBar: React.FC = () => {
   const jsonData = JSON.stringify(data);
   console.log("Sending:" + jsonData);
   // Send to C# host object
-  window.chrome.webview.hostObjects.hostApp.SendClick(jsonData);
+  //window.chrome.webview.hostObjects.hostApp.SendClick(jsonData);
 }
 
   return (

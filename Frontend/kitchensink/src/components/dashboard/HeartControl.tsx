@@ -115,10 +115,6 @@ const HeartControl = ({
         value: true,
         source: 'user-interface',
         timestamp: Date.now(),
-        action: 'decrease',
-        control: 'heart-rate',
-        parameter: 'bpm',
-        currentState: newBpm,
         metadata: {
           action: 'decrease',
           control: 'heart-rate',
@@ -147,10 +143,6 @@ const HeartControl = ({
         value: true,
         source: 'user-interface',
         timestamp: Date.now(),
-        action: 'increase',
-        control: 'heart-rate',
-        parameter: 'bpm',
-        currentState: newBpm,
         metadata: {
           action: 'increase',
           control: 'heart-rate',

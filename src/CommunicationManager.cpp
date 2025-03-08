@@ -10,7 +10,6 @@
 using namespace Microsoft::WRL;
 using json = nlohmann::json;
 
-
 // Schema for a simple button click event with a message
 constexpr std::string_view EventSchema = R"({
 "type": "object",
@@ -36,19 +35,11 @@ constexpr std::string_view EventSchema = R"({
 // Function type for event callbacks
 using EventCallback = std::function<void(const json&)>;
 
-CommunicationManager& CommunicationManager::Instance()
-{
-    SPDLOG_TRACE("Entering");
-
-    static CommunicationManager instance;
-    return instance;
-}
-
 bool CommunicationManager::SendScriptToFrontend(const std::wstring& script)
 {
     SPDLOG_TRACE("Entering");
 
-    if (HRESULT hr = WebView2Manager::GetInstance().ExecuteScript(script); FAILED(hr))
+    if (HRESULT hr = mWv2ptr->ExecuteScript(script); FAILED(hr))
     {
         spdlog::critical("Failed to execute JavaScript: {:#x}", hr);
         return false;
@@ -62,7 +53,7 @@ bool CommunicationManager::SendScriptToFrontend(const std::string& script)
 
     auto wscript = s2ws(script);
 
-    if (HRESULT hr = WebView2Manager::GetInstance().ExecuteScript(wscript); FAILED(hr))
+    if (HRESULT hr = mWv2ptr->ExecuteScript(wscript); FAILED(hr))
     {
         spdlog::critical("Failed to execute JavaScript: {:#x}", hr);
         return false;
@@ -74,7 +65,7 @@ bool CommunicationManager::SendMessageToFrontend(const std::wstring& message)
 {
     //SPDLOG_TRACE("Entering");
 
-    if (HRESULT hr = WebView2Manager::GetInstance().PostMessageToWebView(message); FAILED(hr))
+    if (HRESULT hr = mWv2ptr->PostMessageToWebView(message); FAILED(hr))
     {
         spdlog::critical("Failed to send message to frontend: {:#x}", hr);
         return false;
@@ -82,10 +73,10 @@ bool CommunicationManager::SendMessageToFrontend(const std::wstring& message)
     return true;
 }
 
-bool CommunicationManager::Initialize(HWND hwnd)
+bool CommunicationManager::Initialize(HWND hwnd, WebView2Manager const *wv2)
 {
     SPDLOG_TRACE("Entering");
-
+    mWv2ptr = wv2;
     m_hwnd = hwnd;
     return true;
 }

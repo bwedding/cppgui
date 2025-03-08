@@ -21,7 +21,6 @@ struct EventToken
     std::wstring eventName;
     std::string componentFilter;  // Optional component to filter on
 
-
     // Comparison operators for container operations
     bool operator!=(const EventToken& other) const
     {
@@ -39,11 +38,10 @@ struct EventToken
 class CommunicationManager
 {
 public:
-    static CommunicationManager& Instance();
-    static bool SendScriptToFrontend(const std::wstring& script);
-    static bool SendScriptToFrontend(const std::string& script);
-    static bool SendMessageToFrontend(const std::wstring& message);
-    bool Initialize(HWND hwnd);
+    bool SendScriptToFrontend(const std::wstring& script);
+    bool SendScriptToFrontend(const std::string& script);
+    bool SendMessageToFrontend(const std::wstring& message);
+    bool Initialize(HWND hwnd, WebView2Manager const *wv2);
 
     // Use default schema
     EventToken SubscribeToEvent(
@@ -79,9 +77,9 @@ public:
 
     void HandleWebMessage(ICoreWebView2WebMessageReceivedEventArgs* args);
 
-
 private:
     HWND m_hwnd = nullptr;
+    WebView2Manager const* mWv2ptr = nullptr;
 
     // Structure to hold event information
     struct EventInfo {
@@ -89,10 +87,10 @@ private:
         std::vector<std::tuple<size_t, std::string, EventCallback>> callbacks;
     };
 
-    static bool ValidateAgainstSchema(const json& data, const json& schema);
+    bool ValidateAgainstSchema(const json& data, const json& schema);
 
     // String conversion helpers
-    static std::wstring s2ws(const std::string& str);
+    std::wstring s2ws(const std::string& str);
 
     // Map of event names to their callbacks and schema
     std::unordered_map<std::wstring, EventInfo> m_eventCallbacks{};

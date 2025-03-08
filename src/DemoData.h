@@ -12,6 +12,12 @@
 #include "DataBuffer.h"
 #include <iostream>
 
+static 	bool stoprunning = false;
+constexpr long DATA_SZ = 512000;
+enum TrendDirection { UP, DOWN };
+TrendDirection current_trend = UP;
+std::chrono::time_point<std::chrono::steady_clock> trend_start_time = std::chrono::steady_clock::now();
+std::chrono::minutes trend_duration(1); // Adjust trend duration as needed
 
 // Test function to create a sample SQLite database
 bool CreateTestDatabase(const std::wstring& dbPath) {
@@ -64,7 +70,7 @@ void TestDatabaseAccess() {
 
 	// Now test the NativeDatabaseAccess class
 
-	ComPtr<NativeDatabaseAccess> databaseAccess = Make<NativeDatabaseAccess>(WebView2Manager::GetInstance().GetWebView());
+	ComPtr<NativeDatabaseAccess> databaseAccess = Make<NativeDatabaseAccess>(WindowApp::GetInstance()->webView2Manager.GetWebView());
 
 	// For SQLite, connection string is just the file path with a prefix
 	std::wstring connStr = L"Data Source=" + dbPath;
@@ -84,13 +90,6 @@ void TestDatabaseAccess() {
 		OutputDebugStringW(L"Query failed");
 	}
 }
-constexpr long DATA_SZ = 512000;
-
-enum TrendDirection { UP, DOWN };
-
-TrendDirection current_trend = UP;
-std::chrono::time_point<std::chrono::steady_clock> trend_start_time = std::chrono::steady_clock::now();
-std::chrono::minutes trend_duration(1); // Adjust trend duration as needed
 
 // Helper function to get random adjustment factor (�20%)
 double get_random_adjustment(TrendDirection direction) 
@@ -330,17 +329,22 @@ void TestHighSpeedDataStreaming(WebView2DataStreamer& streamer, HWND hWnd)
 	testThread.detach();
 }
 
+void StopData()
+{
+	stoprunning = true;
+}
+
 void SendData()
 {
 	SPDLOG_TRACE("Entering");
 
 	DataSource speedData;
-	auto& commManager = CommunicationManager::Instance();
+	auto& commManager = WindowApp::GetInstance()->communicationManager;
 
 	CreateTestDatabase(L"C:\\temp\\test_database.db");
 	TestDatabaseAccess();
 
-	while (true)
+	while (!stoprunning)
 	{
 		// Turn on for high speed load testing. This is NOT JSON data but will be recieved and counted
 		//std::wstring message = speedData.GenerateRandomMessage();
@@ -354,7 +358,8 @@ void SendData()
 
 		std::wstring json_output = test_monitor.to_json();
 
-		if (!commManager.SendMessageToFrontend(json_output)) {
+		if (!commManager.SendMessageToFrontend(json_output)) 
+		{
 			spdlog::error("Failed to send random data message");
 			break;
 		}
