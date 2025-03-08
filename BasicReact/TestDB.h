@@ -36,7 +36,8 @@ inline bool CreateTestDatabase(const std::wstring& dbPath)
 		"('Jane Smith', 'jane@example.com', 28),"
 		"('Bob Johnson', 'bob@example.com', 45);";
 
-	if (sqlite3_exec(db, insertDataSQL, nullptr, nullptr, &errMsg) != SQLITE_OK) {
+	if (sqlite3_exec(db, insertDataSQL, nullptr, nullptr, &errMsg) != SQLITE_OK) 
+	{
 		OutputDebugStringA(errMsg);
 		sqlite3_free(errMsg);
 		sqlite3_close(db);
