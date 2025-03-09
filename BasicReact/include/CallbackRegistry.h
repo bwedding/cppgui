@@ -78,8 +78,6 @@ namespace CPPGUI
             return id;
         }
 
- 
-
         SubscribeParams* retrieveSubscribeParams(const int id) {
             std::lock_guard lock(mutex_);
             if (const auto it = subscribeParams_.find(id); it != subscribeParams_.end()) {

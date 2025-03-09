@@ -230,6 +230,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="HelloWebView.cpp" />
+    <ClCompile Include="include\MakeWindow.cpp" />
     <ClCompile Include="libs\shell.c" />
     <ClCompile Include="libs\sqlite3.c" />
     <ClCompile Include="NativeDatabaseAccess.cpp" />
@@ -237,6 +238,7 @@
     <ClCompile Include="NativeWindowControls_i.c" />
     <ClCompile Include="SystemUtils.cpp" />
     <ClCompile Include="TestDB.h" />
+    <ClCompile Include="WebViewManager.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="libs\sqlite3.def" />
@@ -259,12 +261,14 @@
     <ClInclude Include="include\EventManager.h" />
     <ClInclude Include="include\EventQueue.h" />
     <ClInclude Include="include\INativeDatabaseAccess.h" />
+    <ClInclude Include="include\MakeWindow.h" />
     <ClInclude Include="include\NativeDatabaseAccess.h" />
     <ClInclude Include="include\UIEvent.h" />
     <ClInclude Include="MSVCDebugFormatter.h" />
     <ClInclude Include="NativeWindowControls.h" />
     <ClInclude Include="NativeWindowControls_h.h" />
     <ClInclude Include="SystemUtils.h" />
+    <ClInclude Include="WebViewManager.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

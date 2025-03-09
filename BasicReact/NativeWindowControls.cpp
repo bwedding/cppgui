@@ -81,14 +81,16 @@ STDMETHODIMP NativeWindowControls::Invoke(
 STDMETHODIMP NativeWindowControls::SendClick(const BSTR jsonData)
 {
 
-    if (!jsonData) return E_INVALIDARG;
+    if (!jsonData) 
+        return E_INVALIDARG;
 
     std::wstring wstr(jsonData);
     std::string str(wstr.begin(), wstr.end());
+    
     // Parse the JSON data
     const auto json = nlohmann::json::parse(str);
 
-    spdlog::trace(json.dump());
+    LOGD << json.dump();
     // TODO add code to populate event with actual data
     CPPGUI::UIEvent evt{
         "auto-manual-control",
@@ -417,4 +419,15 @@ std::string NativeWindowControls::ReadFileContent(const std::wstring& wFilePath)
     }
 
     return content;
+}
+
+void NativeWindowControls::HandleWebViewEvent(const std::string& eventType, const std::string& jsonData) {
+    CPPGUI::UIEvent evt;
+    evt.type = eventType;
+    evt.payload = jsonData;
+    mEventQueue.enqueue(std::move(evt));
+}
+
+void NativeWindowControls::StartEventProcessing() {
+    mEventQueue.startProcessing(mevtDispatcher);
 }

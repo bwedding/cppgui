@@ -38,8 +38,6 @@ public:
     explicit NativeWindowControls(const HWND window ) : hwnd(window)
     { 
         mEventManager = std::make_unique<CPPGUI::EventManager>(window, mevtDispatcher);
-        // Start the event queue processing with the event dispatcher
-        mEventQueue.startProcessing(mevtDispatcher);
         LOGD << "Entering"; 
     }
 
@@ -62,4 +60,7 @@ public:
     CPPGUI::EventManager* GetEventManager() const { return mEventManager.get(); }
     CPPGUI::EventDispatcher* GetEventDispatcher() { return &mevtDispatcher; }
     CPPGUI::EventQueue* GetEventQueue() { return &mEventQueue; }
+
+    void HandleWebViewEvent(const std::string& eventType, const std::string& jsonData);
+    void StartEventProcessing();
 };

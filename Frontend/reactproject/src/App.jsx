@@ -34,6 +34,24 @@ function App() {
 
   return (
     <>
+      {/* Draggable div with app-region:drag attribute */}
+      <div 
+        style={{ 
+          width: '100px', 
+          height: '100px', 
+          backgroundColor: 'blue', 
+          color: 'white', 
+          display: 'flex', 
+          alignItems: 'center', 
+          justifyContent: 'center', 
+          margin: '0 auto 20px auto', 
+          cursor: 'move',
+          WebkitAppRegion: 'drag' // This enables dragging in WebView2
+        }}
+      >
+        Drag Me
+      </div>
+      
       <div>
         <div style={{ textAlign: 'center' }}>
           <button id="sendClickButton" onClick={handleSendClick}>Send Click to Native</button>
