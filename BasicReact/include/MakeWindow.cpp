@@ -76,6 +76,23 @@ namespace CPPGUI
 				wvMgr->Resize(bounds);
 			};
 			break;
+
+		case WM_SETTINGCHANGE:
+			if (lParam && lstrcmp((LPCWSTR)lParam, L"ImmersiveColorSet") == 0) {
+				// System theme has changed, update our theme if in System mode
+				if (m_themeMode == ThemeMode::System) {
+					UpdateTheme(hWnd);
+				}
+			}
+			return DefWindowProc(hWnd, message, wParam, lParam);
+
+		case WM_DWMCOLORIZATIONCOLORCHANGED:
+			// DWM colorization color has changed, update our theme
+			if (m_themeMode == ThemeMode::System) {
+				UpdateTheme(hWnd);
+			}
+			return DefWindowProc(hWnd, message, wParam, lParam);
+
 		case WM_DESTROY:
 			PostQuitMessage(0);
 			break;
@@ -133,8 +150,134 @@ namespace CPPGUI
 
 		if (!hWnd) return nullptr;
 
+		// Apply theme settings immediately after window creation
+		if (m_isThemingEnabled) {
+			// Update theme based on current settings
+			UpdateTheme(hWnd);
+		}
+
 		ShowWindow(hWnd, nCmdShow);
 		UpdateWindow(hWnd);
 		return hWnd;
+	}
+
+	bool MakeWindow::IsSystemInDarkMode() const
+	{
+		// Check if system is using dark mode
+		BOOL isDarkMode = FALSE;
+		DWORD darkModeValue = 0;
+		DWORD bufferSize = sizeof(darkModeValue);
+		
+		// Try to get the system theme setting from registry
+		// Apps/Windows dark mode value
+		HKEY hKey;
+		if (RegOpenKeyExW(HKEY_CURRENT_USER, L"Software\\Microsoft\\Windows\\CurrentVersion\\Themes\\Personalize", 0, KEY_READ, &hKey) == ERROR_SUCCESS) {
+			if (RegQueryValueExW(hKey, L"AppsUseLightTheme", 0, NULL, reinterpret_cast<LPBYTE>(&darkModeValue), &bufferSize) == ERROR_SUCCESS) {
+				isDarkMode = (darkModeValue == 0); // 0 means dark mode
+			}
+			RegCloseKey(hKey);
+		}
+		
+		return isDarkMode == TRUE;
+	}
+	
+	void MakeWindow::SetThemeMode(ThemeMode mode)
+	{
+		if (m_themeMode != mode) {
+			m_themeMode = mode;
+			
+			// If we have a window, update its theme
+			HWND hWnd = FindWindow(szWindowClass, NULL);
+			if (hWnd) {
+				UpdateTheme(hWnd);
+			}
+		}
+	}
+	
+	void MakeWindow::UpdateTheme(HWND hWnd)
+	{
+		if (!m_isThemingEnabled) return;
+		
+		// Determine if we should be in dark mode
+		bool shouldBeDarkMode = false;
+		switch (m_themeMode) {
+			case ThemeMode::System:
+				shouldBeDarkMode = IsSystemInDarkMode();
+				break;
+			case ThemeMode::Light:
+				shouldBeDarkMode = false;
+				break;
+			case ThemeMode::Dark:
+				shouldBeDarkMode = true;
+				break;
+		}
+		
+		// Only update if the mode has changed
+		if (m_isDarkMode != shouldBeDarkMode) {
+			m_isDarkMode = shouldBeDarkMode;
+			
+			// Apply theme to window
+			ApplyThemeToWindow(hWnd);
+			
+			// Apply theme to WebView if available
+			if (wvMgr && wvMgr->GetWebView()) {
+				// Apply dark mode to WebView by injecting appropriate CSS
+				std::wstring script;
+				if (m_isDarkMode) {
+					script = L"document.documentElement.setAttribute('data-theme', 'dark');";
+				} else {
+					script = L"document.documentElement.setAttribute('data-theme', 'light');";
+				}
+				wvMgr->ExecuteScript(script);
+			}
+		}
+	}
+	
+	void MakeWindow::ApplyThemeToWindow(HWND hWnd)
+	{
+		if (!m_isThemingEnabled || !hWnd) return;
+		
+		// Apply dark mode to window frame
+		BOOL darkMode = m_isDarkMode ? TRUE : FALSE;
+		
+		// Set the window attribute for dark mode (Windows 10 1809 and later)
+		DwmSetWindowAttribute(
+			hWnd, 
+			20, // DWMWA_USE_IMMERSIVE_DARK_MODE (20 for Windows 11/10 build 19041 and later, 19 for earlier Windows 10 builds)
+			&darkMode, 
+			sizeof(darkMode)
+		);
+		
+		// Set title bar color (if in dark mode)
+		if (m_isDarkMode) {
+			// Dark gray color for title bar in dark mode
+			COLORREF darkGray = RGB(32, 32, 32);
+			DwmSetWindowAttribute(
+				hWnd, 
+				35, // DWMWA_CAPTION_COLOR (Windows 11 and later)
+				&darkGray, 
+				sizeof(darkGray)
+			);
+		} else {
+			// Use default title bar color for light mode
+			// This resets the title bar to system default
+			DwmSetWindowAttribute(
+				hWnd, 
+				35, // DWMWA_CAPTION_COLOR
+				nullptr, 
+				0
+			);
+		}
+		
+		// Force a redraw of the window
+		SetWindowPos(
+			hWnd, 
+			NULL, 
+			0, 0, 0, 0, 
+			SWP_NOMOVE | SWP_NOSIZE | SWP_NOZORDER | SWP_FRAMECHANGED
+		);
+		
+		// Invalidate and redraw
+		InvalidateRect(hWnd, NULL, TRUE);
 	}
 }

@@ -16,6 +16,7 @@
 #include "SystemUtils.h"
 #include "WebViewManager.h"
 #include "MakeWindow.h"
+#include "../resource.h" // Added for resource identifiers
 
 using namespace Microsoft::WRL;
 
@@ -94,7 +95,6 @@ int CALLBACK WinMain(
 
 	// Load the application icon from resources
 	HICON appIcon = LoadIcon(hInstance, MAKEINTRESOURCE(IDI_ICON1));
-
 	hWnd = window.CreateMainWindow(1200, 900, L"Bruce's CPPGUI", appIcon);
 	if (!hWnd) 
 		return -1;
@@ -103,20 +103,24 @@ int CALLBACK WinMain(
 	
 	// Set the WebViewManager in the MakeWindow instance
 	window.SetWebViewManager(g_webViewManager.get());
+	window.SetThemeMode(CPPGUI::ThemeMode::Dark); // or ThemeMode::Light, ThemeMode::Dark
 
-	// Add subscriptions here // 
+	// Add subscriptions here  
 	g_webViewManager->Subscribe("auto-manual-control", [](const CPPGUI::UIEvent& evt) {
 		return squarefoo(evt);
 	});
 
 	// Set up simplified navigation callback - much cleaner for frontend developers
-	g_webViewManager->SetSimpleNavigationCallback([](const std::wstring& uri, bool isSuccess, const std::wstring& errorMessage) {
-		LOGI << "Navigation completed to: " << SystemUtils::WideToUtf8(uri);
-		if (!isSuccess) {
-			LOGE << "Navigation failed: " << SystemUtils::WideToUtf8(errorMessage);
+	g_webViewManager->SetSimpleNavigationCallback([](const std::wstring& uri, bool isSuccess, const std::wstring& errorMessage) 
+		{
+			LOGI << "Navigation completed to: " << SystemUtils::WideToUtf8(uri);
+			if (!isSuccess) 
+			{
+				LOGE << "Navigation failed: " << SystemUtils::WideToUtf8(errorMessage);
 			// Here you could show a user-friendly error message in the UI
 			// or take other appropriate actions based on the error
-		}
+			}
+			// Navigation succeeded! We're on the next page
 	});
 
 	// The detailed navigation callback is still available if needed for debugging or advanced error handling
