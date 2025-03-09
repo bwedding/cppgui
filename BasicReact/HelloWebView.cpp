@@ -38,6 +38,8 @@ static TCHAR szWindowClass[] = _T("DesktopApp");
 static TCHAR szTitle[] = _T("WebView sample");
 
 HINSTANCE hInst;
+HWND hWnd = nullptr;
+DWORD m_uiThreadId = 0;
 
 // Forward declarations of functions included in this code module:
 LRESULT CALLBACK WndProc(HWND, UINT, WPARAM, LPARAM);
@@ -63,6 +65,7 @@ int CALLBACK WinMain(
 	static plog::RollingFileAppender<plog::TxtFormatter> fileAppender("MultiAppender.csv", 40000000, 7); 
 	plog::init(plog::debug, &fileAppender).addAppender(&debugOutputAppender);
 
+	m_uiThreadId = GetCurrentThreadId();
 
 	LOGD << "Hello log!"; // short macro
 
@@ -104,7 +107,7 @@ int CALLBACK WinMain(
 	// NULL: this application does not have a menu bar
 	// hInstance: the first parameter from WinMain
 	// NULL: not used in this application
-	HWND hWnd = CreateWindow(
+	hWnd = CreateWindow(
 		szWindowClass,
 		szTitle,
 		WS_OVERLAPPEDWINDOW,
@@ -144,11 +147,11 @@ int CALLBACK WinMain(
 	// Locate the browser and set up the environment for WebView
 	CreateCoreWebView2EnvironmentWithOptions(nullptr, nullptr, options.Get(),
 		Callback<ICoreWebView2CreateCoreWebView2EnvironmentCompletedHandler>(
-			[hWnd](HRESULT result, ICoreWebView2Environment* env) -> HRESULT {
+			[](HRESULT result, ICoreWebView2Environment* env) -> HRESULT {
 
 				// Create a CoreWebView2Controller and get the associated CoreWebView2 whose parent is the main window hWnd
 				env->CreateCoreWebView2Controller(hWnd, Callback<ICoreWebView2CreateCoreWebView2ControllerCompletedHandler>(
-					[hWnd](HRESULT result, ICoreWebView2Controller* controller) -> HRESULT 
+					[](HRESULT result, ICoreWebView2Controller* controller) -> HRESULT 
 					{
 						if (controller != nullptr) {
 							webviewController = controller;
@@ -269,10 +272,155 @@ int CALLBACK WinMain(
 	return (int)msg.wParam;
 }
 
+HRESULT ExecuteScript(const std::wstring& script) 
+{
+	SPDLOG_TRACE("Entering");
+
+	if (GetCurrentThreadId() == m_uiThreadId)
+	{
+		if (!webview)
+		{
+			return E_POINTER;
+		}
+
+		return webview->ExecuteScript(script.c_str(),
+			Callback<ICoreWebView2ExecuteScriptCompletedHandler>(
+				[](const HRESULT error, const LPCWSTR result) -> HRESULT {
+					if (FAILED(error))
+					{
+						spdlog::error("Failed to execute script");
+
+						return error;
+					}
+					if (result != nullptr)
+					{
+						std::wstring resultStr(L"Script result: ");
+						resultStr += result;
+						spdlog::info(L"Script result : {0}", resultStr);
+					}
+					return S_OK;
+				}).Get());
+	}
+	// Post to UI thread
+	PostMessage(hWnd, WM_EXECUTE_SCRIPT_WEBVIEW, reinterpret_cast<WPARAM>(new std::wstring(script)), 0);
+	return S_OK;
+}
+
+HRESULT PostMessageToWebView(const std::wstring& message)
+{
+	// Check if we're already on the UI thread
+	if (GetCurrentThreadId() == m_uiThreadId)
+	{
+		if (!webview)
+		{
+			return E_POINTER;
+		}
+		try
+		{
+			return webview->PostWebMessageAsString(message.c_str());
+		}
+		catch (const std::exception& e)
+		{
+			spdlog::error("Error posting message: {}", std::string(e.what()));
+			return E_FAIL;
+		}
+	}
+	// Post to UI thread and wait for completion
+	PostMessage(hWnd, WM_POST_MSG_TO_WEBVIEW, reinterpret_cast<WPARAM>(new std::wstring(message)), 0);
+	return S_OK;  // Note: This becomes async when called from another thread
+}
+
+
 LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
 	switch (message)
 	{
+	///////////  Custom Messages
+	case WM_POST_MSG_TO_WEBVIEW: // Used to send JSON strings to the webview
+	{
+		if (auto pmessage = reinterpret_cast<std::wstring*>(wParam))
+		{
+			// TODO Add error handling
+			PostMessageToWebView(*pmessage);
+			delete pmessage;
+		}
+		return 0;
+	}
+	case WM_EXECUTE_SCRIPT_WEBVIEW:
+	{
+		if (auto pscript = reinterpret_cast<std::wstring*>(wParam))
+		{
+			const HRESULT hr = ExecuteScript(*pscript);  // This will now be on UI thread
+			delete pscript;
+			return hr;
+		}
+		return 0;
+	}
+
+	case WM_USER_EVENT:
+	{
+		CPPGUI::UIEvent evt
+		{
+			"auto-manual-control",
+			"User interface",
+			"",
+			system_clock::time_point{}
+		};
+
+		LOGI << "Event from WebView2: '{}'" << evt.type;
+
+		int eventId = static_cast<int>(lParam);
+		auto event = mEventManager->retrieveEvent(eventId);
+		if (!event.type.empty()) {
+			mEventQueue.enqueue(std::move(event));
+		}
+		break;
+	}
+
+	case WM_USER_SUBSCRIBE: 
+	{
+		int callbackId = static_cast<int>(lParam);
+		spdlog::debug("WM_USER_SUBSCRIBE received with ID: {}", callbackId);
+		if (auto params = mCallbackRegistry.retrieveSubscribeParams(callbackId))
+		{
+			// Subscribe and store the result directly in the params
+			params->resultSubscriptionId = mEventDispatcher.subscribe(
+				params->eventType, std::move(params->callback));
+			spdlog::info("Subscribing to event type: '{}'", params->eventType);
+		}
+		else 
+		{
+			LOGE << "Failed to retrieve subscription params for ID: {}" << callbackId;
+		}
+
+		return 0;
+	}
+
+	case WM_USER_UNSUBSCRIBE: 
+	{
+		int unsubscribeId = static_cast<int>(lParam);
+		auto [eventType, subscriptionId] = mCallbackRegistry.retrieveUnsubscribe(unsubscribeId);
+		if (!eventType.empty() && subscriptionId >= 0) 
+		{
+			mEventDispatcher.unsubscribe(eventType, subscriptionId);
+		}
+		break;
+	}
+
+	case WM_USER_DISPATCH:
+	{
+		CPPGUI::UIEvent testEvent{
+					"auto-manual-control",
+					"User interface",
+					"",
+					system_clock::time_point{}
+		};
+		mEventDispatcher.dispatch(testEvent);
+		break;
+	}
+
+	///////////  End Custom Messages
+
 	case WM_SIZE:
 		if (webviewController != nullptr) 
 		{
