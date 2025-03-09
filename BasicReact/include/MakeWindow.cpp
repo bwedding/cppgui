@@ -112,7 +112,7 @@ namespace CPPGUI
 			LOGE << "Passed me a null pointer WebViewManager!";
 	}
 
-	HWND MakeWindow::CreateMainWindow(int width, int height, const TCHAR* title, HICON icon) 
+	HWND MakeWindow::CreateMainWindow(int width, int height, const TCHAR* title, HICON icon, bool topMost) 
 	{
 		WNDCLASSEX wcex;
 		wcex.cbSize = sizeof(WNDCLASSEX);
@@ -136,7 +136,17 @@ namespace CPPGUI
 			return nullptr;
 		}
 
-		HWND hWnd = CreateWindow(
+		// Store topMost setting
+		m_isTopMost = topMost;
+		
+		// Calculate extended style based on current settings
+		DWORD exStyle = 0;
+		if (m_isTopMost) {
+			exStyle |= WS_EX_TOPMOST;
+		}
+
+		HWND hWnd = CreateWindowEx(
+			exStyle,
 			szWindowClass,
 			title ? title : szTitle,
 			WS_OVERLAPPEDWINDOW,
@@ -159,6 +169,26 @@ namespace CPPGUI
 		ShowWindow(hWnd, nCmdShow);
 		UpdateWindow(hWnd);
 		return hWnd;
+	}
+
+	void MakeWindow::SetTopMost(HWND hWnd, bool topMost)
+	{
+		if (hWnd && m_isTopMost != topMost) {
+			m_isTopMost = topMost;
+			
+			// Set window z-order based on topmost setting
+			HWND insertAfter = m_isTopMost ? HWND_TOPMOST : HWND_NOTOPMOST;
+			
+			SetWindowPos(
+				hWnd,
+				insertAfter,
+				0, 0, 0, 0,
+				SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE
+			);
+			
+			// Log the change
+			LOGD << "Window TopMost state set to: " << (m_isTopMost ? "TRUE" : "FALSE");
+		}
 	}
 
 	bool MakeWindow::IsSystemInDarkMode() const

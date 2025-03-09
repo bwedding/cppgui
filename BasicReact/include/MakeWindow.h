@@ -34,6 +34,9 @@ namespace CPPGUI
 		ThemeMode m_themeMode = ThemeMode::System;
 		bool m_isDarkMode = false;
 		bool m_isThemingEnabled = true;
+		
+		// Window style members
+		bool m_isTopMost = false;
 
 	public:
 		MakeWindow(HINSTANCE hInst, int nCmd) :hInstance(hInst), nCmdShow(nCmd) {
@@ -46,7 +49,7 @@ namespace CPPGUI
 			}
 		}
 
-		HWND CreateMainWindow(int width = 1200, int height = 900, const TCHAR* title = nullptr, HICON icon = nullptr);
+		HWND CreateMainWindow(int width = 1200, int height = 900, const TCHAR* title = nullptr, HICON icon = nullptr, bool topMost = false);
 		void SetWebViewManager(WebViewManager* wv);
 		WebViewManager* GetWebViewManager() const { return wvMgr; }
 		int RunMessageLoop()
@@ -75,6 +78,10 @@ namespace CPPGUI
 		
 		// Update theme based on current settings
 		void UpdateTheme(HWND hWnd);
+		
+		// Window style methods
+		void SetTopMost(HWND hWnd, bool topMost);
+		bool IsTopMost() const { return m_isTopMost; }
 		
 		// Static window procedure that will forward calls to the instance method
 		static LRESULT CALLBACK StaticWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);

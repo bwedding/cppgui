@@ -557,3 +557,11 @@
 2025-03-09 20:42:54.364 DEBUG [43892] [WebViewManager::InitializeWebView::<lambda_1>::()::<lambda_1>::()::<lambda_1>::operator ()@53] Navigation starting
 2025-03-09 20:42:54.483 DEBUG [43892] [WebViewManager::InitializeWebView::<lambda_1>::()::<lambda_1>::()::<lambda_2>::operator ()@71] Navigation completed to: file:///C:/Users/bruce/source/cppgui/Frontend/UI/dist/index.html Success: true
 2025-03-09 20:42:54.483 INFO  [43892] [WinMain::<lambda_2>::operator ()@116] Navigation completed to: file:///C:/Users/bruce/source/cppgui/Frontend/UI/dist/index.html
+2025-03-09 20:51:33.994 DEBUG [20632] [InitializeLog@82] Launching Hello WebView!
+2025-03-09 20:51:34.082 DEBUG [20632] [NativeDatabaseAccess::NativeDatabaseAccess@129] NativeDatabaseAccess created
+2025-03-09 20:51:34.083 DEBUG [20632] [NativeDatabaseAccess::ExecuteQuery@165] ExecuteQuery called
+2025-03-09 20:51:34.093 DEBUG [20632] [NativeDatabaseAccess::~NativeDatabaseAccess@131] NativeDatabaseAccess destroyed
+2025-03-09 20:51:34.346 DEBUG [20632] [NativeWindowControls::NativeWindowControls@41] Entering
+2025-03-09 20:51:34.351 DEBUG [20632] [WebViewManager::InitializeWebView::<lambda_1>::()::<lambda_1>::()::<lambda_1>::operator ()@53] Navigation starting
+2025-03-09 20:51:34.464 DEBUG [20632] [WebViewManager::InitializeWebView::<lambda_1>::()::<lambda_1>::()::<lambda_2>::operator ()@71] Navigation completed to: file:///C:/Users/bruce/source/cppgui/Frontend/UI/dist/index.html Success: true
+2025-03-09 20:51:34.465 INFO  [20632] [WinMain::<lambda_2>::operator ()@116] Navigation completed to: file:///C:/Users/bruce/source/cppgui/Frontend/UI/dist/index.html

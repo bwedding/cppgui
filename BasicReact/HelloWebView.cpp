@@ -95,7 +95,7 @@ int CALLBACK WinMain(
 
 	// Load the application icon from resources
 	HICON appIcon = LoadIcon(hInstance, MAKEINTRESOURCE(IDI_ICON1));
-	hWnd = window.CreateMainWindow(1200, 900, L"Bruce's CPPGUI", appIcon);
+	hWnd = window.CreateMainWindow(1200, 900, L"Bruce's CPPGUI", appIcon, true);
 	if (!hWnd) 
 		return -1;
 
@@ -103,7 +103,7 @@ int CALLBACK WinMain(
 	
 	// Set the WebViewManager in the MakeWindow instance
 	window.SetWebViewManager(g_webViewManager.get());
-	window.SetThemeMode(CPPGUI::ThemeMode::Dark); // or ThemeMode::Light, ThemeMode::Dark
+	window.SetThemeMode(CPPGUI::ThemeMode::Dark); // or ThemeMode::Light, ThemeMode::Dark, ThemeMode::System
 
 	// Add subscriptions here  
 	g_webViewManager->Subscribe("auto-manual-control", [](const CPPGUI::UIEvent& evt) {
