@@ -462,3 +462,4 @@ yarn-error.log*
 # Optional: Styles
 .sass-cache/
 /BasicReact/MultiAppender.csv
+/BasicReact/MultiAppender.txt
