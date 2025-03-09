@@ -45,6 +45,9 @@
     <ClCompile Include="include\MakeWindow.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="simdjson.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
@@ -52,6 +55,9 @@
       <Filter>Source Files</Filter>
     </None>
     <None Include="libs\sqlite3.dll" />
+    <None Include="include\twitter.json">
+      <Filter>Source Files</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <Natvis Include="$(MSBuildThisFileDirectory)..\..\natvis\wil.natvis" />
@@ -123,6 +129,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="resource.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="simdjson.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

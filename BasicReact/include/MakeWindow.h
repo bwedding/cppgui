@@ -23,13 +23,20 @@ namespace CPPGUI
 		Dark     // Force dark mode
 	};
 
+	// Enum for window states
+	enum class WindowState {
+		Normal,    // Normal window state
+		Maximized, // Maximized window
+		Minimized  // Minimized window
+	};
+
 	// Structure for main window configuration
 	struct MainWindowConfiguration {
 		// Window dimensions
 		int width = 1200;
 		int height = 900;
 		
-		// Window title and icon
+		// Window appearance
 		const TCHAR* title = nullptr;
 		HICON icon = nullptr;
 		
@@ -37,17 +44,20 @@ namespace CPPGUI
 		bool topMost = false;
 		bool toolWindow = false;
 		bool layered = false;
+		bool resizable = true;     // Whether window is resizable
 		BYTE opacity = 255; // Only used if layered is true (0-255)
+		int borderWidth = -1;  // -1 means use system default
+		WindowState initialState = WindowState::Normal;  // Initial window state
 		
 		// Theme options
-		ThemeMode themeMode = ThemeMode::System;
 		bool themingEnabled = true;
+		ThemeMode themeMode = ThemeMode::System;
 		
-		// Colors (all initialized to use system defaults)
-		COLORREF titleBarColor = CLR_INVALID;        // Title bar background color
-		COLORREF frameColor = CLR_INVALID;           // Window frame color
-		COLORREF textColor = CLR_INVALID;            // Title text color
-		COLORREF captionButtonHoverColor = CLR_INVALID;  // Caption button hover color
+		// Window colors
+		COLORREF titleBarColor = CLR_INVALID;  // Use system default if CLR_INVALID
+		COLORREF frameColor = CLR_INVALID;     // Use system default if CLR_INVALID
+		COLORREF textColor = CLR_INVALID;      // Use system default if CLR_INVALID
+		COLORREF captionButtonHoverColor = CLR_INVALID;  // Use system default if CLR_INVALID
 	};
 
 	class MakeWindow
@@ -123,21 +133,31 @@ namespace CPPGUI
 		// Apply theme to window and WebView
 		void ApplyThemeToWindow(HWND hWnd);
 		
-		// Window coloring methods
+		// Color customization methods
 		void SetTitleBarColor(HWND hWnd, COLORREF color);
 		void SetFrameColor(HWND hWnd, COLORREF color);
 		void SetTextColor(HWND hWnd, COLORREF color);
 		void SetCaptionButtonHoverColor(HWND hWnd, COLORREF color);
+		
+		// Border customization
+		void SetBorderWidth(HWND hWnd, int width);
+		
+		// Window styling
+		void SetTopMost(HWND hWnd, bool topMost);
+		bool IsTopMost() const { return m_isTopMost; }
+		
+		// Resizable window control
+		void SetResizable(HWND hWnd, bool resizable);
+		bool IsResizable() const { return m_config.resizable; }
+		
+		// Window state control
+		void SetWindowState(HWND hWnd, WindowState state);
 		
 		// Detect system dark mode status
 		bool IsSystemInDarkMode() const;
 		
 		// Update theme based on current settings
 		void UpdateTheme(HWND hWnd);
-		
-		// Window style methods
-		void SetTopMost(HWND hWnd, bool topMost);
-		bool IsTopMost() const { return m_isTopMost; }
 		
 		// Static window procedure that will forward calls to the instance method
 		static LRESULT CALLBACK StaticWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);

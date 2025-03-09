@@ -236,11 +236,13 @@
     <ClCompile Include="NativeDatabaseAccess.cpp" />
     <ClCompile Include="NativeWindowControls.cpp" />
     <ClCompile Include="NativeWindowControls_i.c" />
+    <ClCompile Include="simdjson.cpp" />
     <ClCompile Include="SystemUtils.cpp" />
     <ClCompile Include="TestDB.h" />
     <ClCompile Include="WebViewManager.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="include\twitter.json" />
     <None Include="libs\sqlite3.def" />
     <None Include="libs\sqlite3.dll" />
     <None Include="packages.config" />
@@ -268,6 +270,7 @@
     <ClInclude Include="NativeWindowControls.h" />
     <ClInclude Include="NativeWindowControls_h.h" />
     <ClInclude Include="resource.h" />
+    <ClInclude Include="simdjson.h" />
     <ClInclude Include="SystemUtils.h" />
     <ClInclude Include="WebViewManager.h" />
   </ItemGroup>

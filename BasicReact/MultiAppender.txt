@@ -761,3 +761,109 @@
 2025-03-09 21:54:45.781 DEBUG [45988] [WebViewManager::InitializeWebView::<lambda_1>::()::<lambda_1>::()::<lambda_1>::operator ()@53] Navigation starting
 2025-03-09 21:54:45.910 DEBUG [45988] [WebViewManager::InitializeWebView::<lambda_1>::()::<lambda_1>::()::<lambda_2>::operator ()@71] Navigation completed to: file:///C:/Users/bruce/source/cppgui/Frontend/UI/dist/index.html Success: true
 2025-03-09 21:54:45.910 INFO  [45988] [WinMain::<lambda_2>::operator ()@131] Navigation completed to: file:///C:/Users/bruce/source/cppgui/Frontend/UI/dist/index.html
+2025-03-09 21:56:20.884 DEBUG [38032] [InitializeLog@82] Launching Hello WebView!
+2025-03-09 21:56:20.905 DEBUG [38032] [CPPGUI::MakeWindow::SetTitleBarColor@234] Title bar color set to RGB(
+2025-03-09 21:56:20.905 DEBUG [38032] [CPPGUI::MakeWindow::SetFrameColor@253] Frame color set to RGB(
+2025-03-09 21:56:20.906 DEBUG [38032] [CPPGUI::MakeWindow::SetTextColor@272] Text color set to RGB(d,d,d)
+2025-03-09 21:56:20.966 DEBUG [38032] [NativeDatabaseAccess::NativeDatabaseAccess@129] NativeDatabaseAccess created
+2025-03-09 21:56:20.966 DEBUG [38032] [NativeDatabaseAccess::ExecuteQuery@165] ExecuteQuery called
+2025-03-09 21:56:20.982 DEBUG [38032] [NativeDatabaseAccess::~NativeDatabaseAccess@131] NativeDatabaseAccess destroyed
+2025-03-09 21:56:21.213 DEBUG [38032] [NativeWindowControls::NativeWindowControls@41] Entering
+2025-03-09 21:56:21.218 DEBUG [38032] [WebViewManager::InitializeWebView::<lambda_1>::()::<lambda_1>::()::<lambda_1>::operator ()@53] Navigation starting
+2025-03-09 21:56:21.319 DEBUG [38032] [WebViewManager::InitializeWebView::<lambda_1>::()::<lambda_1>::()::<lambda_2>::operator ()@71] Navigation completed to: file:///C:/Users/bruce/source/cppgui/Frontend/UI/dist/index.html Success: true
+2025-03-09 21:56:21.319 INFO  [38032] [WinMain::<lambda_2>::operator ()@126] Navigation completed to: file:///C:/Users/bruce/source/cppgui/Frontend/UI/dist/index.html
+2025-03-09 21:58:46.855 DEBUG [34144] [InitializeLog@82] Launching Hello WebView!
+2025-03-09 21:58:46.876 DEBUG [34144] [CPPGUI::MakeWindow::SetTitleBarColor@239] Title bar color set to RGB(
+2025-03-09 21:58:46.876 DEBUG [34144] [CPPGUI::MakeWindow::SetFrameColor@258] Frame color set to RGB(
+2025-03-09 21:58:46.877 DEBUG [34144] [CPPGUI::MakeWindow::SetTextColor@277] Text color set to RGB(d,d,d)
+2025-03-09 21:58:46.877 DEBUG [34144] [CPPGUI::MakeWindow::SetBorderWidth@319] Setting border width to 5 pixels
+2025-03-09 21:58:46.877 WARN  [34144] [CPPGUI::MakeWindow::SetBorderWidth@327] Failed to set border width, HRESULT: -2147024809
+2025-03-09 21:58:46.938 DEBUG [34144] [NativeDatabaseAccess::NativeDatabaseAccess@129] NativeDatabaseAccess created
+2025-03-09 21:58:46.939 DEBUG [34144] [NativeDatabaseAccess::ExecuteQuery@165] ExecuteQuery called
+2025-03-09 21:58:46.952 DEBUG [34144] [NativeDatabaseAccess::~NativeDatabaseAccess@131] NativeDatabaseAccess destroyed
+2025-03-09 21:58:47.208 DEBUG [34144] [NativeWindowControls::NativeWindowControls@41] Entering
+2025-03-09 21:58:47.212 DEBUG [34144] [WebViewManager::InitializeWebView::<lambda_1>::()::<lambda_1>::()::<lambda_1>::operator ()@53] Navigation starting
+2025-03-09 21:58:47.328 DEBUG [34144] [WebViewManager::InitializeWebView::<lambda_1>::()::<lambda_1>::()::<lambda_2>::operator ()@71] Navigation completed to: file:///C:/Users/bruce/source/cppgui/Frontend/UI/dist/index.html Success: true
+2025-03-09 21:58:47.329 INFO  [34144] [WinMain::<lambda_2>::operator ()@127] Navigation completed to: file:///C:/Users/bruce/source/cppgui/Frontend/UI/dist/index.html
+2025-03-09 21:59:20.941 DEBUG [26436] [InitializeLog@82] Launching Hello WebView!
+2025-03-09 21:59:20.961 DEBUG [26436] [CPPGUI::MakeWindow::SetTitleBarColor@239] Title bar color set to RGB(
+2025-03-09 21:59:20.962 DEBUG [26436] [CPPGUI::MakeWindow::SetFrameColor@258] Frame color set to RGB(
+2025-03-09 21:59:20.962 DEBUG [26436] [CPPGUI::MakeWindow::SetTextColor@277] Text color set to RGB(d,d,d)
+2025-03-09 21:59:20.962 DEBUG [26436] [CPPGUI::MakeWindow::SetBorderWidth@319] Setting border width to 15 pixels
+2025-03-09 21:59:20.963 WARN  [26436] [CPPGUI::MakeWindow::SetBorderWidth@327] Failed to set border width, HRESULT: -2147024809
+2025-03-09 21:59:21.031 DEBUG [26436] [NativeDatabaseAccess::NativeDatabaseAccess@129] NativeDatabaseAccess created
+2025-03-09 21:59:21.032 DEBUG [26436] [NativeDatabaseAccess::ExecuteQuery@165] ExecuteQuery called
+2025-03-09 21:59:21.042 DEBUG [26436] [NativeDatabaseAccess::~NativeDatabaseAccess@131] NativeDatabaseAccess destroyed
+2025-03-09 21:59:21.280 DEBUG [26436] [NativeWindowControls::NativeWindowControls@41] Entering
+2025-03-09 21:59:21.284 DEBUG [26436] [WebViewManager::InitializeWebView::<lambda_1>::()::<lambda_1>::()::<lambda_1>::operator ()@53] Navigation starting
+2025-03-09 21:59:21.398 DEBUG [26436] [WebViewManager::InitializeWebView::<lambda_1>::()::<lambda_1>::()::<lambda_2>::operator ()@71] Navigation completed to: file:///C:/Users/bruce/source/cppgui/Frontend/UI/dist/index.html Success: true
+2025-03-09 21:59:21.399 INFO  [26436] [WinMain::<lambda_2>::operator ()@127] Navigation completed to: file:///C:/Users/bruce/source/cppgui/Frontend/UI/dist/index.html
+2025-03-09 21:59:46.596 DEBUG [37596] [InitializeLog@82] Launching Hello WebView!
+2025-03-09 21:59:46.616 DEBUG [37596] [CPPGUI::MakeWindow::SetTitleBarColor@239] Title bar color set to RGB(
+2025-03-09 21:59:46.617 DEBUG [37596] [CPPGUI::MakeWindow::SetFrameColor@258] Frame color set to RGB(
+2025-03-09 21:59:46.617 DEBUG [37596] [CPPGUI::MakeWindow::SetTextColor@277] Text color set to RGB(d,d,d)
+2025-03-09 21:59:46.617 DEBUG [37596] [CPPGUI::MakeWindow::SetBorderWidth@319] Setting border width to 1 pixels
+2025-03-09 21:59:46.618 WARN  [37596] [CPPGUI::MakeWindow::SetBorderWidth@327] Failed to set border width, HRESULT: -2147024809
+2025-03-09 21:59:46.681 DEBUG [37596] [NativeDatabaseAccess::NativeDatabaseAccess@129] NativeDatabaseAccess created
+2025-03-09 21:59:46.682 DEBUG [37596] [NativeDatabaseAccess::ExecuteQuery@165] ExecuteQuery called
+2025-03-09 21:59:46.692 DEBUG [37596] [NativeDatabaseAccess::~NativeDatabaseAccess@131] NativeDatabaseAccess destroyed
+2025-03-09 21:59:46.935 DEBUG [37596] [NativeWindowControls::NativeWindowControls@41] Entering
+2025-03-09 21:59:46.940 DEBUG [37596] [WebViewManager::InitializeWebView::<lambda_1>::()::<lambda_1>::()::<lambda_1>::operator ()@53] Navigation starting
+2025-03-09 21:59:47.052 DEBUG [37596] [WebViewManager::InitializeWebView::<lambda_1>::()::<lambda_1>::()::<lambda_2>::operator ()@71] Navigation completed to: file:///C:/Users/bruce/source/cppgui/Frontend/UI/dist/index.html Success: true
+2025-03-09 21:59:47.052 INFO  [37596] [WinMain::<lambda_2>::operator ()@127] Navigation completed to: file:///C:/Users/bruce/source/cppgui/Frontend/UI/dist/index.html
+2025-03-09 22:00:08.039 DEBUG [24584] [InitializeLog@82] Launching Hello WebView!
+2025-03-09 22:00:08.061 DEBUG [24584] [CPPGUI::MakeWindow::SetTitleBarColor@239] Title bar color set to RGB(
+2025-03-09 22:00:08.061 DEBUG [24584] [CPPGUI::MakeWindow::SetFrameColor@258] Frame color set to RGB(ÿ,
+2025-03-09 22:00:08.062 DEBUG [24584] [CPPGUI::MakeWindow::SetTextColor@277] Text color set to RGB(d,d,d)
+2025-03-09 22:00:08.062 DEBUG [24584] [CPPGUI::MakeWindow::SetBorderWidth@319] Setting border width to 1 pixels
+2025-03-09 22:00:08.062 WARN  [24584] [CPPGUI::MakeWindow::SetBorderWidth@327] Failed to set border width, HRESULT: -2147024809
+2025-03-09 22:00:08.124 DEBUG [24584] [NativeDatabaseAccess::NativeDatabaseAccess@129] NativeDatabaseAccess created
+2025-03-09 22:00:08.125 DEBUG [24584] [NativeDatabaseAccess::ExecuteQuery@165] ExecuteQuery called
+2025-03-09 22:00:08.136 DEBUG [24584] [NativeDatabaseAccess::~NativeDatabaseAccess@131] NativeDatabaseAccess destroyed
+2025-03-09 22:00:08.437 DEBUG [24584] [NativeWindowControls::NativeWindowControls@41] Entering
+2025-03-09 22:00:08.445 DEBUG [24584] [WebViewManager::InitializeWebView::<lambda_1>::()::<lambda_1>::()::<lambda_1>::operator ()@53] Navigation starting
+2025-03-09 22:00:08.526 DEBUG [24584] [WebViewManager::InitializeWebView::<lambda_1>::()::<lambda_1>::()::<lambda_2>::operator ()@71] Navigation completed to: file:///C:/Users/bruce/source/cppgui/Frontend/UI/dist/index.html Success: true
+2025-03-09 22:00:08.527 INFO  [24584] [WinMain::<lambda_2>::operator ()@127] Navigation completed to: file:///C:/Users/bruce/source/cppgui/Frontend/UI/dist/index.html
+2025-03-09 22:00:35.242 DEBUG [9832] [InitializeLog@82] Launching Hello WebView!
+2025-03-09 22:00:35.265 DEBUG [9832] [CPPGUI::MakeWindow::SetTitleBarColor@239] Title bar color set to RGB(
+2025-03-09 22:00:35.265 DEBUG [9832] [CPPGUI::MakeWindow::SetFrameColor@258] Frame color set to RGB(ÿ,
+2025-03-09 22:00:35.266 DEBUG [9832] [CPPGUI::MakeWindow::SetTextColor@277] Text color set to RGB(d,d,d)
+2025-03-09 22:00:35.266 DEBUG [9832] [CPPGUI::MakeWindow::SetBorderWidth@319] Setting border width to 10 pixels
+2025-03-09 22:00:35.266 WARN  [9832] [CPPGUI::MakeWindow::SetBorderWidth@327] Failed to set border width, HRESULT: -2147024809
+2025-03-09 22:00:35.329 DEBUG [9832] [NativeDatabaseAccess::NativeDatabaseAccess@129] NativeDatabaseAccess created
+2025-03-09 22:00:35.330 DEBUG [9832] [NativeDatabaseAccess::ExecuteQuery@165] ExecuteQuery called
+2025-03-09 22:00:35.342 DEBUG [9832] [NativeDatabaseAccess::~NativeDatabaseAccess@131] NativeDatabaseAccess destroyed
+2025-03-09 22:00:35.595 DEBUG [9832] [NativeWindowControls::NativeWindowControls@41] Entering
+2025-03-09 22:00:35.600 DEBUG [9832] [WebViewManager::InitializeWebView::<lambda_1>::()::<lambda_1>::()::<lambda_1>::operator ()@53] Navigation starting
+2025-03-09 22:00:35.727 DEBUG [9832] [WebViewManager::InitializeWebView::<lambda_1>::()::<lambda_1>::()::<lambda_2>::operator ()@71] Navigation completed to: file:///C:/Users/bruce/source/cppgui/Frontend/UI/dist/index.html Success: true
+2025-03-09 22:00:35.727 INFO  [9832] [WinMain::<lambda_2>::operator ()@127] Navigation completed to: file:///C:/Users/bruce/source/cppgui/Frontend/UI/dist/index.html
+2025-03-09 22:01:01.063 DEBUG [25640] [InitializeLog@82] Launching Hello WebView!
+2025-03-09 22:01:01.086 DEBUG [25640] [CPPGUI::MakeWindow::SetTitleBarColor@239] Title bar color set to RGB(
+2025-03-09 22:01:01.087 DEBUG [25640] [CPPGUI::MakeWindow::SetFrameColor@258] Frame color set to RGB(ÿ,
+2025-03-09 22:01:01.088 DEBUG [25640] [CPPGUI::MakeWindow::SetTextColor@277] Text color set to RGB(d,d,d)
+2025-03-09 22:01:01.088 DEBUG [25640] [CPPGUI::MakeWindow::SetBorderWidth@319] Setting border width to 50 pixels
+2025-03-09 22:01:01.089 WARN  [25640] [CPPGUI::MakeWindow::SetBorderWidth@327] Failed to set border width, HRESULT: -2147024809
+2025-03-09 22:01:01.159 DEBUG [25640] [NativeDatabaseAccess::NativeDatabaseAccess@129] NativeDatabaseAccess created
+2025-03-09 22:01:01.159 DEBUG [25640] [NativeDatabaseAccess::ExecuteQuery@165] ExecuteQuery called
+2025-03-09 22:01:01.170 DEBUG [25640] [NativeDatabaseAccess::~NativeDatabaseAccess@131] NativeDatabaseAccess destroyed
+2025-03-09 22:01:01.423 DEBUG [25640] [NativeWindowControls::NativeWindowControls@41] Entering
+2025-03-09 22:01:01.428 DEBUG [25640] [WebViewManager::InitializeWebView::<lambda_1>::()::<lambda_1>::()::<lambda_1>::operator ()@53] Navigation starting
+2025-03-09 22:01:01.570 DEBUG [25640] [WebViewManager::InitializeWebView::<lambda_1>::()::<lambda_1>::()::<lambda_2>::operator ()@71] Navigation completed to: file:///C:/Users/bruce/source/cppgui/Frontend/UI/dist/index.html Success: true
+2025-03-09 22:01:01.571 INFO  [25640] [WinMain::<lambda_2>::operator ()@127] Navigation completed to: file:///C:/Users/bruce/source/cppgui/Frontend/UI/dist/index.html
+2025-03-09 22:07:41.203 DEBUG [25908] [InitializeLog@82] Launching Hello WebView!
+2025-03-09 22:07:41.225 DEBUG [25908] [CPPGUI::MakeWindow::SetTitleBarColor@337] Title bar color set to RGB(
+2025-03-09 22:07:41.225 DEBUG [25908] [CPPGUI::MakeWindow::SetFrameColor@356] Frame color set to RGB(
+2025-03-09 22:07:41.226 DEBUG [25908] [CPPGUI::MakeWindow::SetTextColor@375] Text color set to RGB(d,d,d)
+2025-03-09 22:07:41.289 DEBUG [25908] [NativeDatabaseAccess::NativeDatabaseAccess@129] NativeDatabaseAccess created
+2025-03-09 22:07:41.289 DEBUG [25908] [NativeDatabaseAccess::ExecuteQuery@165] ExecuteQuery called
+2025-03-09 22:07:41.300 DEBUG [25908] [NativeDatabaseAccess::~NativeDatabaseAccess@131] NativeDatabaseAccess destroyed
+2025-03-09 22:07:41.540 DEBUG [25908] [NativeWindowControls::NativeWindowControls@41] Entering
+2025-03-09 22:07:41.543 DEBUG [25908] [WebViewManager::InitializeWebView::<lambda_1>::()::<lambda_1>::()::<lambda_1>::operator ()@53] Navigation starting
+2025-03-09 22:07:41.656 DEBUG [25908] [WebViewManager::InitializeWebView::<lambda_1>::()::<lambda_1>::()::<lambda_2>::operator ()@71] Navigation completed to: file:///C:/Users/bruce/source/cppgui/Frontend/UI/dist/index.html Success: true
+2025-03-09 22:07:41.657 INFO  [25908] [WinMain::<lambda_2>::operator ()@126] Navigation completed to: file:///C:/Users/bruce/source/cppgui/Frontend/UI/dist/index.html
+2025-03-09 22:31:08.288 DEBUG [1064] [InitializeLog@84] Launching Hello WebView!
+2025-03-09 22:32:30.898 DEBUG [27660] [InitializeLog@84] Launching Hello WebView!
+2025-03-09 22:33:08.920 DEBUG [40052] [InitializeLog@84] Launching Hello WebView!
+2025-03-09 22:34:26.024 DEBUG [40056] [InitializeLog@84] Launching Hello WebView!
+2025-03-09 22:34:26.062 DEBUG [40056] [WinMain@100] 100 results.
+

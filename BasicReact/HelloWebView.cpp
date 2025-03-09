@@ -17,7 +17,9 @@
 #include "WebViewManager.h"
 #include "MakeWindow.h"
 #include "../resource.h" // Added for resource identifiers
+#include "simdjson.h"
 
+using namespace simdjson;
 using namespace Microsoft::WRL;
 
 HINSTANCE hInst;
@@ -92,23 +94,22 @@ int CALLBACK WinMain(
 	CPPGUI::MakeWindow window(hInstance, nCmdShow);
 
 	InitializeLog();
-
-	HICON myappIcon = LoadIcon(hInstance, MAKEINTRESOURCE(IDI_ICON1));
+	ondemand::parser parser;
+	padded_string json = padded_string::load("twitter.json");
+	ondemand::document tweets = parser.iterate(json);
+	LOGD << uint64_t(tweets["search_metadata"]["count"]) << " results." << std::endl;
 
 	// Make the window with defaults
 	CPPGUI::MakeWindow makeWindow(hInstance, nCmdShow);
 	// Get the configuation
 	auto& config2 = makeWindow.GetConfiguration();
 	// Modify the titlebar and frame to be all black with a gray text color
+	config2.icon = LoadIcon(hInstance, MAKEINTRESOURCE(IDI_ICON1));
 	config2.titleBarColor = RGB(0, 0, 0);
 	config2.frameColor = RGB(0, 0, 0);
 	config2.textColor = RGB(100, 100, 100);
-	
+	config2.resizable = false;
 	hWnd = makeWindow.CreateMainWindow();
-	
-	// Load the application icon from resources
-	//HICON appIcon = LoadIcon(hInstance, MAKEINTRESOURCE(IDI_ICON1));
-	//hWnd = window.CreateMainWindow(1200, 900, L"Bruce's CPPGUI", appIcon, true);
 	if (!hWnd) 
 		return -1;
 

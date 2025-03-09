@@ -150,12 +150,21 @@ namespace CPPGUI
 		if (m_config.layered) {
 			exStyle |= WS_EX_LAYERED;
 		}
+		
+		// Calculate window style
+		DWORD style = WS_OVERLAPPEDWINDOW;
+		
+		// Adjust style for fixed size windows
+		if (!m_config.resizable) {
+			// Remove sizing border and maximize button for fixed size windows
+			style &= ~(WS_THICKFRAME | WS_MAXIMIZEBOX);
+		}
 
 		HWND hWnd = CreateWindowEx(
 			exStyle,
 			szWindowClass,
 			m_config.title ? m_config.title : szTitle,
-			WS_OVERLAPPEDWINDOW,
+			style,
 			CW_USEDEFAULT, CW_USEDEFAULT,
 			m_config.width, m_config.height,
 			NULL,
@@ -190,8 +199,27 @@ namespace CPPGUI
 		if (m_config.captionButtonHoverColor != CLR_INVALID) {
 			SetCaptionButtonHoverColor(hWnd, m_config.captionButtonHoverColor);
 		}
+		
+		// Apply border width if specified
+		if (m_config.borderWidth >= 0) {
+			SetBorderWidth(hWnd, m_config.borderWidth);
+		}
+		
+		// Set initial window state
+		int nCmdShowOverride = nCmdShow;
+		switch (m_config.initialState) {
+			case WindowState::Normal:
+				nCmdShowOverride = SW_SHOWNORMAL;
+				break;
+			case WindowState::Maximized:
+				nCmdShowOverride = SW_SHOWMAXIMIZED;
+				break;
+			case WindowState::Minimized:
+				nCmdShowOverride = SW_SHOWMINIMIZED;
+				break;
+		}
 
-		ShowWindow(hWnd, nCmdShow);
+		ShowWindow(hWnd, nCmdShowOverride);
 		UpdateWindow(hWnd);
 		return hWnd;
 	}
@@ -215,6 +243,81 @@ namespace CPPGUI
 			// Log the change
 			LOGD << "Window TopMost state set to: " << (m_isTopMost ? "TRUE" : "FALSE");
 		}
+	}
+
+	void MakeWindow::SetResizable(HWND hWnd, bool resizable)
+	{
+		if (!hWnd) return;
+		
+		// Only proceed if we're changing the resizable state
+		if (m_config.resizable == resizable) return;
+		
+		m_config.resizable = resizable;
+		LOGD << "Window resizable state changed to: " << (resizable ? "TRUE" : "FALSE");
+		
+		// Get current window style
+		LONG_PTR style = GetWindowLongPtr(hWnd, GWL_STYLE);
+		
+		if (resizable) {
+			// Add sizing border and maximize button
+			style |= (WS_THICKFRAME | WS_MAXIMIZEBOX);
+		} else {
+			// Remove sizing border and maximize button
+			style &= ~(WS_THICKFRAME | WS_MAXIMIZEBOX);
+			
+			// If currently maximized, restore first
+			if (IsZoomed(hWnd)) {
+				ShowWindow(hWnd, SW_RESTORE);
+			}
+		}
+		
+		// Apply new style
+		SetWindowLongPtr(hWnd, GWL_STYLE, style);
+		
+		// Force a complete redraw of the non-client area
+		SetWindowPos(hWnd, NULL, 0, 0, 0, 0, 
+			SWP_NOMOVE | SWP_NOSIZE | SWP_NOZORDER | SWP_FRAMECHANGED);
+	}
+	
+	void MakeWindow::SetWindowState(HWND hWnd, WindowState state)
+	{
+		if (!hWnd) return;
+		
+		int nCmdShow = SW_SHOWNORMAL;
+		
+		switch (state) {
+			case WindowState::Normal:
+				nCmdShow = SW_SHOWNORMAL;
+				LOGD << "Setting window state to Normal";
+				break;
+			case WindowState::Maximized:
+				// Only maximize if window is resizable
+				if (m_config.resizable) {
+					nCmdShow = SW_SHOWMAXIMIZED;
+					LOGD << "Setting window state to Maximized";
+				} else {
+					LOGW << "Cannot maximize a non-resizable window, keeping normal state";
+					nCmdShow = SW_SHOWNORMAL;
+				}
+				break;
+			case WindowState::Minimized:
+				nCmdShow = SW_SHOWMINIMIZED;
+				LOGD << "Setting window state to Minimized";
+				break;
+		}
+		
+		ShowWindow(hWnd, nCmdShow);
+		
+		// When restoring from minimized state, we need to ensure the title bar redraws properly
+		// This is especially important for custom title bars
+		if (state == WindowState::Normal || 
+			(state == WindowState::Maximized && m_config.resizable)) {
+			InvalidateRect(hWnd, NULL, TRUE);
+			UpdateWindow(hWnd);
+		}
+		
+		// Update our stored window state
+		m_config.initialState = state;
 	}
 
 	// Window color customization methods
@@ -290,6 +393,42 @@ namespace CPPGUI
 		
 		// Note: We're intentionally NOT calling DwmSetWindowAttribute here
 		// as it causes layout issues with the WebView on some Windows versions
+	}
+
+	void MakeWindow::SetBorderWidth(HWND hWnd, int width)
+	{
+		if (!hWnd) return;
+		
+		m_config.borderWidth = width;
+		
+		// Set border width using DwmSetWindowAttribute
+		// DWMWA_WINDOW_CORNER_PREFERENCE = 33
+		// DWMWA_BORDER_COLOR = 34
+		// DWMWA_CAPTION_COLOR = 35
+		// DWMWA_VISIBLE_FRAME_BORDER_THICKNESS = 37  // Available in Windows 11 22H2+
+		
+		// First check if we should reset to the system default
+		if (width < 0) {
+			LOGD << "Resetting border width to system default";
+			// Use DWMWA_VISIBLE_FRAME_BORDER_THICKNESS with -1 to reset
+			int defaultThickness = -1;
+			DwmSetWindowAttribute(hWnd, 37, &defaultThickness, sizeof(defaultThickness));
+		} else {
+			LOGD << "Setting border width to " << width << " pixels";
+			// Clamp the width to reasonable values (0-20 pixels)
+			width = max(0, min(width, 20));
+			
+			// Apply the border width setting
+			HRESULT hr = DwmSetWindowAttribute(hWnd, 37, &width, sizeof(width));
+			
+			if (FAILED(hr)) {
+				LOGW << "Failed to set border width, HRESULT: " << hr;
+			}
+		}
+		
+		// Force a redraw of non-client area (title bar and border)
+		SetWindowPos(hWnd, NULL, 0, 0, 0, 0, 
+			SWP_NOMOVE | SWP_NOSIZE | SWP_NOZORDER | SWP_FRAMECHANGED);
 	}
 
 	bool MakeWindow::IsSystemInDarkMode() const
