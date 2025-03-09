@@ -21,6 +21,29 @@ public:
     HRESULT ExecuteScript(const std::wstring& script);
     HRESULT PostMessageToWebView(const std::wstring& message);
     void Resize(const RECT& bounds);
+    void SetNavigationURL(const std::wstring& url) { m_navigationURL = url; }
+    void SetDevToolsEnabled(bool enabled) { m_devToolsEnabled = enabled; }
+    void SetDefaultContextMenusEnabled(bool enabled) { m_defaultContextMenusEnabled = enabled; }
+    void SetBuiltInErrorPageEnabled(bool enabled) { m_builtInErrorPageEnabled = enabled; }
+    void SetStatusBarEnabled(bool enabled) { m_statusBarEnabled = enabled; }
+    void SetZoomControlEnabled(bool enabled) { m_zoomControlEnabled = enabled; }
+    
+    // Sets the local folder path for file-based navigation
+    void SetLocalFolder(const std::wstring& folder) { m_localFolder = folder; }
+    
+    // Sets a custom 404 HTML page to display when a page is not found
+    void SetCustom404Page(const std::wstring& html) { m_html404 = html; }
+    
+    // Navigates to a page relative to the local folder with path sanitization and 404 handling
+    void NavigateToPage(const std::wstring& page);
+    
+    // Set callback for navigation completed events
+    using NavigationCompletedCallback = std::function<void(const std::wstring& uri, bool isSuccess, COREWEBVIEW2_WEB_ERROR_STATUS errorStatus)>;
+    void SetNavigationCompletedCallback(NavigationCompletedCallback callback) { m_navigationCompletedCallback = callback; }
+    
+    // Simplified navigation callback with user-friendly error messages
+    using SimpleNavigationCallback = std::function<void(const std::wstring& uri, bool isSuccess, const std::wstring& errorMessage)>;
+    void SetSimpleNavigationCallback(SimpleNavigationCallback callback) { m_simpleNavigationCallback = callback; }
     
     ICoreWebView2* GetWebView() const { return m_webview.get(); }
     NativeWindowControls* GetNativeControls() const { return m_nativeControls.get(); }
@@ -100,6 +123,22 @@ private:
     DWORD m_uiThreadId;
     EventRegistrationToken m_navigationToken;
     EventRegistrationToken m_messageToken;
+    EventRegistrationToken m_navigationCompletedToken;
+    std::wstring m_navigationURL = L"file:///C:/Users/bruce/source/cppgui/Frontend/UI/dist/index.html";
+    bool m_devToolsEnabled = true;
+    bool m_defaultContextMenusEnabled = true;
+    bool m_builtInErrorPageEnabled = false;
+    bool m_statusBarEnabled = true;
+    bool m_zoomControlEnabled = true;
+    
+    std::wstring m_localFolder;
+    std::wstring m_html404;
+    
+    NavigationCompletedCallback m_navigationCompletedCallback;
+    SimpleNavigationCallback m_simpleNavigationCallback;
+    
+    // Helper method to convert error status to user-friendly message
+    std::wstring GetUserFriendlyErrorMessage(COREWEBVIEW2_WEB_ERROR_STATUS errorStatus);
     
     // Storage for pending subscriptions
     std::vector<std::unique_ptr<PendingSubscription>> m_pendingSubscriptions;

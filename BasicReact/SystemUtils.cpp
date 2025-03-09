@@ -115,6 +115,23 @@ std::string SystemUtils::FormatTimeStamp(const system_clock::time_point& time_po
     return oss.str();
 }
 
+std::string SystemUtils::WideToUtf8(const std::wstring& wstr)
+{
+    if (wstr.empty())
+        return std::string();
+
+    // Get the required buffer size
+    int size_needed = WideCharToMultiByte(CP_UTF8, 0, wstr.data(), (int)wstr.size(), nullptr, 0, nullptr, nullptr);
+    
+    // Allocate the buffer
+    std::string utf8str(size_needed, 0);
+    
+    // Perform the conversion
+    WideCharToMultiByte(CP_UTF8, 0, wstr.data(), (int)wstr.size(), &utf8str[0], size_needed, nullptr, nullptr);
+    
+    return utf8str;
+}
+
 double SystemUtils::GetDiskSpaceUsage(const std::wstring& drive)
 {
     ULARGE_INTEGER freeBytesAvailable, totalBytes, totalFreeBytes;

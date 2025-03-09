@@ -455,3 +455,49 @@
 2025-03-09 19:29:24.051 INFO  [16900] [squarefoo@32] CALLBACK EXECUTED: squarefoo called with event type: auto-manual-control
 2025-03-09 19:29:24.051 INFO  [16900] [squarefoo@33] Event details - source: User interface data: {"action":"testClick","timestamp":"2025-03-09T18:29:24.048Z","data":{"message":"Hello from WebView!","value":42}}
 2025-03-09 19:29:24.051 DEBUG [16900] [CPPGUI::MakeWindow::WndProc@38] Dispatched event: {}auto-manual-control
+2025-03-09 19:36:35.269 DEBUG [26216] [InitializeLog@51] Launching Hello WebView!
+2025-03-09 19:36:35.354 DEBUG [26216] [NativeDatabaseAccess::NativeDatabaseAccess@129] NativeDatabaseAccess created
+2025-03-09 19:36:35.355 DEBUG [26216] [NativeDatabaseAccess::ExecuteQuery@165] ExecuteQuery called
+2025-03-09 19:36:35.365 DEBUG [26216] [NativeDatabaseAccess::~NativeDatabaseAccess@131] NativeDatabaseAccess destroyed
+2025-03-09 19:36:35.623 DEBUG [26216] [NativeWindowControls::NativeWindowControls@41] Entering
+2025-03-09 19:36:35.627 INFO  [26216] [WebViewManager::InitializeWebView::<lambda_1>::()::<lambda_1>::()::<lambda_1>::operator ()@46] Navigating to: file:///C:/Users/bruce/source/cppgui/Frontend/UI/dist/index.html
+2025-03-09 19:53:57.015 DEBUG [33876] [InitializeLog@81] Launching Hello WebView!
+2025-03-09 19:53:57.138 DEBUG [33876] [NativeDatabaseAccess::NativeDatabaseAccess@129] NativeDatabaseAccess created
+2025-03-09 19:53:57.139 DEBUG [33876] [NativeDatabaseAccess::ExecuteQuery@165] ExecuteQuery called
+2025-03-09 19:53:57.146 DEBUG [33876] [NativeDatabaseAccess::~NativeDatabaseAccess@131] NativeDatabaseAccess destroyed
+2025-03-09 19:53:57.408 DEBUG [33876] [NativeWindowControls::NativeWindowControls@41] Entering
+2025-03-09 19:53:57.413 INFO  [33876] [WebViewManager::InitializeWebView::<lambda_1>::()::<lambda_1>::()::<lambda_1>::operator ()@55] Navigating to: file:///C:/Users/bruce/source/cppgui/Frontend/UI/dist/index.html
+2025-03-09 19:53:59.898 INFO  [33876] [NativeWindowControls::Invoke@50] Args count: {}1
+2025-03-09 19:53:59.898 INFO  [33876] [NativeWindowControls::Invoke@53] First arg type: {}8
+2025-03-09 19:53:59.899 DEBUG [33876] [NativeWindowControls::SendClick@93] {"action":"testClick","data":{"message":"Hello from WebView!","value":42},"timestamp":"2025-03-09T18:53:59.891Z"}
+2025-03-09 19:53:59.899 DEBUG [33876] [CPPGUI::CallbackRegistry::registerEvent@36] Event registered with ID: {} (type: {})1auto-manual-control
+2025-03-09 19:53:59.899 INFO  [33876] [NativeWindowControls::SendClick@103] Registered event with ID: 1, type: 'auto-manual-control'
+2025-03-09 19:53:59.899 INFO  [33876] [NativeWindowControls::SendClick@106] Posted WM_USER_EVENT message with event ID: 1
+2025-03-09 19:53:59.900 DEBUG [33876] [CPPGUI::MakeWindow::WndProc@31] WM_USER_EVENT received with ID: {}1
+2025-03-09 19:53:59.900 DEBUG [33876] [CPPGUI::CallbackRegistry::retrieveEvent@48] Pending event IDs: {}1 
+2025-03-09 19:53:59.900 DEBUG [33876] [CPPGUI::CallbackRegistry::retrieveEvent@53] Event retrieved: {}auto-manual-control
+2025-03-09 19:53:59.901 INFO  [33876] [WebViewManager::InitializeNativeControls::<lambda_1>::operator ()@103] Handling control event: auto-manual-control
+2025-03-09 19:53:59.901 INFO  [33876] [squarefoo@32] CALLBACK EXECUTED: squarefoo called with event type: auto-manual-control
+2025-03-09 19:53:59.901 INFO  [33876] [squarefoo@33] Event details - source: User interface data: {"action":"testClick","timestamp":"2025-03-09T18:53:59.891Z","data":{"message":"Hello from WebView!","value":42}}
+2025-03-09 19:53:59.901 DEBUG [33876] [CPPGUI::MakeWindow::WndProc@38] Dispatched event: {}auto-manual-control
+2025-03-09 20:05:07.298 DEBUG [26992] [InitializeLog@81] Launching Hello WebView!
+2025-03-09 20:05:07.380 DEBUG [26992] [NativeDatabaseAccess::NativeDatabaseAccess@129] NativeDatabaseAccess created
+2025-03-09 20:05:07.381 DEBUG [26992] [NativeDatabaseAccess::ExecuteQuery@165] ExecuteQuery called
+2025-03-09 20:05:07.391 DEBUG [26992] [NativeDatabaseAccess::~NativeDatabaseAccess@131] NativeDatabaseAccess destroyed
+2025-03-09 20:05:07.647 DEBUG [26992] [NativeWindowControls::NativeWindowControls@41] Entering
+2025-03-09 20:05:07.652 DEBUG [26992] [WebViewManager::InitializeWebView::<lambda_1>::()::<lambda_1>::()::<lambda_1>::operator ()@53] Navigation starting
+2025-03-09 20:05:07.768 DEBUG [26992] [WebViewManager::InitializeWebView::<lambda_1>::()::<lambda_1>::()::<lambda_2>::operator ()@71] Navigation completed to: file:///C:/Users/bruce/source/cppgui/Frontend/UI/dist/index.html Success: true
+2025-03-09 20:05:07.768 INFO  [26992] [WinMain::<lambda_2>::operator ()@111] Navigation completed to: file:///C:/Users/bruce/source/cppgui/Frontend/UI/dist/index.html
+2025-03-09 20:05:13.019 INFO  [26992] [NativeWindowControls::Invoke@50] Args count: {}1
+2025-03-09 20:05:13.019 INFO  [26992] [NativeWindowControls::Invoke@53] First arg type: {}8
+2025-03-09 20:05:13.019 DEBUG [26992] [NativeWindowControls::SendClick@93] {"action":"testClick","data":{"message":"Hello from WebView!","value":42},"timestamp":"2025-03-09T19:05:13.012Z"}
+2025-03-09 20:05:13.020 DEBUG [26992] [CPPGUI::CallbackRegistry::registerEvent@36] Event registered with ID: {} (type: {})1auto-manual-control
+2025-03-09 20:05:13.020 INFO  [26992] [NativeWindowControls::SendClick@103] Registered event with ID: 1, type: 'auto-manual-control'
+2025-03-09 20:05:13.020 INFO  [26992] [NativeWindowControls::SendClick@106] Posted WM_USER_EVENT message with event ID: 1
+2025-03-09 20:05:13.021 DEBUG [26992] [CPPGUI::MakeWindow::WndProc@31] WM_USER_EVENT received with ID: {}1
+2025-03-09 20:05:13.021 DEBUG [26992] [CPPGUI::CallbackRegistry::retrieveEvent@48] Pending event IDs: {}1 
+2025-03-09 20:05:13.021 DEBUG [26992] [CPPGUI::CallbackRegistry::retrieveEvent@53] Event retrieved: {}auto-manual-control
+2025-03-09 20:05:13.021 INFO  [26992] [WebViewManager::InitializeNativeControls::<lambda_1>::operator ()@139] Handling control event: auto-manual-control
+2025-03-09 20:05:13.022 INFO  [26992] [squarefoo@32] CALLBACK EXECUTED: squarefoo called with event type: auto-manual-control
+2025-03-09 20:05:13.022 INFO  [26992] [squarefoo@33] Event details - source: User interface data: {"action":"testClick","timestamp":"2025-03-09T19:05:13.012Z","data":{"message":"Hello from WebView!","value":42}}
+2025-03-09 20:05:13.022 DEBUG [26992] [CPPGUI::MakeWindow::WndProc@38] Dispatched event: {}auto-manual-control

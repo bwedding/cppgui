@@ -20,4 +20,5 @@ struct SystemUtils
     static std::string FormatTimeStamp(const system_clock::time_point& time_point);
     static std::string wchar_to_UTF8(const wchar_t* in);
     static std::wstring UTF8_to_wchar(const char* in);
+    static std::string WideToUtf8(const std::wstring& wstr);
 };
