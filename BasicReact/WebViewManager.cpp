@@ -13,7 +13,8 @@ void WebViewManager::Initialize() {
 
 void WebViewManager::InitializeWebView() {
     auto options = Microsoft::WRL::Make<CoreWebView2EnvironmentOptions>();
-    options->put_AdditionalBrowserArguments(L"--allow-file-access-from-files --hide-scrollbars --msWebView2EnableDraggableRegions");
+    // --enable-features=SkiaGraphite,VulkanImplementation --use-vulkan=native 
+    options->put_AdditionalBrowserArguments(L"--allow-file-access-from-files --enable-gpu-rasterization --hide-scrollbars --enable-javascript-virtual-host-mapping-bytecode-caching --msWebView2NativeEventDispatch --msWebView2EnableDraggableRegions");
 
     CreateCoreWebView2EnvironmentWithOptions(nullptr, nullptr, options.Get(),
         Callback<ICoreWebView2CreateCoreWebView2EnvironmentCompletedHandler>(

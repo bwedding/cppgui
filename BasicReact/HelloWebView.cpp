@@ -94,10 +94,10 @@ int CALLBACK WinMain(
 	CPPGUI::MakeWindow window(hInstance, nCmdShow);
 
 	InitializeLog();
-	ondemand::parser parser;
+	/*ondemand::parser parser;
 	padded_string json = padded_string::load("twitter.json");
 	ondemand::document tweets = parser.iterate(json);
-	LOGD << uint64_t(tweets["search_metadata"]["count"]) << " results." << std::endl;
+	LOGD << uint64_t(tweets["search_metadata"]["count"]) << " results." << std::endl;*/
 
 	// Make the window with defaults
 	CPPGUI::MakeWindow makeWindow(hInstance, nCmdShow);
@@ -114,6 +114,8 @@ int CALLBACK WinMain(
 		return -1;
 
 	g_webViewManager = StartWebView(hInstance, L"file:///C:/Users/bruce/source/cppgui/Frontend/UI/dist/index.html");
+	//g_webViewManager = StartWebView(hInstance, L"edge://gpu/");
+
 	
 	// Set the WebViewManager in the MakeWindow instance
 	window.SetWebViewManager(g_webViewManager.get());
