@@ -93,9 +93,22 @@ int CALLBACK WinMain(
 
 	InitializeLog();
 
+	HICON myappIcon = LoadIcon(hInstance, MAKEINTRESOURCE(IDI_ICON1));
+
+	// Make the window with defaults
+	CPPGUI::MakeWindow makeWindow(hInstance, nCmdShow);
+	// Get the configuation
+	auto& config2 = makeWindow.GetConfiguration();
+	// Modify the titlebar and frame to be all black with a gray text color
+	config2.titleBarColor = RGB(0, 0, 0);
+	config2.frameColor = RGB(0, 0, 0);
+	config2.textColor = RGB(100, 100, 100);
+	
+	hWnd = makeWindow.CreateMainWindow();
+	
 	// Load the application icon from resources
-	HICON appIcon = LoadIcon(hInstance, MAKEINTRESOURCE(IDI_ICON1));
-	hWnd = window.CreateMainWindow(1200, 900, L"Bruce's CPPGUI", appIcon, true);
+	//HICON appIcon = LoadIcon(hInstance, MAKEINTRESOURCE(IDI_ICON1));
+	//hWnd = window.CreateMainWindow(1200, 900, L"Bruce's CPPGUI", appIcon, true);
 	if (!hWnd) 
 		return -1;
 
@@ -103,7 +116,9 @@ int CALLBACK WinMain(
 	
 	// Set the WebViewManager in the MakeWindow instance
 	window.SetWebViewManager(g_webViewManager.get());
-	window.SetThemeMode(CPPGUI::ThemeMode::Dark); // or ThemeMode::Light, ThemeMode::Dark, ThemeMode::System
+	//window.SetThemeMode(CPPGUI::ThemeMode::Dark); // or ThemeMode::Light, ThemeMode::Dark, ThemeMode::System
+	window.SetTopMost(hWnd, false);  // Turn off topmost window behavior
+
 
 	// Add subscriptions here  
 	g_webViewManager->Subscribe("auto-manual-control", [](const CPPGUI::UIEvent& evt) {

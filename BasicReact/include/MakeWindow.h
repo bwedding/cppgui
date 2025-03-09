@@ -23,6 +23,33 @@ namespace CPPGUI
 		Dark     // Force dark mode
 	};
 
+	// Structure for main window configuration
+	struct MainWindowConfiguration {
+		// Window dimensions
+		int width = 1200;
+		int height = 900;
+		
+		// Window title and icon
+		const TCHAR* title = nullptr;
+		HICON icon = nullptr;
+		
+		// Window style options
+		bool topMost = false;
+		bool toolWindow = false;
+		bool layered = false;
+		BYTE opacity = 255; // Only used if layered is true (0-255)
+		
+		// Theme options
+		ThemeMode themeMode = ThemeMode::System;
+		bool themingEnabled = true;
+		
+		// Colors (all initialized to use system defaults)
+		COLORREF titleBarColor = CLR_INVALID;        // Title bar background color
+		COLORREF frameColor = CLR_INVALID;           // Window frame color
+		COLORREF textColor = CLR_INVALID;            // Title text color
+		COLORREF captionButtonHoverColor = CLR_INVALID;  // Caption button hover color
+	};
+
 	class MakeWindow
 	{
 		HINSTANCE hInstance = 0;
@@ -30,10 +57,11 @@ namespace CPPGUI
 		WebViewManager* wvMgr = nullptr;
 		static MakeWindow* s_instance; // Static pointer to the current instance
 		
+		// Store window configuration
+		MainWindowConfiguration m_config;
+		
 		// Theme-related members
-		ThemeMode m_themeMode = ThemeMode::System;
 		bool m_isDarkMode = false;
-		bool m_isThemingEnabled = true;
 		
 		// Window style members
 		bool m_isTopMost = false;
@@ -43,13 +71,35 @@ namespace CPPGUI
 			s_instance = this; // Store the instance for static method access
 		}
 		
+		// Constructor that takes a configuration struct
+		MakeWindow(HINSTANCE hInst, int nCmd, const MainWindowConfiguration& config) 
+			: hInstance(hInst), nCmdShow(nCmd), m_config(config) {
+			s_instance = this; // Store the instance for static method access
+		}
+		
 		~MakeWindow() {
 			if (s_instance == this) {
 				s_instance = nullptr;
 			}
 		}
 
-		HWND CreateMainWindow(int width = 1200, int height = 900, const TCHAR* title = nullptr, HICON icon = nullptr, bool topMost = false);
+		// Configuration getter and setter
+		void SetConfiguration(const MainWindowConfiguration& config) { m_config = config; }
+		MainWindowConfiguration& GetConfiguration() { return m_config; }
+		const MainWindowConfiguration& GetConfiguration() const { return m_config; }
+
+		HWND CreateMainWindow();
+		
+		// Legacy overload for backward compatibility
+		HWND CreateMainWindow(int width, int height, const TCHAR* title = nullptr, HICON icon = nullptr, bool topMost = false) {
+			m_config.width = width;
+			m_config.height = height;
+			m_config.title = title;
+			m_config.icon = icon;
+			m_config.topMost = topMost;
+			return CreateMainWindow();
+		}
+		
 		void SetWebViewManager(WebViewManager* wv);
 		WebViewManager* GetWebViewManager() const { return wvMgr; }
 		int RunMessageLoop()
@@ -63,15 +113,21 @@ namespace CPPGUI
 			return (int)msg.wParam;
 		}
 		
-		// Theme related methods
+		// Theme and color methods
 		void SetThemeMode(ThemeMode mode);
-		ThemeMode GetThemeMode() const { return m_themeMode; }
+		ThemeMode GetThemeMode() const { return m_config.themeMode; }
 		bool IsDarkMode() const { return m_isDarkMode; }
-		void EnableTheming(bool enable) { m_isThemingEnabled = enable; }
-		bool IsThemingEnabled() const { return m_isThemingEnabled; }
+		void EnableTheming(bool enable) { m_config.themingEnabled = enable; }
+		bool IsThemingEnabled() const { return m_config.themingEnabled; }
 		
 		// Apply theme to window and WebView
 		void ApplyThemeToWindow(HWND hWnd);
+		
+		// Window coloring methods
+		void SetTitleBarColor(HWND hWnd, COLORREF color);
+		void SetFrameColor(HWND hWnd, COLORREF color);
+		void SetTextColor(HWND hWnd, COLORREF color);
+		void SetCaptionButtonHoverColor(HWND hWnd, COLORREF color);
 		
 		// Detect system dark mode status
 		bool IsSystemInDarkMode() const;
