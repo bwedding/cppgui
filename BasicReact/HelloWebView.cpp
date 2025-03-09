@@ -92,7 +92,10 @@ int CALLBACK WinMain(
 
 	InitializeLog();
 
-	hWnd = window.CreateMainWindow();
+	// Load the application icon from resources
+	HICON appIcon = LoadIcon(hInstance, MAKEINTRESOURCE(IDI_ICON1));
+
+	hWnd = window.CreateMainWindow(1200, 900, L"Bruce's CPPGUI", appIcon);
 	if (!hWnd) 
 		return -1;
 

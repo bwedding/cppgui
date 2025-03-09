@@ -267,8 +267,15 @@
     <ClInclude Include="MSVCDebugFormatter.h" />
     <ClInclude Include="NativeWindowControls.h" />
     <ClInclude Include="NativeWindowControls_h.h" />
+    <ClInclude Include="resource.h" />
     <ClInclude Include="SystemUtils.h" />
     <ClInclude Include="WebViewManager.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="BasicReact.rc" />
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="icon1.ico" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

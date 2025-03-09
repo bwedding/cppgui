@@ -95,7 +95,7 @@ namespace CPPGUI
 			LOGE << "Passed me a null pointer WebViewManager!";
 	}
 
-	HWND MakeWindow::CreateMainWindow() 
+	HWND MakeWindow::CreateMainWindow(int width, int height, const TCHAR* title, HICON icon) 
 	{
 		WNDCLASSEX wcex;
 		wcex.cbSize = sizeof(WNDCLASSEX);
@@ -104,12 +104,12 @@ namespace CPPGUI
 		wcex.cbClsExtra = 0;
 		wcex.cbWndExtra = 0;
 		wcex.hInstance = hInstance;
-		wcex.hIcon = LoadIcon(hInstance, IDI_APPLICATION);
+		wcex.hIcon = icon ? icon : LoadIcon(hInstance, IDI_APPLICATION);
 		wcex.hCursor = LoadCursor(NULL, IDC_ARROW);
 		wcex.hbrBackground = (HBRUSH)(COLOR_WINDOW + 1);
 		wcex.lpszMenuName = NULL;
 		wcex.lpszClassName = szWindowClass;
-		wcex.hIconSm = LoadIcon(wcex.hInstance, IDI_APPLICATION);
+		wcex.hIconSm = icon ? icon : LoadIcon(wcex.hInstance, IDI_APPLICATION);
 
 		if (!RegisterClassEx(&wcex)) {
 			MessageBox(NULL,
@@ -121,10 +121,10 @@ namespace CPPGUI
 
 		HWND hWnd = CreateWindow(
 			szWindowClass,
-			szTitle,
+			title ? title : szTitle,
 			WS_OVERLAPPEDWINDOW,
 			CW_USEDEFAULT, CW_USEDEFAULT,
-			1200, 900,
+			width, height,
 			NULL,
 			NULL,
 			hInstance,

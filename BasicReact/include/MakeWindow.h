@@ -6,6 +6,7 @@
 #include "UIEvent.h"
 #include <chrono>
 #include <tchar.h>
+#include "../resource.h" // Added for resource identifiers
 
 namespace CPPGUI
 {
@@ -27,7 +28,7 @@ namespace CPPGUI
 			}
 		}
 
-		HWND CreateMainWindow();
+		HWND CreateMainWindow(int width = 1200, int height = 900, const TCHAR* title = nullptr, HICON icon = nullptr);
 		void SetWebViewManager(WebViewManager* wv);
 		WebViewManager* GetWebViewManager() const { return wvMgr; }
 		int RunMessageLoop()
