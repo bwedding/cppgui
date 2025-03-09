@@ -30,7 +30,7 @@ static Notifications notification;
 const int TITLEBAR_HEIGHT = 32; // Adjust to match your title bar height
 
 // Add this function somewhere accessible
-void processAutoManualControlEvent(const HeartControl::UIEvent& event) {
+void processAutoManualControlEvent(const CPPGUI::UIEvent& event) {
 	spdlog::info("Called processAutoManualControlEvent");
 	try {
 		std::string payload = event.payload;
@@ -58,7 +58,7 @@ void TestSubscribe()
 	auto cbID = mEvtMgr.subscribe("auto-manual-control", &processAutoManualControlEvent);
 
 }
-std::string squarefoo(const HeartControl::UIEvent& evt)
+std::string squarefoo(const CPPGUI::UIEvent& evt)
 {
 	spdlog::info("called squarefoo");
 	return SystemUtils::FormatTimeStamp(evt.timestamp);
@@ -66,7 +66,7 @@ std::string squarefoo(const HeartControl::UIEvent& evt)
 void startProcess() {}
 double setTemperature(double temp) { return temp = 1; }
 
-HeartControl::EventQueue& WindowApp::GetEventQueue()
+CPPGUI::EventQueue& WindowApp::GetEventQueue()
 {
 	return mEventQueue;
 }
@@ -76,10 +76,10 @@ WindowApp* WindowApp::GetInstance()
 	return sInstance;
 }
 
-HRESULT WindowApp::TriggerEvent(const HeartControl::UIEvent& evt)
+HRESULT WindowApp::TriggerEvent(const CPPGUI::UIEvent& evt)
 {
 	auto& eventQueue = GetInstance()->GetEventQueue();
-	eventQueue.enqueue(static_cast<HeartControl::UIEvent>(std::move(evt)));
+	eventQueue.enqueue(static_cast<CPPGUI::UIEvent>(std::move(evt)));
 	return S_OK;
 }
 
@@ -158,7 +158,7 @@ LRESULT WindowApp::HandleMessage(const HWND hWnd, const UINT message, const WPAR
 
 	case WM_USER_EVENT:
 	{
-		HeartControl::UIEvent evt{
+		CPPGUI::UIEvent evt{
 			"auto-manual-control",
 			"User interface",
 			"",
@@ -202,7 +202,7 @@ LRESULT WindowApp::HandleMessage(const HWND hWnd, const UINT message, const WPAR
 	
 	case WM_USER_DISPATCH:
 	{
-		HeartControl::UIEvent testEvent{
+		CPPGUI::UIEvent testEvent{
 					"auto-manual-control",
 					"User interface",
 					"",
@@ -917,7 +917,7 @@ int WindowApp::Run(const HINSTANCE hInstance, const int nShowCmd)
 	});
 
 	// Prepare the params
-	HeartControl::SubscribeParams params;
+	CPPGUI::SubscribeParams params;
 	params.eventType = "auto-manual-control";
 	params.callback = squarefoo;
 

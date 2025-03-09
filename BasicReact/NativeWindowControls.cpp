@@ -98,8 +98,10 @@ STDMETHODIMP NativeWindowControls::SendClick(const BSTR jsonData)
     };
 
     const int eventId = mEventManager->registerEvent(std::move(evt));
+    LOGI << "Registered event with ID: " << eventId << ", type: 'auto-manual-control'";
 
     PostMessage(hwnd, WM_USER_EVENT, 0, eventId);
+    LOGI << "Posted WM_USER_EVENT message with event ID: " << eventId;
 
     return S_OK;     // Return success for the method call itself
 }
@@ -124,8 +126,10 @@ STDMETHODIMP NativeWindowControls::SendForm(const BSTR jsonData)
     };
 
     const int eventId = mEventManager->registerEvent(std::move(evt));
+    LOGI << "Registered event with ID: " << eventId << ", type: 'auto-manual-control'";
 
     PostMessage(hwnd, WM_USER_EVENT, 0, eventId);
+    LOGI << "Posted WM_USER_EVENT message with event ID: " << eventId;
 
     return S_OK;     // Return success for the method call itself
 }

@@ -7,7 +7,7 @@
 #include "UIEvent.h"
 #include "EventDispatcher.h"
 
-namespace HeartControl {
+namespace CPPGUI {
 
     // Usage Notes:
     // Lifetime Management : Ensure EventDispatcher outlives the EventQueue

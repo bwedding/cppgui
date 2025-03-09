@@ -652,7 +652,7 @@ STDMETHODIMP NativeWindowControls::SendClick(const BSTR jsonData)
 
     spdlog::trace(json.dump());
     // TODO add code to populate event with actual data
-    HeartControl::UIEvent evt{
+    CPPGUI::UIEvent evt{
         "auto-manual-control",
         "User interface",
         str,
@@ -680,7 +680,7 @@ STDMETHODIMP NativeWindowControls::SendForm(const BSTR jsonData)
     const auto json = nlohmann::json::parse(str);
 
     spdlog::trace(json.dump());
-    HeartControl::UIEvent evt{
+    CPPGUI::UIEvent evt{
         "auto-manual-control",
         "User interface",
         str,

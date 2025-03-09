@@ -8,7 +8,7 @@
 #include "UIEvent.h"
 #include "EventDispatcher.h"
 
-namespace HeartControl
+namespace CPPGUI
 {
     struct SubscribeParams {
         std::string eventType;

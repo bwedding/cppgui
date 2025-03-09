@@ -38,10 +38,7 @@ namespace CPPGUI
         {
             std::lock_guard lock(mutex_);
             int subscriptionId = nextSubscriptionId_++;
-            handlers_[eventType].emplace_back(SubscriptionInfo{
-                .id = subscriptionId,
-                .handler = std::forward<Handler>(handler)
-                });
+            handlers_[eventType].emplace_back(SubscriptionInfo(subscriptionId, std::forward<Handler>(handler)));
             return subscriptionId;
         }
 
@@ -70,10 +67,14 @@ namespace CPPGUI
                 std::lock_guard lock(mutex_);
                 if (const auto it = handlers_.find(event.type); it != handlers_.end()) {
                     handlersToCall = it->second;
+                    spdlog::info("Found {} handlers for event type: '{}'", handlersToCall.size(), event.type);
+                } else {
+                    spdlog::warn("No handlers found for event type: '{}'", event.type);
                 }
             }
 
             for (const auto& handler : handlersToCall) {
+                spdlog::info("Calling handler with ID: {}", handler.id);
                 handler(event);
             }
         }

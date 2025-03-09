@@ -4,7 +4,7 @@
 #include "CallbackRegistry.h"
 #include "AppMessageIDs.h"
 
-namespace HeartControl {
+namespace CPPGUI {
 
     class EventManager {
     public:

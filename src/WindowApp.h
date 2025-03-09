@@ -20,10 +20,10 @@ private:
 	HINSTANCE m_hInstance;
 	static WindowApp* sInstance;
 
-	HeartControl::EventQueue mEventQueue;
-	HeartControl::EventDispatcher mEventDispatcher;
-	HeartControl::CallbackRegistry mCallbackRegistry;
-	std::unique_ptr<HeartControl::EventManager> mEventManager; // Changed to pointer
+	CPPGUI::EventQueue mEventQueue;
+	CPPGUI::EventDispatcher mEventDispatcher;
+	CPPGUI::CallbackRegistry mCallbackRegistry;
+	std::unique_ptr<CPPGUI::EventManager> mEventManager; // Changed to pointer
 	std::unique_ptr<WebView2DataStreamer> m_dataStreamer = nullptr;
 
 	LRESULT HandleMessage(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);
@@ -78,12 +78,12 @@ public:
 	{
 		if (!mEventManager && m_hWnd != nullptr) {
 			mEventQueue.startProcessing(mEventDispatcher);
-			mEventManager = std::make_unique<HeartControl::EventManager>(m_hWnd, mEventDispatcher);
+			mEventManager = std::make_unique<CPPGUI::EventManager>(m_hWnd, mEventDispatcher);
 		}
 	}
 
 	// Public accessor for the event manager - return by reference
-	[[nodiscard]] HeartControl::EventManager& GetEventManager() const
+	[[nodiscard]] CPPGUI::EventManager& GetEventManager() const
 	{
 		if (!mEventManager) {
 			throw std::runtime_error("EventManager not initialized");
@@ -91,8 +91,8 @@ public:
 		return *mEventManager;
 	}
 
-	HeartControl::EventQueue& GetEventQueue();
-	static HRESULT TriggerEvent(const HeartControl::UIEvent& evt);
+	CPPGUI::EventQueue& GetEventQueue();
+	static HRESULT TriggerEvent(const CPPGUI::UIEvent& evt);
 	// Static accessor if needed from static contexts
 	static WindowApp* GetInstance();
 

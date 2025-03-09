@@ -26,6 +26,7 @@
 #include "TestDB.h"
 #include "EventManager.h"
 #include "NativeWindowControls.h"
+#include "SystemUtils.h"
 
 using namespace Microsoft::WRL;
 
@@ -49,10 +50,17 @@ static wil::com_ptr<ICoreWebView2Controller> webviewController;
 
 // Pointer to WebView window
 static wil::com_ptr<ICoreWebView2> webview;
-static CPPGUI::EventQueue mEventQueue;
 static CPPGUI::EventDispatcher mEventDispatcher;
-static CPPGUI::CallbackRegistry mCallbackRegistry;
 static std::unique_ptr<CPPGUI::EventManager> mEventManager; // Changed to pointer
+static CPPGUI::CallbackRegistry mCallbackRegistry;
+static wil::com_ptr<NativeWindowControls> g_nativeControls; // Global instance of NativeWindowControls
+
+std::string squarefoo(const CPPGUI::UIEvent& evt)
+{
+	LOGI << "CALLBACK EXECUTED: squarefoo called with event type: '{}'" << evt.type;
+	LOGI << "Event details - source: '{}', data: '{}'" << evt.target << evt.payload;
+	return SystemUtils::FormatTimeStamp(evt.timestamp);
+}
 
 int CALLBACK WinMain(
 	_In_ HINSTANCE hInstance,
@@ -129,6 +137,9 @@ int CALLBACK WinMain(
 		return 1;
 	}
 
+	// Set the window handle in the callback registry
+	mCallbackRegistry.setWindowHandle(hWnd);
+
 	// The parameters to ShowWindow explained:
 	// hWnd: the value returned from CreateWindow
 	// nCmdShow: the fourth parameter from WinMain
@@ -172,10 +183,10 @@ int CALLBACK WinMain(
 						settings->put_IsStatusBarEnabled(false);
 						settings->put_AreHostObjectsAllowed(true);  // Required for native interop
 						settings->put_IsZoomControlEnabled(true);   // Might want to disable this in the future. For now I'll leave it to handle different monitor resolutions
-						auto nativeCtrls = Microsoft::WRL::Make<NativeWindowControls>(hWnd);
+						g_nativeControls = Microsoft::WRL::Make<NativeWindowControls>(hWnd);
 						VARIANT var = {};
 						var.vt = VT_DISPATCH;
-						HRESULT hr = nativeCtrls.Get()->QueryInterface(IID_IDispatch, reinterpret_cast<void**>(&var.pdispVal));
+						HRESULT hr = g_nativeControls.get()->QueryInterface(IID_IDispatch, reinterpret_cast<void**>(&var.pdispVal));
 						if (FAILED(hr))
 						{
 							SPDLOG_ERROR("Failed to get IDispatch interface for native controls. HRESULT: 0x{:08X}", static_cast<unsigned int>(hr));
@@ -196,6 +207,19 @@ int CALLBACK WinMain(
 						// Add our NativeWindowControls as a host object
 						webview->AddHostObjectToScript(L"native", &var);
 						VariantClear(&var);
+
+						// Register for the auto-manual-control event
+						CPPGUI::SubscribeParams params;
+						params.eventType = "auto-manual-control";
+						params.callback = squarefoo;
+
+						// Register it and get the callbackId
+						const int callbackId = mCallbackRegistry.registerSubscribeParams(&params);
+						LOGI << "Registered callback for event type: 'auto-manual-control' with ID: " << callbackId;
+
+						// Start the event queue processing with the event dispatcher
+						//mEventQueue.startProcessing(*g_nativeControls->GetEventDispatcher());
+						LOGI << "Started event queue processing";
 
 						// Resize WebView to fit the bounds of the parent window
 						RECT bounds;
@@ -257,9 +281,8 @@ int CALLBACK WinMain(
 			}).Get());
 
 
-	
 	// <-- WebView2 sample code ends here -->
-
+	
 	TestDatabaseAccess(webview);
 
 	MSG msg;
@@ -288,7 +311,7 @@ HRESULT ExecuteScript(const std::wstring& script)
 				[](const HRESULT error, const LPCWSTR result) -> HRESULT {
 					if (FAILED(error))
 					{
-						spdlog::error("Failed to execute script");
+						LOGE << "Failed to execute script";
 
 						return error;
 					}
@@ -296,7 +319,7 @@ HRESULT ExecuteScript(const std::wstring& script)
 					{
 						std::wstring resultStr(L"Script result: ");
 						resultStr += result;
-						spdlog::info(L"Script result : {0}", resultStr);
+						LOGI << L"Script result : {0}" << resultStr;
 					}
 					return S_OK;
 				}).Get());
@@ -321,7 +344,7 @@ HRESULT PostMessageToWebView(const std::wstring& message)
 		}
 		catch (const std::exception& e)
 		{
-			spdlog::error("Error posting message: {}", std::string(e.what()));
+			LOGE << "Error posting message: {}" << std::string(e.what());
 			return E_FAIL;
 		}
 	}
@@ -359,20 +382,14 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
 	case WM_USER_EVENT:
 	{
-		CPPGUI::UIEvent evt
-		{
-			"auto-manual-control",
-			"User interface",
-			"",
-			system_clock::time_point{}
-		};
-
-		LOGI << "Event from WebView2: '{}'" << evt.type;
-
 		int eventId = static_cast<int>(lParam);
-		auto event = mEventManager->retrieveEvent(eventId);
+		LOGI << "WM_USER_EVENT received with ID: " << eventId;
+		auto event = g_nativeControls->GetEventManager()->retrieveEvent(eventId);
 		if (!event.type.empty()) {
-			mEventQueue.enqueue(std::move(event));
+			LOGI << "Retrieved event with type: '" << event.type << "', enqueueing";
+			g_nativeControls->GetEventQueue()->enqueue(std::move(event));
+		} else {
+			LOGW << "Retrieved empty event for ID: " << eventId;
 		}
 		break;
 	}
@@ -380,13 +397,26 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 	case WM_USER_SUBSCRIBE: 
 	{
 		int callbackId = static_cast<int>(lParam);
-		spdlog::debug("WM_USER_SUBSCRIBE received with ID: {}", callbackId);
+		LOGD << "WM_USER_SUBSCRIBE received with ID: {}" << callbackId;
 		if (auto params = mCallbackRegistry.retrieveSubscribeParams(callbackId))
 		{
-			// Subscribe and store the result directly in the params
-			params->resultSubscriptionId = mEventDispatcher.subscribe(
-				params->eventType, std::move(params->callback));
-			spdlog::info("Subscribing to event type: '{}'", params->eventType);
+			// Check if g_nativeControls is initialized
+			if (g_nativeControls) 
+			{
+				// Subscribe and store the result directly in the params
+				auto eventdispatch = g_nativeControls->GetEventDispatcher();
+				params->resultSubscriptionId = eventdispatch->subscribe(
+					params->eventType, std::move(params->callback));  // Put the move back
+				LOGI <<"Subscribing to event type: '{}'" << params->eventType;
+			} 
+			else 
+			{
+				LOGW << "g_nativeControls not initialized yet, cannot subscribe to event type: '" << params->eventType << "'";
+				// Re-register the params and post the message again to try later
+				int newCallbackId = mCallbackRegistry.registerSubscribeParams(params);
+				// Post the message again with a delay to try again later
+				PostMessage(hWnd, WM_USER_SUBSCRIBE, 0, newCallbackId);
+			}
 		}
 		else 
 		{
@@ -402,7 +432,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		auto [eventType, subscriptionId] = mCallbackRegistry.retrieveUnsubscribe(unsubscribeId);
 		if (!eventType.empty() && subscriptionId >= 0) 
 		{
-			mEventDispatcher.unsubscribe(eventType, subscriptionId);
+			g_nativeControls->GetEventDispatcher()->unsubscribe(eventType, subscriptionId);
 		}
 		break;
 	}
@@ -415,7 +445,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 					"",
 					system_clock::time_point{}
 		};
-		mEventDispatcher.dispatch(testEvent);
+		g_nativeControls->GetEventDispatcher()->dispatch(testEvent);
 		break;
 	}
 

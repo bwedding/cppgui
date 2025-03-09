@@ -4,7 +4,7 @@
 #include "nlohmann/json.hpp"
 using json = nlohmann::json;
 
-namespace HeartControl {
+namespace CPPGUI {
 
     struct UIEvent
     {

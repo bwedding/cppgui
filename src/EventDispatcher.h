@@ -10,7 +10,7 @@
 #include "spdlog/spdlog.h"
 using json = nlohmann::json;
 
-namespace HeartControl
+namespace CPPGUI
 {
     struct SubscriptionInfo
     {

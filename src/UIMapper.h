@@ -42,12 +42,12 @@ namespace EventParsers {
 
 class UIMapper {
 public:
-    explicit UIMapper(HeartControl::EventManager& eventManager) : m_eventManager(eventManager) {}
+    explicit UIMapper(CPPGUI::EventManager& eventManager) : m_eventManager(eventManager) {}
 
     // Map button ID to a simple void function
     template<typename Func>
     int mapButton(const std::string& buttonId, Func&& func) {
-        return m_eventManager.subscribe("button-" + buttonId, [func](const HeartControl::UIEvent&) {
+        return m_eventManager.subscribe("button-" + buttonId, [func](const CPPGUI::UIEvent&) {
             func();
             });
     }
@@ -58,7 +58,7 @@ public:
         std::string id = sliderId; // Create a copy for capture
 
         return m_eventManager.subscribe("slider-" + id,
-            [func, id](const HeartControl::UIEvent& evt) {
+            [func, id](const CPPGUI::UIEvent& evt) {
                 // Use the standalone parser to avoid template issues
                 double value = EventParsers::extractSliderValue(evt.payload, id);
                 func(value);
@@ -67,5 +67,5 @@ public:
     }
 
 private:
-    HeartControl::EventManager& m_eventManager;
+    CPPGUI::EventManager& m_eventManager;
 };

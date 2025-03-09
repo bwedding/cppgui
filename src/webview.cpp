@@ -464,7 +464,7 @@ void WebView2Manager::SetupMessageHandlers()
                     auto jsonData = json::parse(WideToUtf8(message.get()));
 
                     // Create an event from the web message
-                    HeartControl::UIEvent event{
+                    CPPGUI::UIEvent event{
                         jsonData.contains("type") ? jsonData["type"].get<std::string>() : "web-message",
                         "WebView",
                         message.get(),  // Store the entire message as payload
