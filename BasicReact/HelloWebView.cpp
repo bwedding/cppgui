@@ -25,7 +25,7 @@
 #include "AsyncRollingFileAppender.h"
 #include "TestDB.h"
 #include "EventManager.h"
-
+#include "NativeWindowControls.h"
 
 using namespace Microsoft::WRL;
 
@@ -169,6 +169,30 @@ int CALLBACK WinMain(
 						settings->put_IsStatusBarEnabled(false);
 						settings->put_AreHostObjectsAllowed(true);  // Required for native interop
 						settings->put_IsZoomControlEnabled(true);   // Might want to disable this in the future. For now I'll leave it to handle different monitor resolutions
+						auto nativeCtrls = Microsoft::WRL::Make<NativeWindowControls>(hWnd);
+						VARIANT var = {};
+						var.vt = VT_DISPATCH;
+						HRESULT hr = nativeCtrls.Get()->QueryInterface(IID_IDispatch, reinterpret_cast<void**>(&var.pdispVal));
+						if (FAILED(hr))
+						{
+							SPDLOG_ERROR("Failed to get IDispatch interface for native controls. HRESULT: 0x{:08X}", static_cast<unsigned int>(hr));
+
+							// Attempt to provide a more specific error message based on common HRESULT values
+							if (hr == E_NOINTERFACE)
+							{
+								SPDLOG_ERROR("The object doesn't support the requested interface");
+							}
+							else if (hr == E_POINTER)
+							{
+								SPDLOG_ERROR("Invalid pointer");
+							}
+							// Can't run without this so I'm just going to blow up.
+							throw std::runtime_error("Critical error: Failed to initialize native controls");
+						}
+
+						// Add our NativeWindowControls as a host object
+						webview->AddHostObjectToScript(L"native", &var);
+						VariantClear(&var);
 
 						// Resize WebView to fit the bounds of the parent window
 						RECT bounds;

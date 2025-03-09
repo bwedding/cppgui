@@ -7,6 +7,7 @@
 #include <wrl/implements.h>
 #include "nlohmann/json.hpp"
 #include "UIEvent.h"
+#include "EventManager.h"
 #include "AppMessageIDs.h"
 #include <plog/Log.h> 
 
@@ -17,6 +18,8 @@ class NativeWindowControls final : public RuntimeClass<
 		RuntimeClassFlags<ClassicCom>, INativeWindowControls, IDispatch>
 {
     HWND hwnd;
+    std::unique_ptr<CPPGUI::EventManager> mEventManager;
+    CPPGUI::EventDispatcher mevtDispatcher;
     std::mutex m_connectionMutex;
 
     wil::com_ptr<ITypeLib> m_typeLib;
@@ -31,7 +34,11 @@ class NativeWindowControls final : public RuntimeClass<
         VARIANT* pVarResult, EXCEPINFO* pExcepInfo, UINT* puArgErr) override;
 
 public:
-    explicit NativeWindowControls(const HWND window) : hwnd(window) { LOGD << "Entering"; }
+    explicit NativeWindowControls(const HWND window ) : hwnd(window)
+    { 
+        mEventManager = std::make_unique<CPPGUI::EventManager>(window, mevtDispatcher);
+        LOGD << "Entering"; 
+    }
 
     STDMETHODIMP SendClick(BSTR jsonData) override;
     STDMETHODIMP SendForm(BSTR jsonData) override;

@@ -97,8 +97,7 @@ STDMETHODIMP NativeWindowControls::SendClick(const BSTR jsonData)
         system_clock::time_point{}
     };
 
-    auto& mEvtMgr = WindowApp::GetInstance()->GetEventManager();
-    const int eventId = mEvtMgr.registerEvent(std::move(evt));
+    const int eventId = mEventManager->registerEvent(std::move(evt));
 
     PostMessage(hwnd, WM_USER_EVENT, 0, eventId);
 
@@ -123,11 +122,8 @@ STDMETHODIMP NativeWindowControls::SendForm(const BSTR jsonData)
         str,
         system_clock::time_point{}
     };
-    const WindowApp* mWinApp = WindowApp::GetInstance();
 
-    auto& mEvtMgr = mWinApp->GetEventManager();
-
-    const int eventId = mEvtMgr.registerEvent(std::move(evt));
+    const int eventId = mEventManager->registerEvent(std::move(evt));
 
     PostMessage(hwnd, WM_USER_EVENT, 0, eventId);
 
