@@ -134,14 +134,6 @@ void WebViewManager::InitializeNativeControls() {
         m_webview->AddHostObjectToScript(L"nativeWindowControls", &var);
         VariantClear(&var);
     }
-
-    // Example of subscribing to an event - now using the EventManager directly
-    if (auto eventManager = m_nativeControls->GetEventManager()) {
-        eventManager->subscribe("data-sender-control", [](const CPPGUI::UIEvent& evt) {
-            LOGI << "Handling control event: " << evt.type;
-            return "success";
-        });
-    }
 }
 
 void WebViewManager::Resize(const RECT& bounds) 

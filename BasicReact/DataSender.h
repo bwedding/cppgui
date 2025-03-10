@@ -14,9 +14,6 @@
 // Maximum size for string data in bytes
 constexpr size_t MAX_STRING_SIZE = 512 * 1024; // 512KB
 
-// Custom Windows message for processing WebView messages
-#define WM_PROCESS_WEBVIEW_MESSAGE (WM_USER + 100)
-
 // Message types
 enum class MessageType {
     String,
