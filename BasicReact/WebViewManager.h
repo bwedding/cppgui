@@ -3,13 +3,13 @@
 #include <wrl/client.h>
 #include "NativeWindowControls.h"
 #include <functional>
-#include "EventDispatcher.h"
+#include "include/EventDispatcher.h"
 #include <unordered_map>
 #include <memory>
 #include <wrl.h>
-#include "../packages/Microsoft.Windows.ImplementationLibrary.1.0.240803.1/include/wil/com.h"
-#include "../packages/Microsoft.Web.WebView2.1.0.3065.39/build/native/include/WebView2.h"
-#include "../packages/Microsoft.Web.WebView2.1.0.3065.39/build/native/include/WebView2EnvironmentOptions.h"
+#include "wil/com.h"
+#include "WebView2.h"
+#include "WebView2EnvironmentOptions.h"
 
 // Define a custom timer ID for subscription retries
 #define TIMER_ID_SUBSCRIPTION_RETRY 1001

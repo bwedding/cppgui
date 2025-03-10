@@ -6,8 +6,8 @@
 #include <unordered_map>
 #include "UIEvent.h"
 #include <nlohmann/json.hpp>
+#include <plog/Log.h>
 
-#include "spdlog/spdlog.h"
 using json = nlohmann::json;
 
 namespace CPPGUI
@@ -60,21 +60,21 @@ namespace CPPGUI
 
         void dispatch(const UIEvent& event)
         {
-            spdlog::info("Dispatching event type: '{}'", event.type);
+            PLOGD << "Dispatching event type: " << event.type;
 
             std::vector<SubscriptionInfo> handlersToCall;
             {
                 std::lock_guard lock(mutex_);
                 if (const auto it = handlers_.find(event.type); it != handlers_.end()) {
                     handlersToCall = it->second;
-                    spdlog::info("Found {} handlers for event type: '{}'", handlersToCall.size(), event.type);
+                    PLOGI <<"Found {} handlers for event type: " << handlersToCall.size() << event.type;
                 } else {
-                    spdlog::warn("No handlers found for event type: '{}'", event.type);
+                    PLOGW <<"No handlers found for event type: " << event.type;
                 }
             }
 
             for (const auto& handler : handlersToCall) {
-                spdlog::info("Calling handler with ID: {}", handler.id);
+                PLOGI <<"Calling handler with ID: " << handler.id;
                 handler(event);
             }
         }

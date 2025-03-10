@@ -40,7 +40,7 @@ namespace CPPGUI
 
         UIEvent retrieveEvent(int id) {
             std::lock_guard lock(mutex_);
-            spdlog::debug("Retrieving event with ID: {}, pendingEvents_ size: {}", id, pendingEvents_.size());
+            PLOGD <<"Retrieving event with ID: {}, pendingEvents_ size: " << id << pendingEvents_.size();
             std::string keys;
             for (const auto& evt : pendingEvents_ | std::views::keys) {
                 keys += std::to_string(evt) + " ";

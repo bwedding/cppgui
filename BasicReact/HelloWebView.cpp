@@ -15,8 +15,8 @@
 #include "NativeWindowControls.h"
 #include "SystemUtils.h"
 #include "WebViewManager.h"
-#include "MakeWindow.h"
-#include "../resource.h" // Added for resource identifiers
+#include "include/MakeWindow.h"
+#include "resource.h" // Added for resource identifiers
 #include "simdjson.h"
 
 using namespace simdjson;
@@ -46,8 +46,9 @@ std::unique_ptr<WebViewManager> StartWebView(HINSTANCE hInstance, const std::wst
 	
 	// Sets the local folder for file-based navigation with the NavigateToPage method
 	// This is the base directory for all page navigations
-	wvptr->SetLocalFolder(L"C:\\Users\\bruce\\source\\cppgui\\Frontend\\UI\\dist\\");
-	
+	//wvptr->SetLocalFolder(L"C:\\Users\\bruce\\source\\cppgui\\Frontend\\UI\\dist\\");
+	wvptr->SetLocalFolder(L"D:\\source\\cppgui\\Frontend\\UI\\dist\\index.html");
+    	
 	// Optional: Set a custom 404 page (you can use %PAGE% as a placeholder for the requested page)
 	// wvptr->SetCustom404Page(L"<html><body><h1>Custom 404</h1><p>Could not find: %PAGE%</p></body></html>");
 	
@@ -113,8 +114,20 @@ int CALLBACK WinMain(
 	if (!hWnd) 
 		return -1;
 
-	g_webViewManager = StartWebView(hInstance, L"file:///C:/Users/bruce/source/cppgui/Frontend/UI/dist/index.html");
+	//g_webViewManager = StartWebView(hInstance, L"file:///C:/Users/bruce/source/cppgui/Frontend/UI/dist/index.html");
+	g_webViewManager = StartWebView(hInstance, L"file:///D:/source/cppgui/Frontend/UI/dist/index.html");
+	
 	//g_webViewManager = StartWebView(hInstance, L"edge://gpu/");
+	// g_webViewManager = StartWebView(hInstance, L"edge://memory/");  // won't load for permissions error
+	//g_webViewManager = StartWebView(hInstance, L"edge://flags/");
+	//g_webViewManager = StartWebView(hInstance, L"edge://media-internals/");
+	//g_webViewManager = StartWebView(hInstance, L"edge://webrtc-internals/");
+	//g_webViewManager = StartWebView(hInstance, L"edge://net-export/");  // Network logging of ALL activity
+	//g_webViewManager = StartWebView(hInstance, L"edge://crash/");
+	//g_webViewManager = StartWebView(hInstance, L"edge://process-internals/");
+	//g_webViewManager = StartWebView(hInstance, L"edge://tracing/");
+	//g_webViewManager = StartWebView(hInstance, L"edge://histograms/");
+	//g_webViewManager = StartWebView(hInstance, L"edge://system/");
 
 	
 	// Set the WebViewManager in the MakeWindow instance

@@ -60,9 +60,6 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <Natvis Include="$(MSBuildThisFileDirectory)..\..\natvis\wil.natvis" />
-  </ItemGroup>
-  <ItemGroup>
     <Midl Include="..\src\DatabaseInterfaces.idl">
       <Filter>Source Files</Filter>
     </Midl>

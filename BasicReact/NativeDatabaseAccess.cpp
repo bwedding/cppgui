@@ -1,7 +1,9 @@
 // For PostgreSQL
-#include "NativeDatabaseAccess.h"
+#include "include/NativeDatabaseAccess.h"
 #include <mutex>
 #include <plog/Log.h> 
+
+#include "AppMessageIDs.h"
 
 // Helper to convert BSTR to std::string
 std::string BSTRToString(BSTR bstr) {

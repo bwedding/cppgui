@@ -75,11 +75,11 @@ namespace CPPGUI {
                             events_.pop();
                             innerlock.unlock();
                             try {
-                                spdlog::info("Processing event from queue: '{}'", event.type);
+                                PLOGI <<"Processing event from queue: '{}'" << event.type;
                                 dispatcher.dispatch(event);
                             }
                             catch (const std::exception& e) {
-                                spdlog::error("Error dispatching event: {}", e.what());
+                                PLOGE << "Error dispatching event: {}" << e.what();
                             }
                             innerlock.lock();
                         }

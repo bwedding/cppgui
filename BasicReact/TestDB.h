@@ -1,7 +1,7 @@
 #pragma once
-#include "NativeDatabaseAccess.h"
-#include "sqlite3.h"
-#include <iostream>
+#include "include/NativeDatabaseAccess.h"
+#include "libs/sqlite3.h"
+
 
 inline bool CreateTestDatabase(const std::wstring& dbPath) 
 {

@@ -3,7 +3,6 @@
 #include <shobjidl.h> // For modern file dialogs
 #include <wrl/implements.h>
 #include <wrl/client.h>
-#include "spdlog/spdlog.h"
 #include "nlohmann/json.hpp"
 #include "SystemUtils.h"
 
@@ -70,7 +69,7 @@ STDMETHODIMP NativeWindowControls::Invoke(
 
     if (result != S_OK)
     {
-        spdlog::error("Exception in typeInfo->Invoke");
+        PLOGE << "Exception in typeInfo->Invoke";
         //SPDLOG_TRACE("Exiting");
         return E_FAIL;
     }
@@ -111,7 +110,7 @@ STDMETHODIMP NativeWindowControls::SendClick(const BSTR jsonData)
 STDMETHODIMP NativeWindowControls::SendForm(const BSTR jsonData)
 {
 
-    SPDLOG_TRACE("Entering");
+    PLOGD << "Entering";
     if (!jsonData) return E_INVALIDARG;
 
     std::wstring wstr(jsonData);
@@ -119,7 +118,7 @@ STDMETHODIMP NativeWindowControls::SendForm(const BSTR jsonData)
     // Parse the JSON data
     const auto json = nlohmann::json::parse(str);
 
-    spdlog::trace(json.dump());
+    PLOGD << json.dump();
     CPPGUI::UIEvent evt{
         "auto-manual-control",
         "User interface",

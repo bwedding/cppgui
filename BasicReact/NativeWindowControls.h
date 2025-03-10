@@ -6,8 +6,8 @@
 #include <wil/com.h>
 #include <wrl/implements.h>
 #include "nlohmann/json.hpp"
-#include "UIEvent.h"
-#include "EventManager.h"
+#include "include/UIEvent.h"
+#include "include/EventManager.h"
 #include "AppMessageIDs.h"
 #include <plog/Log.h> 
 
