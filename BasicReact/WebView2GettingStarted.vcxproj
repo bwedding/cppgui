@@ -196,7 +196,7 @@
       <PreprocessorDefinitions>NDEBUG;_WINDOWS;SPDLOG_WCHAR_TO_UTF8_SUPPORT;SPDLOG_ACTIVE_LEVEL=SPDLOG_LEVEL_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
-      <LanguageStandard>stdcpp20</LanguageStandard>
+      <LanguageStandard>stdcpp23</LanguageStandard>
       <AdditionalIncludeDirectories>C:\Users\bruce\source\cppgui\BasicReact\libs;C:\Users\bruce\source\cppgui\BasicReact\include;C:\Program Files\PostgreSQL\17\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AdditionalOptions>/utf-8</AdditionalOptions>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
@@ -229,6 +229,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="GlazeTest.cpp" />
     <ClCompile Include="HelloWebView.cpp" />
     <ClCompile Include="include\MakeWindow.cpp" />
     <ClCompile Include="libs\shell.c" />
@@ -236,12 +237,12 @@
     <ClCompile Include="NativeDatabaseAccess.cpp" />
     <ClCompile Include="NativeWindowControls.cpp" />
     <ClCompile Include="NativeWindowControls_i.c" />
-    <ClCompile Include="simdjson.cpp" />
     <ClCompile Include="SystemUtils.cpp" />
     <ClCompile Include="TestDB.h" />
     <ClCompile Include="WebViewManager.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="include\glaze\ext\README.md" />
     <None Include="include\twitter.json" />
     <None Include="libs\sqlite3.def" />
     <None Include="libs\sqlite3.dll" />
@@ -262,6 +263,145 @@
     <ClInclude Include="include\EventDispatcher.h" />
     <ClInclude Include="include\EventManager.h" />
     <ClInclude Include="include\EventQueue.h" />
+    <ClInclude Include="include\glaze\api\api.hpp" />
+    <ClInclude Include="include\glaze\api\hash.hpp" />
+    <ClInclude Include="include\glaze\api\impl.hpp" />
+    <ClInclude Include="include\glaze\api\lib.hpp" />
+    <ClInclude Include="include\glaze\api\std\array.hpp" />
+    <ClInclude Include="include\glaze\api\std\deque.hpp" />
+    <ClInclude Include="include\glaze\api\std\functional.hpp" />
+    <ClInclude Include="include\glaze\api\std\list.hpp" />
+    <ClInclude Include="include\glaze\api\std\map.hpp" />
+    <ClInclude Include="include\glaze\api\std\optional.hpp" />
+    <ClInclude Include="include\glaze\api\std\set.hpp" />
+    <ClInclude Include="include\glaze\api\std\shared_ptr.hpp" />
+    <ClInclude Include="include\glaze\api\std\span.hpp" />
+    <ClInclude Include="include\glaze\api\std\string.hpp" />
+    <ClInclude Include="include\glaze\api\std\tuple.hpp" />
+    <ClInclude Include="include\glaze\api\std\unique_ptr.hpp" />
+    <ClInclude Include="include\glaze\api\std\unordered_map.hpp" />
+    <ClInclude Include="include\glaze\api\std\unordered_set.hpp" />
+    <ClInclude Include="include\glaze\api\std\variant.hpp" />
+    <ClInclude Include="include\glaze\api\std\vector.hpp" />
+    <ClInclude Include="include\glaze\api\trait.hpp" />
+    <ClInclude Include="include\glaze\api\tuplet.hpp" />
+    <ClInclude Include="include\glaze\api\type_support.hpp" />
+    <ClInclude Include="include\glaze\api\xxh64.hpp" />
+    <ClInclude Include="include\glaze\base64\base64.hpp" />
+    <ClInclude Include="include\glaze\beve.hpp" />
+    <ClInclude Include="include\glaze\beve\beve_to_json.hpp" />
+    <ClInclude Include="include\glaze\beve\header.hpp" />
+    <ClInclude Include="include\glaze\beve\ptr.hpp" />
+    <ClInclude Include="include\glaze\beve\read.hpp" />
+    <ClInclude Include="include\glaze\beve\skip.hpp" />
+    <ClInclude Include="include\glaze\beve\wrappers.hpp" />
+    <ClInclude Include="include\glaze\beve\write.hpp" />
+    <ClInclude Include="include\glaze\compare\approx.hpp" />
+    <ClInclude Include="include\glaze\compare\compare.hpp" />
+    <ClInclude Include="include\glaze\concepts\container_concepts.hpp" />
+    <ClInclude Include="include\glaze\containers\flat_map.hpp" />
+    <ClInclude Include="include\glaze\core\common.hpp" />
+    <ClInclude Include="include\glaze\core\context.hpp" />
+    <ClInclude Include="include\glaze\core\convert_struct.hpp" />
+    <ClInclude Include="include\glaze\core\custom.hpp" />
+    <ClInclude Include="include\glaze\core\feature_test.hpp" />
+    <ClInclude Include="include\glaze\core\manage.hpp" />
+    <ClInclude Include="include\glaze\core\meta.hpp" />
+    <ClInclude Include="include\glaze\core\opts.hpp" />
+    <ClInclude Include="include\glaze\core\ptr.hpp" />
+    <ClInclude Include="include\glaze\core\read.hpp" />
+    <ClInclude Include="include\glaze\core\reflect.hpp" />
+    <ClInclude Include="include\glaze\core\seek.hpp" />
+    <ClInclude Include="include\glaze\core\to.hpp" />
+    <ClInclude Include="include\glaze\core\wrappers.hpp" />
+    <ClInclude Include="include\glaze\core\write.hpp" />
+    <ClInclude Include="include\glaze\core\write_chars.hpp" />
+    <ClInclude Include="include\glaze\csv.hpp" />
+    <ClInclude Include="include\glaze\csv\read.hpp" />
+    <ClInclude Include="include\glaze\csv\write.hpp" />
+    <ClInclude Include="include\glaze\exceptions\binary_exceptions.hpp" />
+    <ClInclude Include="include\glaze\exceptions\core_exceptions.hpp" />
+    <ClInclude Include="include\glaze\exceptions\csv_exceptions.hpp" />
+    <ClInclude Include="include\glaze\exceptions\json_exceptions.hpp" />
+    <ClInclude Include="include\glaze\exceptions\json_schema_exceptions.hpp" />
+    <ClInclude Include="include\glaze\ext\cli_menu.hpp" />
+    <ClInclude Include="include\glaze\ext\eigen.hpp" />
+    <ClInclude Include="include\glaze\ext\glaze_asio.hpp" />
+    <ClInclude Include="include\glaze\ext\jsonrpc.hpp" />
+    <ClInclude Include="include\glaze\file\file_ops.hpp" />
+    <ClInclude Include="include\glaze\file\file_watch.hpp" />
+    <ClInclude Include="include\glaze\file\hostname_include.hpp" />
+    <ClInclude Include="include\glaze\file\raw_or_file.hpp" />
+    <ClInclude Include="include\glaze\file\read_directory.hpp" />
+    <ClInclude Include="include\glaze\file\write_directory.hpp" />
+    <ClInclude Include="include\glaze\format\format_to.hpp" />
+    <ClInclude Include="include\glaze\glaze.hpp" />
+    <ClInclude Include="include\glaze\glaze_exceptions.hpp" />
+    <ClInclude Include="include\glaze\hardware\volatile_array.hpp" />
+    <ClInclude Include="include\glaze\json.hpp" />
+    <ClInclude Include="include\glaze\json\escape_unicode.hpp" />
+    <ClInclude Include="include\glaze\json\invoke.hpp" />
+    <ClInclude Include="include\glaze\json\jmespath.hpp" />
+    <ClInclude Include="include\glaze\json\json_concepts.hpp" />
+    <ClInclude Include="include\glaze\json\json_format.hpp" />
+    <ClInclude Include="include\glaze\json\json_ptr.hpp" />
+    <ClInclude Include="include\glaze\json\json_t.hpp" />
+    <ClInclude Include="include\glaze\json\max_write_precision.hpp" />
+    <ClInclude Include="include\glaze\json\minify.hpp" />
+    <ClInclude Include="include\glaze\json\ndjson.hpp" />
+    <ClInclude Include="include\glaze\json\prettify.hpp" />
+    <ClInclude Include="include\glaze\json\ptr.hpp" />
+    <ClInclude Include="include\glaze\json\raw_string.hpp" />
+    <ClInclude Include="include\glaze\json\read.hpp" />
+    <ClInclude Include="include\glaze\json\schema.hpp" />
+    <ClInclude Include="include\glaze\json\skip.hpp" />
+    <ClInclude Include="include\glaze\json\study.hpp" />
+    <ClInclude Include="include\glaze\json\wrappers.hpp" />
+    <ClInclude Include="include\glaze\json\write.hpp" />
+    <ClInclude Include="include\glaze\record\recorder.hpp" />
+    <ClInclude Include="include\glaze\reflection\get_name.hpp" />
+    <ClInclude Include="include\glaze\reflection\to_tuple.hpp" />
+    <ClInclude Include="include\glaze\rpc\repe\header.hpp" />
+    <ClInclude Include="include\glaze\rpc\repe\registry.hpp" />
+    <ClInclude Include="include\glaze\stencil\stencil.hpp" />
+    <ClInclude Include="include\glaze\stencil\stencilcount.hpp" />
+    <ClInclude Include="include\glaze\thread\async.hpp" />
+    <ClInclude Include="include\glaze\thread\async_string.hpp" />
+    <ClInclude Include="include\glaze\thread\atomic.hpp" />
+    <ClInclude Include="include\glaze\thread\shared_async_map.hpp" />
+    <ClInclude Include="include\glaze\thread\shared_async_vector.hpp" />
+    <ClInclude Include="include\glaze\thread\threadpool.hpp" />
+    <ClInclude Include="include\glaze\thread\value_proxy.hpp" />
+    <ClInclude Include="include\glaze\toml.hpp" />
+    <ClInclude Include="include\glaze\toml\write.hpp" />
+    <ClInclude Include="include\glaze\trace\trace.hpp" />
+    <ClInclude Include="include\glaze\tuplet\tuple.hpp" />
+    <ClInclude Include="include\glaze\util\atoi.hpp" />
+    <ClInclude Include="include\glaze\util\bit_array.hpp" />
+    <ClInclude Include="include\glaze\util\compare.hpp" />
+    <ClInclude Include="include\glaze\util\convert.hpp" />
+    <ClInclude Include="include\glaze\util\dragonbox.hpp" />
+    <ClInclude Include="include\glaze\util\dtoa.hpp" />
+    <ClInclude Include="include\glaze\util\dump.hpp" />
+    <ClInclude Include="include\glaze\util\expected.hpp" />
+    <ClInclude Include="include\glaze\util\fast_float.hpp" />
+    <ClInclude Include="include\glaze\util\for_each.hpp" />
+    <ClInclude Include="include\glaze\util\glaze_fast_float.hpp" />
+    <ClInclude Include="include\glaze\util\hash_map.hpp" />
+    <ClInclude Include="include\glaze\util\help.hpp" />
+    <ClInclude Include="include\glaze\util\inline.hpp" />
+    <ClInclude Include="include\glaze\util\itoa.hpp" />
+    <ClInclude Include="include\glaze\util\memory_pool.hpp" />
+    <ClInclude Include="include\glaze\util\murmur.hpp" />
+    <ClInclude Include="include\glaze\util\parse.hpp" />
+    <ClInclude Include="include\glaze\util\primes_64.hpp" />
+    <ClInclude Include="include\glaze\util\progress_bar.hpp" />
+    <ClInclude Include="include\glaze\util\string_literal.hpp" />
+    <ClInclude Include="include\glaze\util\tuple.hpp" />
+    <ClInclude Include="include\glaze\util\type_traits.hpp" />
+    <ClInclude Include="include\glaze\util\utility.hpp" />
+    <ClInclude Include="include\glaze\util\validate.hpp" />
+    <ClInclude Include="include\glaze\util\variant.hpp" />
     <ClInclude Include="include\INativeDatabaseAccess.h" />
     <ClInclude Include="include\MakeWindow.h" />
     <ClInclude Include="include\NativeDatabaseAccess.h" />
@@ -270,7 +410,6 @@
     <ClInclude Include="NativeWindowControls.h" />
     <ClInclude Include="NativeWindowControls_h.h" />
     <ClInclude Include="resource.h" />
-    <ClInclude Include="simdjson.h" />
     <ClInclude Include="SystemUtils.h" />
     <ClInclude Include="WebViewManager.h" />
   </ItemGroup>

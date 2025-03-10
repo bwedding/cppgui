@@ -57,14 +57,16 @@ namespace CPPGUI {
             processor_thread_ = std::thread([this, &dispatcher]
             {
                     std::unique_lock innerlock(mutex_);
-                    while (running_) {
+                    while (running_) 
+                    {
                         cv_.wait(innerlock, [this]
                         {
                                 return !events_.empty() || !running_;
                             });
 
                         // If we're not running anymore, exit the loop
-                        if (!running_) {
+                        if (!running_) 
+                        {
                             break;
                         }
 
@@ -75,11 +77,11 @@ namespace CPPGUI {
                             events_.pop();
                             innerlock.unlock();
                             try {
-                                spdlog::info("Processing event from queue: '{}'", event.type);
+                                PLOGI << "Processing event from queue: '{}'" << event.type;
                                 dispatcher.dispatch(event);
                             }
                             catch (const std::exception& e) {
-                                spdlog::error("Error dispatching event: {}", e.what());
+                                PLOGE << "Error dispatching event: {}", e.what();
                             }
                             innerlock.lock();
                         }

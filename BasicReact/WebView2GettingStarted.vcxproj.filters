@@ -13,6 +13,84 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
+    <Filter Include="Header Files\glaze">
+      <UniqueIdentifier>{b88ce4a1-8e25-4b2c-b0a3-c973144ba74d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\glaze\api">
+      <UniqueIdentifier>{ac1c44b2-b8f6-4183-a667-a6fb67538e1e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\glaze\api\std">
+      <UniqueIdentifier>{3f6d62e8-0cc5-408f-86a6-2efc13f47ee6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\glaze\base64">
+      <UniqueIdentifier>{e2924b21-714b-48a8-acc5-e8f7f58c0696}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\glaze\beve">
+      <UniqueIdentifier>{5db8517d-8afc-4092-9de5-9321038b2ed2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\glaze\compare">
+      <UniqueIdentifier>{f80d0ccc-0ed3-4dc8-8614-3a647d57362f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\glaze\concepts">
+      <UniqueIdentifier>{3d39e685-c8f7-451b-bacd-ce1c509b4319}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\glaze\containers">
+      <UniqueIdentifier>{116c417a-89d2-4637-b068-78cbafc6b09e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\glaze\csv">
+      <UniqueIdentifier>{1784b678-3528-43e8-b209-3bf97db1dcf4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\glaze\core">
+      <UniqueIdentifier>{80135a3b-d72b-4c5a-bd92-45e1a1d2ee3f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\glaze\exceptions">
+      <UniqueIdentifier>{a5e57b17-bb43-4b99-8994-467ea3eee8dc}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\glaze\ext">
+      <UniqueIdentifier>{b3bbe805-d3a4-453a-89a6-419b5c134808}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\glaze\file">
+      <UniqueIdentifier>{b771f535-d0f8-4db1-9c6f-53793d14ebe0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\glaze\format">
+      <UniqueIdentifier>{b0129317-7bf7-459b-ab38-176cad658507}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\glaze\hardware">
+      <UniqueIdentifier>{f34e8e0e-dae8-4aff-bfd8-11882d5288c6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\glaze\json">
+      <UniqueIdentifier>{6bae6cbb-a58f-4d14-88e1-4c95af9141f6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\glaze\record">
+      <UniqueIdentifier>{0f0aa643-e773-4cb4-bdb6-947a18a47bc7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\glaze\reflection">
+      <UniqueIdentifier>{5981b062-52ac-41a3-9e88-9ff1d3f07f8e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\glaze\rpc">
+      <UniqueIdentifier>{b85d5fe1-4444-48ea-a92a-cedcb5d2ec25}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\glaze\rpc\repe">
+      <UniqueIdentifier>{aee6e0a7-70ff-4f1b-a02c-90c054efe0fe}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\glaze\stencil">
+      <UniqueIdentifier>{dd9fecb0-ab36-44e9-b2fc-a1e5d66601d5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\glaze\thread">
+      <UniqueIdentifier>{0203845c-d12f-448a-955b-edfd573348be}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\glaze\toml">
+      <UniqueIdentifier>{0edc2055-a40d-425c-8abf-b40e7bb3e08c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\glaze\trace">
+      <UniqueIdentifier>{752ce4de-03d9-47e7-a9d8-6f615b0abdb2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\glaze\tuplet">
+      <UniqueIdentifier>{ba5b020e-8059-47ce-b165-11afeafb8d41}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\glaze\util">
+      <UniqueIdentifier>{c9efe570-eaf1-49bb-b43e-47ed37d4ddf2}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="HelloWebView.cpp">
@@ -45,7 +123,7 @@
     <ClCompile Include="include\MakeWindow.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="simdjson.cpp">
+    <ClCompile Include="GlazeTest.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -57,6 +135,9 @@
     <None Include="libs\sqlite3.dll" />
     <None Include="include\twitter.json">
       <Filter>Source Files</Filter>
+    </None>
+    <None Include="include\glaze\ext\README.md">
+      <Filter>Header Files\glaze\ext</Filter>
     </None>
   </ItemGroup>
   <ItemGroup>
@@ -131,8 +212,422 @@
     <ClInclude Include="resource.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="simdjson.h">
-      <Filter>Header Files</Filter>
+    <ClInclude Include="include\glaze\beve.hpp">
+      <Filter>Header Files\glaze</Filter>
+    </ClInclude>
+    <ClInclude Include="include\glaze\csv.hpp">
+      <Filter>Header Files\glaze</Filter>
+    </ClInclude>
+    <ClInclude Include="include\glaze\glaze.hpp">
+      <Filter>Header Files\glaze</Filter>
+    </ClInclude>
+    <ClInclude Include="include\glaze\glaze_exceptions.hpp">
+      <Filter>Header Files\glaze</Filter>
+    </ClInclude>
+    <ClInclude Include="include\glaze\json.hpp">
+      <Filter>Header Files\glaze</Filter>
+    </ClInclude>
+    <ClInclude Include="include\glaze\toml.hpp">
+      <Filter>Header Files\glaze</Filter>
+    </ClInclude>
+    <ClInclude Include="include\glaze\api\api.hpp">
+      <Filter>Header Files\glaze\api</Filter>
+    </ClInclude>
+    <ClInclude Include="include\glaze\api\hash.hpp">
+      <Filter>Header Files\glaze\api</Filter>
+    </ClInclude>
+    <ClInclude Include="include\glaze\api\impl.hpp">
+      <Filter>Header Files\glaze\api</Filter>
+    </ClInclude>
+    <ClInclude Include="include\glaze\api\lib.hpp">
+      <Filter>Header Files\glaze\api</Filter>
+    </ClInclude>
+    <ClInclude Include="include\glaze\api\trait.hpp">
+      <Filter>Header Files\glaze\api</Filter>
+    </ClInclude>
+    <ClInclude Include="include\glaze\api\tuplet.hpp">
+      <Filter>Header Files\glaze\api</Filter>
+    </ClInclude>
+    <ClInclude Include="include\glaze\api\type_support.hpp">
+      <Filter>Header Files\glaze\api</Filter>
+    </ClInclude>
+    <ClInclude Include="include\glaze\api\xxh64.hpp">
+      <Filter>Header Files\glaze\api</Filter>
+    </ClInclude>
+    <ClInclude Include="include\glaze\api\std\array.hpp">
+      <Filter>Header Files\glaze\api\std</Filter>
+    </ClInclude>
+    <ClInclude Include="include\glaze\api\std\deque.hpp">
+      <Filter>Header Files\glaze\api\std</Filter>
+    </ClInclude>
+    <ClInclude Include="include\glaze\api\std\functional.hpp">
+      <Filter>Header Files\glaze\api\std</Filter>
+    </ClInclude>
+    <ClInclude Include="include\glaze\api\std\list.hpp">
+      <Filter>Header Files\glaze\api\std</Filter>
+    </ClInclude>
+    <ClInclude Include="include\glaze\api\std\map.hpp">
+      <Filter>Header Files\glaze\api\std</Filter>
+    </ClInclude>
+    <ClInclude Include="include\glaze\api\std\optional.hpp">
+      <Filter>Header Files\glaze\api\std</Filter>
+    </ClInclude>
+    <ClInclude Include="include\glaze\api\std\set.hpp">
+      <Filter>Header Files\glaze\api\std</Filter>
+    </ClInclude>
+    <ClInclude Include="include\glaze\api\std\shared_ptr.hpp">
+      <Filter>Header Files\glaze\api\std</Filter>
+    </ClInclude>
+    <ClInclude Include="include\glaze\api\std\span.hpp">
+      <Filter>Header Files\glaze\api\std</Filter>
+    </ClInclude>
+    <ClInclude Include="include\glaze\api\std\string.hpp">
+      <Filter>Header Files\glaze\api\std</Filter>
+    </ClInclude>
+    <ClInclude Include="include\glaze\api\std\tuple.hpp">
+      <Filter>Header Files\glaze\api\std</Filter>
+    </ClInclude>
+    <ClInclude Include="include\glaze\api\std\unique_ptr.hpp">
+      <Filter>Header Files\glaze\api\std</Filter>
+    </ClInclude>
+    <ClInclude Include="include\glaze\api\std\unordered_map.hpp">
+      <Filter>Header Files\glaze\api\std</Filter>
+    </ClInclude>
+    <ClInclude Include="include\glaze\api\std\unordered_set.hpp">
+      <Filter>Header Files\glaze\api\std</Filter>
+    </ClInclude>
+    <ClInclude Include="include\glaze\api\std\variant.hpp">
+      <Filter>Header Files\glaze\api\std</Filter>
+    </ClInclude>
+    <ClInclude Include="include\glaze\api\std\vector.hpp">
+      <Filter>Header Files\glaze\api\std</Filter>
+    </ClInclude>
+    <ClInclude Include="include\glaze\base64\base64.hpp">
+      <Filter>Header Files\glaze\base64</Filter>
+    </ClInclude>
+    <ClInclude Include="include\glaze\beve\beve_to_json.hpp">
+      <Filter>Header Files\glaze\beve</Filter>
+    </ClInclude>
+    <ClInclude Include="include\glaze\beve\header.hpp">
+      <Filter>Header Files\glaze\beve</Filter>
+    </ClInclude>
+    <ClInclude Include="include\glaze\beve\ptr.hpp">
+      <Filter>Header Files\glaze\beve</Filter>
+    </ClInclude>
+    <ClInclude Include="include\glaze\beve\read.hpp">
+      <Filter>Header Files\glaze\beve</Filter>
+    </ClInclude>
+    <ClInclude Include="include\glaze\beve\skip.hpp">
+      <Filter>Header Files\glaze\beve</Filter>
+    </ClInclude>
+    <ClInclude Include="include\glaze\beve\wrappers.hpp">
+      <Filter>Header Files\glaze\beve</Filter>
+    </ClInclude>
+    <ClInclude Include="include\glaze\beve\write.hpp">
+      <Filter>Header Files\glaze\beve</Filter>
+    </ClInclude>
+    <ClInclude Include="include\glaze\compare\approx.hpp">
+      <Filter>Header Files\glaze\compare</Filter>
+    </ClInclude>
+    <ClInclude Include="include\glaze\compare\compare.hpp">
+      <Filter>Header Files\glaze\compare</Filter>
+    </ClInclude>
+    <ClInclude Include="include\glaze\concepts\container_concepts.hpp">
+      <Filter>Header Files\glaze\concepts</Filter>
+    </ClInclude>
+    <ClInclude Include="include\glaze\containers\flat_map.hpp">
+      <Filter>Header Files\glaze\containers</Filter>
+    </ClInclude>
+    <ClInclude Include="include\glaze\core\common.hpp">
+      <Filter>Header Files\glaze\core</Filter>
+    </ClInclude>
+    <ClInclude Include="include\glaze\core\context.hpp">
+      <Filter>Header Files\glaze\core</Filter>
+    </ClInclude>
+    <ClInclude Include="include\glaze\core\convert_struct.hpp">
+      <Filter>Header Files\glaze\core</Filter>
+    </ClInclude>
+    <ClInclude Include="include\glaze\core\custom.hpp">
+      <Filter>Header Files\glaze\core</Filter>
+    </ClInclude>
+    <ClInclude Include="include\glaze\core\feature_test.hpp">
+      <Filter>Header Files\glaze\core</Filter>
+    </ClInclude>
+    <ClInclude Include="include\glaze\core\manage.hpp">
+      <Filter>Header Files\glaze\core</Filter>
+    </ClInclude>
+    <ClInclude Include="include\glaze\core\meta.hpp">
+      <Filter>Header Files\glaze\core</Filter>
+    </ClInclude>
+    <ClInclude Include="include\glaze\core\opts.hpp">
+      <Filter>Header Files\glaze\core</Filter>
+    </ClInclude>
+    <ClInclude Include="include\glaze\core\ptr.hpp">
+      <Filter>Header Files\glaze\core</Filter>
+    </ClInclude>
+    <ClInclude Include="include\glaze\core\read.hpp">
+      <Filter>Header Files\glaze\core</Filter>
+    </ClInclude>
+    <ClInclude Include="include\glaze\core\reflect.hpp">
+      <Filter>Header Files\glaze\core</Filter>
+    </ClInclude>
+    <ClInclude Include="include\glaze\core\seek.hpp">
+      <Filter>Header Files\glaze\core</Filter>
+    </ClInclude>
+    <ClInclude Include="include\glaze\core\to.hpp">
+      <Filter>Header Files\glaze\core</Filter>
+    </ClInclude>
+    <ClInclude Include="include\glaze\core\wrappers.hpp">
+      <Filter>Header Files\glaze\core</Filter>
+    </ClInclude>
+    <ClInclude Include="include\glaze\core\write.hpp">
+      <Filter>Header Files\glaze\core</Filter>
+    </ClInclude>
+    <ClInclude Include="include\glaze\core\write_chars.hpp">
+      <Filter>Header Files\glaze\core</Filter>
+    </ClInclude>
+    <ClInclude Include="include\glaze\csv\read.hpp">
+      <Filter>Header Files\glaze\csv</Filter>
+    </ClInclude>
+    <ClInclude Include="include\glaze\csv\write.hpp">
+      <Filter>Header Files\glaze\csv</Filter>
+    </ClInclude>
+    <ClInclude Include="include\glaze\exceptions\binary_exceptions.hpp">
+      <Filter>Header Files\glaze\exceptions</Filter>
+    </ClInclude>
+    <ClInclude Include="include\glaze\exceptions\core_exceptions.hpp">
+      <Filter>Header Files\glaze\exceptions</Filter>
+    </ClInclude>
+    <ClInclude Include="include\glaze\exceptions\csv_exceptions.hpp">
+      <Filter>Header Files\glaze\exceptions</Filter>
+    </ClInclude>
+    <ClInclude Include="include\glaze\exceptions\json_exceptions.hpp">
+      <Filter>Header Files\glaze\exceptions</Filter>
+    </ClInclude>
+    <ClInclude Include="include\glaze\exceptions\json_schema_exceptions.hpp">
+      <Filter>Header Files\glaze\exceptions</Filter>
+    </ClInclude>
+    <ClInclude Include="include\glaze\ext\cli_menu.hpp">
+      <Filter>Header Files\glaze\ext</Filter>
+    </ClInclude>
+    <ClInclude Include="include\glaze\ext\eigen.hpp">
+      <Filter>Header Files\glaze\ext</Filter>
+    </ClInclude>
+    <ClInclude Include="include\glaze\ext\glaze_asio.hpp">
+      <Filter>Header Files\glaze\ext</Filter>
+    </ClInclude>
+    <ClInclude Include="include\glaze\ext\jsonrpc.hpp">
+      <Filter>Header Files\glaze\ext</Filter>
+    </ClInclude>
+    <ClInclude Include="include\glaze\file\file_ops.hpp">
+      <Filter>Header Files\glaze\file</Filter>
+    </ClInclude>
+    <ClInclude Include="include\glaze\file\file_watch.hpp">
+      <Filter>Header Files\glaze\file</Filter>
+    </ClInclude>
+    <ClInclude Include="include\glaze\file\hostname_include.hpp">
+      <Filter>Header Files\glaze\file</Filter>
+    </ClInclude>
+    <ClInclude Include="include\glaze\file\raw_or_file.hpp">
+      <Filter>Header Files\glaze\file</Filter>
+    </ClInclude>
+    <ClInclude Include="include\glaze\file\read_directory.hpp">
+      <Filter>Header Files\glaze\file</Filter>
+    </ClInclude>
+    <ClInclude Include="include\glaze\file\write_directory.hpp">
+      <Filter>Header Files\glaze\file</Filter>
+    </ClInclude>
+    <ClInclude Include="include\glaze\format\format_to.hpp">
+      <Filter>Header Files\glaze\format</Filter>
+    </ClInclude>
+    <ClInclude Include="include\glaze\hardware\volatile_array.hpp">
+      <Filter>Header Files\glaze\hardware</Filter>
+    </ClInclude>
+    <ClInclude Include="include\glaze\json\escape_unicode.hpp">
+      <Filter>Header Files\glaze\json</Filter>
+    </ClInclude>
+    <ClInclude Include="include\glaze\json\invoke.hpp">
+      <Filter>Header Files\glaze\json</Filter>
+    </ClInclude>
+    <ClInclude Include="include\glaze\json\jmespath.hpp">
+      <Filter>Header Files\glaze\json</Filter>
+    </ClInclude>
+    <ClInclude Include="include\glaze\json\json_concepts.hpp">
+      <Filter>Header Files\glaze\json</Filter>
+    </ClInclude>
+    <ClInclude Include="include\glaze\json\json_format.hpp">
+      <Filter>Header Files\glaze\json</Filter>
+    </ClInclude>
+    <ClInclude Include="include\glaze\json\json_ptr.hpp">
+      <Filter>Header Files\glaze\json</Filter>
+    </ClInclude>
+    <ClInclude Include="include\glaze\json\json_t.hpp">
+      <Filter>Header Files\glaze\json</Filter>
+    </ClInclude>
+    <ClInclude Include="include\glaze\json\max_write_precision.hpp">
+      <Filter>Header Files\glaze\json</Filter>
+    </ClInclude>
+    <ClInclude Include="include\glaze\json\minify.hpp">
+      <Filter>Header Files\glaze\json</Filter>
+    </ClInclude>
+    <ClInclude Include="include\glaze\json\ndjson.hpp">
+      <Filter>Header Files\glaze\json</Filter>
+    </ClInclude>
+    <ClInclude Include="include\glaze\json\prettify.hpp">
+      <Filter>Header Files\glaze\json</Filter>
+    </ClInclude>
+    <ClInclude Include="include\glaze\json\ptr.hpp">
+      <Filter>Header Files\glaze\json</Filter>
+    </ClInclude>
+    <ClInclude Include="include\glaze\json\raw_string.hpp">
+      <Filter>Header Files\glaze\json</Filter>
+    </ClInclude>
+    <ClInclude Include="include\glaze\json\read.hpp">
+      <Filter>Header Files\glaze\json</Filter>
+    </ClInclude>
+    <ClInclude Include="include\glaze\json\schema.hpp">
+      <Filter>Header Files\glaze\json</Filter>
+    </ClInclude>
+    <ClInclude Include="include\glaze\json\skip.hpp">
+      <Filter>Header Files\glaze\json</Filter>
+    </ClInclude>
+    <ClInclude Include="include\glaze\json\study.hpp">
+      <Filter>Header Files\glaze\json</Filter>
+    </ClInclude>
+    <ClInclude Include="include\glaze\json\wrappers.hpp">
+      <Filter>Header Files\glaze\json</Filter>
+    </ClInclude>
+    <ClInclude Include="include\glaze\json\write.hpp">
+      <Filter>Header Files\glaze\json</Filter>
+    </ClInclude>
+    <ClInclude Include="include\glaze\record\recorder.hpp">
+      <Filter>Header Files\glaze\record</Filter>
+    </ClInclude>
+    <ClInclude Include="include\glaze\reflection\get_name.hpp">
+      <Filter>Header Files\glaze\reflection</Filter>
+    </ClInclude>
+    <ClInclude Include="include\glaze\reflection\to_tuple.hpp">
+      <Filter>Header Files\glaze\reflection</Filter>
+    </ClInclude>
+    <ClInclude Include="include\glaze\rpc\repe\registry.hpp">
+      <Filter>Header Files\glaze\rpc\repe</Filter>
+    </ClInclude>
+    <ClInclude Include="include\glaze\rpc\repe\header.hpp">
+      <Filter>Header Files\glaze\rpc\repe</Filter>
+    </ClInclude>
+    <ClInclude Include="include\glaze\stencil\stencil.hpp">
+      <Filter>Header Files\glaze\stencil</Filter>
+    </ClInclude>
+    <ClInclude Include="include\glaze\stencil\stencilcount.hpp">
+      <Filter>Header Files\glaze\stencil</Filter>
+    </ClInclude>
+    <ClInclude Include="include\glaze\thread\async.hpp">
+      <Filter>Header Files\glaze\thread</Filter>
+    </ClInclude>
+    <ClInclude Include="include\glaze\thread\async_string.hpp">
+      <Filter>Header Files\glaze\thread</Filter>
+    </ClInclude>
+    <ClInclude Include="include\glaze\thread\atomic.hpp">
+      <Filter>Header Files\glaze\thread</Filter>
+    </ClInclude>
+    <ClInclude Include="include\glaze\thread\shared_async_map.hpp">
+      <Filter>Header Files\glaze\thread</Filter>
+    </ClInclude>
+    <ClInclude Include="include\glaze\thread\shared_async_vector.hpp">
+      <Filter>Header Files\glaze\thread</Filter>
+    </ClInclude>
+    <ClInclude Include="include\glaze\thread\threadpool.hpp">
+      <Filter>Header Files\glaze\thread</Filter>
+    </ClInclude>
+    <ClInclude Include="include\glaze\thread\value_proxy.hpp">
+      <Filter>Header Files\glaze\thread</Filter>
+    </ClInclude>
+    <ClInclude Include="include\glaze\toml\write.hpp">
+      <Filter>Header Files\glaze\toml</Filter>
+    </ClInclude>
+    <ClInclude Include="include\glaze\trace\trace.hpp">
+      <Filter>Header Files\glaze\trace</Filter>
+    </ClInclude>
+    <ClInclude Include="include\glaze\tuplet\tuple.hpp">
+      <Filter>Header Files\glaze\tuplet</Filter>
+    </ClInclude>
+    <ClInclude Include="include\glaze\util\atoi.hpp">
+      <Filter>Header Files\glaze\util</Filter>
+    </ClInclude>
+    <ClInclude Include="include\glaze\util\bit_array.hpp">
+      <Filter>Header Files\glaze\util</Filter>
+    </ClInclude>
+    <ClInclude Include="include\glaze\util\compare.hpp">
+      <Filter>Header Files\glaze\util</Filter>
+    </ClInclude>
+    <ClInclude Include="include\glaze\util\convert.hpp">
+      <Filter>Header Files\glaze\util</Filter>
+    </ClInclude>
+    <ClInclude Include="include\glaze\util\dragonbox.hpp">
+      <Filter>Header Files\glaze\util</Filter>
+    </ClInclude>
+    <ClInclude Include="include\glaze\util\dtoa.hpp">
+      <Filter>Header Files\glaze\util</Filter>
+    </ClInclude>
+    <ClInclude Include="include\glaze\util\dump.hpp">
+      <Filter>Header Files\glaze\util</Filter>
+    </ClInclude>
+    <ClInclude Include="include\glaze\util\expected.hpp">
+      <Filter>Header Files\glaze\util</Filter>
+    </ClInclude>
+    <ClInclude Include="include\glaze\util\fast_float.hpp">
+      <Filter>Header Files\glaze\util</Filter>
+    </ClInclude>
+    <ClInclude Include="include\glaze\util\for_each.hpp">
+      <Filter>Header Files\glaze\util</Filter>
+    </ClInclude>
+    <ClInclude Include="include\glaze\util\glaze_fast_float.hpp">
+      <Filter>Header Files\glaze\util</Filter>
+    </ClInclude>
+    <ClInclude Include="include\glaze\util\hash_map.hpp">
+      <Filter>Header Files\glaze\util</Filter>
+    </ClInclude>
+    <ClInclude Include="include\glaze\util\help.hpp">
+      <Filter>Header Files\glaze\util</Filter>
+    </ClInclude>
+    <ClInclude Include="include\glaze\util\inline.hpp">
+      <Filter>Header Files\glaze\util</Filter>
+    </ClInclude>
+    <ClInclude Include="include\glaze\util\itoa.hpp">
+      <Filter>Header Files\glaze\util</Filter>
+    </ClInclude>
+    <ClInclude Include="include\glaze\util\memory_pool.hpp">
+      <Filter>Header Files\glaze\util</Filter>
+    </ClInclude>
+    <ClInclude Include="include\glaze\util\murmur.hpp">
+      <Filter>Header Files\glaze\util</Filter>
+    </ClInclude>
+    <ClInclude Include="include\glaze\util\parse.hpp">
+      <Filter>Header Files\glaze\util</Filter>
+    </ClInclude>
+    <ClInclude Include="include\glaze\util\primes_64.hpp">
+      <Filter>Header Files\glaze\util</Filter>
+    </ClInclude>
+    <ClInclude Include="include\glaze\util\progress_bar.hpp">
+      <Filter>Header Files\glaze\util</Filter>
+    </ClInclude>
+    <ClInclude Include="include\glaze\util\string_literal.hpp">
+      <Filter>Header Files\glaze\util</Filter>
+    </ClInclude>
+    <ClInclude Include="include\glaze\util\tuple.hpp">
+      <Filter>Header Files\glaze\util</Filter>
+    </ClInclude>
+    <ClInclude Include="include\glaze\util\type_traits.hpp">
+      <Filter>Header Files\glaze\util</Filter>
+    </ClInclude>
+    <ClInclude Include="include\glaze\util\utility.hpp">
+      <Filter>Header Files\glaze\util</Filter>
+    </ClInclude>
+    <ClInclude Include="include\glaze\util\validate.hpp">
+      <Filter>Header Files\glaze\util</Filter>
+    </ClInclude>
+    <ClInclude Include="include\glaze\util\variant.hpp">
+      <Filter>Header Files\glaze\util</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
