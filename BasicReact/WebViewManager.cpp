@@ -14,7 +14,8 @@ void WebViewManager::Initialize() {
 void WebViewManager::InitializeWebView() {
     auto options = Microsoft::WRL::Make<CoreWebView2EnvironmentOptions>();
     // --enable-features=SkiaGraphite,VulkanImplementation --use-vulkan=native 
-    options->put_AdditionalBrowserArguments(L"--allow-file-access-from-files --enable-gpu-rasterization --hide-scrollbars --enable-javascript-virtual-host-mapping-bytecode-caching --msWebView2NativeEventDispatch --msWebView2EnableDraggableRegions");
+     //options->put_AdditionalBrowserArguments(L"--allow-file-access-from-files --enable-gpu-rasterization --hide-scrollbars --enable-javascript-virtual-host-mapping-bytecode-caching --msWebView2NativeEventDispatch --msWebView2EnableDraggableRegions");
+    options->put_AdditionalBrowserArguments(L"--allow-file-access-from-files --enable-gpu-rasterization --hide-scrollbars --msWebView2EnableDraggableRegions");
 
     CreateCoreWebView2EnvironmentWithOptions(nullptr, nullptr, options.Get(),
         Callback<ICoreWebView2CreateCoreWebView2EnvironmentCompletedHandler>(
@@ -130,13 +131,13 @@ void WebViewManager::InitializeNativeControls() {
     VARIANT var = {};
     var.vt = VT_DISPATCH;
     if (SUCCEEDED(m_nativeControls->QueryInterface(IID_IDispatch, reinterpret_cast<void**>(&var.pdispVal)))) {
-        m_webview->AddHostObjectToScript(L"native", &var);
+        m_webview->AddHostObjectToScript(L"nativeWindowControls", &var);
         VariantClear(&var);
     }
 
     // Example of subscribing to an event - now using the EventManager directly
     if (auto eventManager = m_nativeControls->GetEventManager()) {
-        eventManager->subscribe("auto-manual-control", [](const CPPGUI::UIEvent& evt) {
+        eventManager->subscribe("data-sender-control", [](const CPPGUI::UIEvent& evt) {
             LOGI << "Handling control event: " << evt.type;
             return "success";
         });

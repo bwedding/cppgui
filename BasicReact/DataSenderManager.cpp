@@ -40,6 +40,9 @@ DataSenderManager::DataSenderManager(HWND targetWindow)
     m_threadRunFlags["json"] = false;
     m_threadRunFlags["nativeObject"] = false;
     m_threadRunFlags["sharedBuffer"] = false;
+    
+    // Initialize the global data sender with the target window handle
+    InitializeDataSender(targetWindow);
 }
 
 DataSenderManager::~DataSenderManager() {
@@ -175,7 +178,7 @@ void DataSenderManager::StringSenderThreadFunc() {
     // Setup random number generators for generating random strings
     std::random_device rd;
     std::mt19937 generator(rd());
-    std::uniform_int_distribution<size_t> stringSizeDist(5 * 1024, 10 * 1024); // 5-10KB strings
+    std::uniform_int_distribution<size_t> stringSizeDist(250 * 1024, 500 * 1024); // 5-10KB strings
 
     // For rate calculation
     size_t messageCount = 0;
@@ -219,8 +222,8 @@ void DataSenderManager::StringSenderThreadFunc() {
                 lastLogTime = now;
             }
 
-            // Add a small delay to prevent overwhelming the system
-            std::this_thread::sleep_for(std::chrono::milliseconds(10));
+            // Just a minimal delay to allow other threads to run
+            std::this_thread::sleep_for(std::chrono::microseconds(50));
         }
         catch (const std::exception& e) {
             LOGE << "Exception in string sender thread: " << e.what();
@@ -239,16 +242,16 @@ void DataSenderManager::JsonSenderThreadFunc() {
     std::mt19937 generator(rd());
     
     // Random distribution for number of values in array
-    std::uniform_int_distribution<size_t> valueCountDist(50, 200);
+    std::uniform_int_distribution<size_t> valueCountDist(500, 2000);
     
     // Random distribution for values
     std::uniform_real_distribution<double> valueDist(0.0, 1000.0);
     
     // Random distribution for metadata entries
-    std::uniform_int_distribution<size_t> metadataCountDist(10, 30);
+    std::uniform_int_distribution<size_t> metadataCountDist(100, 300);
     
     // String size for metadata keys/values
-    std::uniform_int_distribution<size_t> stringSizeDist(20, 100);
+    std::uniform_int_distribution<size_t> stringSizeDist(2000, 10000);
 
     // For rate calculation
     size_t messageCount = 0;
@@ -256,7 +259,8 @@ void DataSenderManager::JsonSenderThreadFunc() {
     auto startTime = std::chrono::high_resolution_clock::now();
     auto lastLogTime = std::chrono::high_resolution_clock::now();
 
-    while (m_threadRunFlags["json"]) {
+    while (m_threadRunFlags["json"]) 
+    {
         try {
             // Create a timestamp
             auto now = std::chrono::system_clock::now();
@@ -278,23 +282,26 @@ void DataSenderManager::JsonSenderThreadFunc() {
             // Add random values
             size_t valueCount = valueCountDist(generator);
             message.values.reserve(valueCount);
-            for (size_t i = 0; i < valueCount; ++i) {
+            for (size_t i = 0; i < valueCount; ++i) 
+            {
                 message.values.push_back(valueDist(generator));
             }
             
             // Add random metadata
             size_t metadataCount = metadataCountDist(generator);
             for (size_t i = 0; i < metadataCount; ++i) {
-                std::wstring key = L"key_" + StringUtils::GenerateRandomString(stringSizeDist(generator));
-                std::wstring value = StringUtils::GenerateRandomString(stringSizeDist(generator));
-                message.metadata[std::string(key.begin(), key.end())] = std::string(value.begin(), value.end());
+                // Use ASCII string directly instead of converting from wstring
+                std::string key = "key_" + StringUtils::GenerateRandomAsciiString(stringSizeDist(generator));
+                std::string value = StringUtils::GenerateRandomAsciiString(stringSizeDist(generator));
+                message.metadata[key] = value;
             }
             
             // Serialize to JSON using Glaze
             std::string jsonStr;
             auto result = glz::write_json(message, jsonStr);
             
-            if (result) {
+            if (!result) 
+            {
                 // Convert to wstring for WebView2
                 std::wstring wJsonStr(jsonStr.begin(), jsonStr.end());
                 
@@ -312,7 +319,8 @@ void DataSenderManager::JsonSenderThreadFunc() {
 
                 // Calculate and log the rate every second
                 auto currentTime = std::chrono::high_resolution_clock::now();
-                if (std::chrono::duration_cast<std::chrono::seconds>(currentTime - lastLogTime).count() >= 1) {
+                if (std::chrono::duration_cast<std::chrono::seconds>(currentTime - lastLogTime).count() >= 1) 
+                {
                     auto elapsedSeconds = std::chrono::duration_cast<std::chrono::duration<double>>(currentTime - startTime).count();
                     double messagesPerSecond = messageCount / elapsedSeconds;
                     double bytesPerSecond = totalBytes / elapsedSeconds;
@@ -331,8 +339,10 @@ void DataSenderManager::JsonSenderThreadFunc() {
                 LOGE << "Failed to serialize JSON data";
             }
 
-            // Add a small delay to prevent overwhelming the system
-            std::this_thread::sleep_for(std::chrono::milliseconds(10));
+            // Just a minimal delay to allow other threads to run
+            std::this_thread::sleep_for(std::chrono::microseconds(50));
+            //Sleep(0);
+            
         }
         catch (const std::exception& e) {
             LOGE << "Exception in JSON sender thread: " << e.what();

@@ -119,6 +119,11 @@ function App() {
       };
       
       console.log(`Sending control: ${senderType} ${action}`);
+      
+      // Log the full control data for debugging
+      console.log('Control data being sent:', JSON.stringify(controlData, null, 2));
+      
+      // Send the control message to the backend
       window.chrome.webview.hostObjects.sync.nativeWindowControls.SendClick(JSON.stringify(controlData));
       
       // Update the local running state
@@ -126,6 +131,21 @@ function App() {
         ...prev,
         [senderType]: action === 'start'
       }));
+      
+      // Reset the stats for this sender type when stopping
+      if (action === 'stop') {
+        setStats(prev => ({
+          ...prev,
+          [senderType]: { 
+            bytesReceived: 0, 
+            count: 0, 
+            rate: 0, 
+            lastTimestamp: null, 
+            smoothedRate: 0, 
+            firstTimestamp: null 
+          }
+        }));
+      }
     }
   }
 
@@ -142,30 +162,56 @@ function App() {
         try {
           // Get the message data and size
           const message = event.data;
-          let messageType = 'string'; // Default type
+          let messageType = 'unknown'; 
           let dataSize = 0;
           
           // Determine message type and size
           if (typeof message === 'string') {
-            messageType = 'string';
-            dataSize = new Blob([message]).size;
-            
-            // Calculate rate and update state
-            const rate = calculateRate(stats, messageType, dataSize);
-            setStats(prevStats => ({ ...prevStats, string: { ...prevStats.string, smoothedRate: rate } }));
+            try {
+              // Try to parse as JSON first - a JSON message sent via PostWebMessageAsJson 
+              // will arrive as a JavaScript object, not a string
+              const parsed = false; //JSON.parse(message);
+              if (parsed && typeof parsed === 'object' && parsed.type === 'json') {
+                // This is actually JSON data
+                messageType = 'json';
+                dataSize = new Blob([message]).size;
+                
+                const rate = calculateRate(stats, messageType, dataSize);
+                setStats(prevStats => ({ ...prevStats, json: { ...prevStats.json, smoothedRate: rate } }));
+                
+                // Debug output
+                if (Math.random() < 0.01) {
+                  console.log('JSON data detected in string message:', parsed);
+                }
+              } else {
+                // It's a string that happens to be valid JSON but not our JSON format
+                messageType = 'string';
+                dataSize = new Blob([message]).size;
+                
+                const rate = calculateRate(stats, messageType, dataSize);
+                setStats(prevStats => ({ ...prevStats, string: { ...prevStats.string, smoothedRate: rate } }));
+              }
+            } catch {
+              // Not valid JSON, so it's a plain string
+              messageType = 'string';
+              dataSize = new Blob([message]).size;
+              
+              const rate = calculateRate(stats, messageType, dataSize);
+              setStats(prevStats => ({ ...prevStats, string: { ...prevStats.string, smoothedRate: rate } }));
+            }
           } 
           else if (typeof message === 'object') {
-            // Try to identify the type
+            // Try to identify the type from the object
             if (message.type === 'json') {
               messageType = 'json';
-              dataSize = new Blob([JSON.stringify(message.data)]).size;
+              dataSize = new Blob([JSON.stringify(message.data || message)]).size;
               
               const rate = calculateRate(stats, messageType, dataSize);
               setStats(prevStats => ({ ...prevStats, json: { ...prevStats.json, smoothedRate: rate } }));
             } 
             else if (message.type === 'nativeObject') {
               messageType = 'nativeObject';
-              dataSize = new Blob([JSON.stringify(message.data)]).size;
+              dataSize = new Blob([JSON.stringify(message.data || message)]).size;
               
               const rate = calculateRate(stats, messageType, dataSize);
               setStats(prevStats => ({ ...prevStats, nativeObject: { ...prevStats.nativeObject, smoothedRate: rate } }));
@@ -176,42 +222,32 @@ function App() {
               if (message.data instanceof ArrayBuffer) {
                 dataSize = message.data.byteLength;
               } else {
-                dataSize = new Blob([JSON.stringify(message.data)]).size;
+                dataSize = new Blob([JSON.stringify(message.data || message)]).size;
               }
               
               const rate = calculateRate(stats, messageType, dataSize);
               setStats(prevStats => ({ ...prevStats, sharedBuffer: { ...prevStats.sharedBuffer, smoothedRate: rate } }));
             }
             else {
-              // Handle generic objects
-              messageType = 'json'; // Default to JSON for objects
+              // Handle generic objects - assume string if we can't identify it
+              messageType = 'string';
               dataSize = new Blob([JSON.stringify(message)]).size;
               
               const rate = calculateRate(stats, messageType, dataSize);
-              setStats(prevStats => ({ ...prevStats, json: { ...prevStats.json, smoothedRate: rate } }));
+              setStats(prevStats => ({ ...prevStats, string: { ...prevStats.string, smoothedRate: rate } }));
             }
           }
           
-          console.log(`Received ${messageType} of size ${dataSize} bytes, current rate: ${stats[messageType].smoothedRate.toFixed(2)} Mb/s`);
-          
+          // Log some messages for debugging purposes (not every message to avoid spam)
+          if (Math.random() < 0.01) { 
+            console.log(`Received ${messageType} message, size: ${dataSize} bytes`);
+          }
         } catch (error) {
           console.error('Error processing message:', error);
         }
       });
-      
-      console.log('Web message event listener registered');
-    } else {
-      console.warn('chrome.webview not available - running outside of WebView2?');
     }
-    
-    // Cleanup function
-    return () => {
-      if (window.chrome && window.chrome.webview) {
-        // WebView2 doesn't currently support removeEventListener for message events
-        // This is a placeholder for when it becomes available
-      }
-    };
-  }, [stats]); // Add stats to the dependency array
+  }, [stats]);
 
   const handleSendClick = () => {
     try {
@@ -226,7 +262,7 @@ function App() {
       });
       
       // Call the native function
-      const result = window.chrome.webview.hostObjects.sync.native.SendClick(dummyJson);
+      const result = window.chrome.webview.hostObjects.sync.nativeWindowControls.SendClick(dummyJson);
       
       // Display the result
       setResult("Result: " + JSON.stringify(result));

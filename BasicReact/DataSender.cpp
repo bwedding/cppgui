@@ -122,7 +122,13 @@ LRESULT ProcessWebViewMessage(HWND hwnd, WPARAM wParam, LPARAM lParam) {
                 lastLogTime = now;
             }
         } else if (pMessage->type == MessageType::Json) {
-            HRESULT hr = g_webViewManager->PostJSONMessageToWebView(pMessage->data);
+            // For JSON messages, we need to wrap the JSON data in an object with a type field
+            // This helps the frontend identify it correctly
+            std::wstring jsonWrapper = L"{\"type\":\"json\",\"data\":";
+            jsonWrapper += pMessage->data;
+            jsonWrapper += L"}";
+            
+            HRESULT hr = g_webViewManager->PostJSONMessageToWebView(jsonWrapper.c_str());
             if (FAILED(hr)) {
                 std::cerr << "Failed to post JSON message to WebView: 0x" << std::hex << hr << std::endl;
             }

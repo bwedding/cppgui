@@ -90,16 +90,26 @@ STDMETHODIMP NativeWindowControls::SendClick(const BSTR jsonData)
     const auto json = nlohmann::json::parse(str);
 
     LOGD << json.dump();
-    // TODO add code to populate event with actual data
+    
+    // Extract event type from JSON or use a default
+    std::string eventType = "unknown-event";
+    std::string eventSource = "WebView";
+    
+    // Check if the JSON contains a type field
+    if (json.contains("type")) {
+        eventType = json["type"];
+    }
+    
+    // Create event with actual data from JSON
     CPPGUI::UIEvent evt{
-        "auto-manual-control",
-        "User interface",
-        str,
-        system_clock::time_point{}
+        eventType,
+        eventSource,
+        str,  // Use the full JSON string as payload
+        std::chrono::system_clock::now()  // Use current time for the timestamp
     };
 
     const int eventId = mEventManager->registerEvent(std::move(evt));
-    LOGI << "Registered event with ID: " << eventId << ", type: 'auto-manual-control'";
+    LOGI << "Registered event with ID: " << eventId << ", type: '" << eventType << "'";
 
     PostMessage(hwnd, WM_USER_EVENT, 0, eventId);
     LOGI << "Posted WM_USER_EVENT message with event ID: " << eventId;
@@ -119,15 +129,26 @@ STDMETHODIMP NativeWindowControls::SendForm(const BSTR jsonData)
     const auto json = nlohmann::json::parse(str);
 
     PLOGD << json.dump();
+    
+    // Extract event type from JSON or use a default
+    std::string eventType = "unknown-event";
+    std::string eventSource = "WebView";
+    
+    // Check if the JSON contains a type field
+    if (json.contains("type")) {
+        eventType = json["type"];
+    }
+    
+    // Create event with actual data from JSON
     CPPGUI::UIEvent evt{
-        "auto-manual-control",
-        "User interface",
-        str,
-        system_clock::time_point{}
+        eventType,
+        eventSource,
+        str,  // Use the full JSON string as payload
+        std::chrono::system_clock::now()  // Use current time for the timestamp
     };
 
     const int eventId = mEventManager->registerEvent(std::move(evt));
-    LOGI << "Registered event with ID: " << eventId << ", type: 'auto-manual-control'";
+    LOGI << "Registered event with ID: " << eventId << ", type: '" << eventType << "'";
 
     PostMessage(hwnd, WM_USER_EVENT, 0, eventId);
     LOGI << "Posted WM_USER_EVENT message with event ID: " << eventId;
