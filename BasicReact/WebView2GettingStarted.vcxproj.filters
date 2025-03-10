@@ -126,6 +126,9 @@
     <ClCompile Include="GlazeTest.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="DataSender.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
@@ -628,6 +631,9 @@
     </ClInclude>
     <ClInclude Include="include\glaze\util\variant.hpp">
       <Filter>Header Files\glaze\util</Filter>
+    </ClInclude>
+    <ClInclude Include="DataSender.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

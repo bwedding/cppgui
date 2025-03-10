@@ -1,4 +1,5 @@
 #include "MakeWindow.h"
+#include "../DataSender.h"
 
 namespace CPPGUI
 {
@@ -44,6 +45,11 @@ namespace CPPGUI
 			}
 			break;
 		}
+
+		case WM_PROCESS_WEBVIEW_MESSAGE:
+			// Process messages queued by the data sender threads
+			//LOGD << "WM_PROCESS_WEBVIEW_MESSAGE received";
+			return ProcessWebViewMessage(hWnd, wParam, lParam);
 
 		case WM_USER_DISPATCH:
 		{
@@ -416,7 +422,7 @@ namespace CPPGUI
 		} else {
 			LOGD << "Setting border width to " << width << " pixels";
 			// Clamp the width to reasonable values (0-20 pixels)
-			width = max(0, min(width, 20));
+			//width = max(0, min(width, 20));
 			
 			// Apply the border width setting
 			HRESULT hr = DwmSetWindowAttribute(hWnd, 37, &width, sizeof(width));

@@ -20,6 +20,7 @@
 #include "WebViewManager.h"
 #include "MakeWindow.h"
 #include "../resource.h" // Added for resource identifiers
+#include "DataSender.h"
 
 using namespace Microsoft::WRL;
 
@@ -87,6 +88,34 @@ void InitializeLog()
 
 extern void GlazeTest();
 
+// Timer ID for retrying WebView pointer acquisition
+#define TIMER_RETRY_WEBVIEW 1002
+
+// Global flag to track if we've started the sender thread
+bool g_senderStarted = false;
+
+// Timer procedure for retrying WebView pointer acquisition
+VOID CALLBACK WebViewRetryTimerProc(HWND hwnd, UINT msg, UINT_PTR timerId, DWORD time) {
+	LOGI << "Timer fired, retrying to get WebView pointer";
+	auto webview = g_webViewManager->GetWebView();
+	if (webview) {
+		LOGI << "WebView pointer is now valid on retry, starting sender thread";
+		std::thread stringDataSenderThread(SendStringData, hwnd);
+		stringDataSenderThread.detach();
+		KillTimer(hwnd, timerId);
+	} else {
+		static int retryCount = 0;
+		retryCount++;
+		
+		if (retryCount >= 10) {  // Give up after 10 retries (10 seconds)
+			LOGE << "Giving up after 10 retries. WebView pointer is still null!";
+			KillTimer(hwnd, timerId);
+		} else {
+			LOGE << "WebView pointer is still null on retry " << retryCount << "/10!";
+		}
+	}
+}
+
 int CALLBACK WinMain(
 	_In_ HINSTANCE hInstance,
 	_In_ HINSTANCE hPrevInstance,
@@ -126,71 +155,69 @@ int CALLBACK WinMain(
 		return squarefoo(evt);
 	});
 
-	// Set up simplified navigation callback - much cleaner for frontend developers
-	g_webViewManager->SetSimpleNavigationCallback([](const std::wstring& uri, bool isSuccess, const std::wstring& errorMessage) 
-		{
-			LOGI << "Navigation completed to: " << SystemUtils::WideToUtf8(uri);
-			if (!isSuccess) 
-			{
-				LOGE << "Navigation failed: " << SystemUtils::WideToUtf8(errorMessage);
-			// Here you could show a user-friendly error message in the UI
-			// or take other appropriate actions based on the error
-			}
-			// Navigation succeeded! We're on the next page
-	});
-
-	// The detailed navigation callback is still available if needed for debugging or advanced error handling
-	/*
+	// Set up detailed navigation callback - more technical details
 	g_webViewManager->SetNavigationCompletedCallback([](const std::wstring& uri, bool isSuccess, COREWEBVIEW2_WEB_ERROR_STATUS errorStatus) {
-		LOGI << "Navigation completed callback: " << SystemUtils::WideToUtf8(uri);
-		if (!isSuccess) {
-			LOGE << "Navigation failed with error status: " << errorStatus;
-			// Handle different error statuses
-			switch (errorStatus) {
-			case COREWEBVIEW2_WEB_ERROR_STATUS_DISCONNECTED:
-				LOGE << "Network disconnected";
-				break;
-			case COREWEBVIEW2_WEB_ERROR_STATUS_CONNECTION_ABORTED:
-				LOGE << "Connection aborted";
-				break;
-			case COREWEBVIEW2_WEB_ERROR_STATUS_CONNECTION_RESET:
-				LOGE << "Connection reset";
-				break;
-			case COREWEBVIEW2_WEB_ERROR_STATUS_SERVER_UNREACHABLE:
-				LOGE << "Server unreachable";
-				break;
-			case COREWEBVIEW2_WEB_ERROR_STATUS_TIMEOUT:
-				LOGE << "Connection timed out";
-				break;
-			case COREWEBVIEW2_WEB_ERROR_STATUS_ERROR_HTTP_INVALID_SERVER_RESPONSE:
-				LOGE << "Invalid HTTP server response";
-				break;
-			case COREWEBVIEW2_WEB_ERROR_STATUS_HOST_NAME_NOT_RESOLVED:
-				LOGE << "Host name not resolved";
-				break;
-			case COREWEBVIEW2_WEB_ERROR_STATUS_OPERATION_CANCELED:
-				LOGE << "Operation canceled";
-				break;
-			case COREWEBVIEW2_WEB_ERROR_STATUS_CERTIFICATE_EXPIRED:
-				LOGE << "SSL certificate expired";
-				break;
-			case COREWEBVIEW2_WEB_ERROR_STATUS_CERTIFICATE_IS_INVALID:
-				LOGE << "SSL certificate is invalid";
-				break;
-			case COREWEBVIEW2_WEB_ERROR_STATUS_UNEXPECTED_ERROR:
-				LOGE << "Unexpected error occurred";
-				break;
-			default:
-				LOGE << "Other error status: " << errorStatus;
-				break;
-			}
+		if (isSuccess) {
+			LOGI << "Navigation completed to: " << SystemUtils::WideToUtf8(uri) << " Success: true";
+		}
+		else {
+			LOGW << "Navigation failed with status: " << errorStatus;
 		}
 	});
-	*/
+
+	// Set up simplified navigation callback - much cleaner for frontend developers
+	g_webViewManager->SetSimpleNavigationCallback([hwndMain = hWnd](const std::wstring& uri, bool isSuccess, const std::wstring& errorMessage) {
+		if (isSuccess) {
+			LOGI << "Navigation successful to: " << SystemUtils::WideToUtf8(uri);
+			
+			// Start the string data sender thread after successful navigation
+			if (!g_senderStarted) {
+				g_senderStarted = true;
+				LOGI << "Starting string data sender thread after successful navigation";
+				
+				// Initialize the data sender with the main window handle
+				LOGI << "Initializing data sender with window handle: " << hwndMain;
+				InitializeDataSender(hwndMain);
+				
+				// Start the string data sender thread with the window handle
+				std::thread stringDataSenderThread(SendStringData, hwndMain);
+				stringDataSenderThread.detach();
+				
+				// Optionally start the JSON data sender thread as well
+				// std::thread jsonDataSenderThread(SendJSONData, hwndMain);
+				// jsonDataSenderThread.detach();
+			}
+		}
+		else {
+			LOGE << "Navigation failed: " << SystemUtils::WideToUtf8(errorMessage);
+		}
+	});
 
 	TestDatabaseAccess(g_webViewManager->GetWebView());
 
 	auto result = makeWindow.RunMessageLoop();
 
+	// Set the global flag to stop the sender thread
+	g_keepSending = false;
+
 	return result;
+}
+
+LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) {
+	switch (message) {
+	case WM_SIZE:
+		if (g_webViewManager) {
+			RECT bounds;
+			GetClientRect(hWnd, &bounds);
+			g_webViewManager->Resize(bounds);
+		}
+		return 0;
+	case WM_DESTROY:
+		PostQuitMessage(0);
+		return 0;
+	case WM_PROCESS_WEBVIEW_MESSAGE:
+		// Process messages queued by the data sender threads
+		return ProcessWebViewMessage(hWnd, wParam, lParam);
+	}
+	return DefWindowProcW(hWnd, message, wParam, lParam);
 }

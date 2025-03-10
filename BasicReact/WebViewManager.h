@@ -20,6 +20,7 @@ public:
     void Initialize();
     HRESULT ExecuteScript(const std::wstring& script);
     HRESULT PostMessageToWebView(const std::wstring& message);
+    HRESULT PostJSONMessageToWebView(const std::wstring& message);
     void Resize(const RECT& bounds);
     void SetNavigationURL(const std::wstring& url) { m_navigationURL = url; }
     void SetDevToolsEnabled(bool enabled) { m_devToolsEnabled = enabled; }
@@ -45,7 +46,12 @@ public:
     using SimpleNavigationCallback = std::function<void(const std::wstring& uri, bool isSuccess, const std::wstring& errorMessage)>;
     void SetSimpleNavigationCallback(SimpleNavigationCallback callback) { m_simpleNavigationCallback = callback; }
     
-    ICoreWebView2* GetWebView() const { return m_webview.get(); }
+    // Gets the WebView UI thread ID
+    DWORD GetUIThreadId() const { return m_uiThreadId; }
+    
+    // Returns the WebView pointer (but remember this should only be used on the UI thread)
+    wil::com_ptr<ICoreWebView2> GetWebView() const { return m_webview; }
+    
     NativeWindowControls* GetNativeControls() const { return m_nativeControls.get(); }
     
     // Structure to hold pending subscriptions

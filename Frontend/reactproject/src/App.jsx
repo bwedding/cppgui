@@ -1,11 +1,183 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import reactLogo from './assets/react.svg'
 import viteLogo from '/vite.svg'
 import './App.css'
+import { RadialGauge } from 'react-canvas-gauges'
 
 function App() {
-  const [count, setCount] = useState(0)
-  const [result, setResult] = useState('Result will appear here')
+  const [result, setResult] = useState('Result')
+  
+  // State to track message rates and stats with proper initialization
+  const [stats, setStats] = useState({
+    string: { bytesReceived: 0, count: 0, rate: 0, lastTimestamp: null, smoothedRate: 0, firstTimestamp: null },
+    json: { bytesReceived: 0, count: 0, rate: 0, lastTimestamp: null, smoothedRate: 0, firstTimestamp: null },
+    nativeObject: { bytesReceived: 0, count: 0, rate: 0, lastTimestamp: null, smoothedRate: 0, firstTimestamp: null },
+    sharedBuffer: { bytesReceived: 0, count: 0, rate: 0, lastTimestamp: null, smoothedRate: 0, firstTimestamp: null },
+  });
+
+  const calculateRate = (stats, type, bytes) => {
+    // Guard against invalid inputs
+    if (!stats || !type || !stats[type] || bytes === undefined || bytes < 0) {
+      console.warn('Invalid inputs to calculateRate', { stats, type, bytes });
+      return 0;
+    }
+
+    const now = Date.now();
+    const currentStats = stats[type];
+    const dampingFactor = 0.8; // Increased from 0.5 to 0.8 - much higher = almost no damping
+    
+    currentStats.bytesReceived += bytes;
+    currentStats.count = (currentStats.count || 0) + 1;
+    
+    // Initialize lastTimestamp if it doesn't exist
+    if (!currentStats.lastTimestamp) {
+      currentStats.lastTimestamp = now;
+      return 0; // Return 0 for the first message to avoid misleading spikes
+    }
+    
+    // Time difference in seconds with strict validation
+    const timeDiff = (now - currentStats.lastTimestamp) / 1000;
+    
+    // Skip rate calculation if time difference is invalid or too small
+    if (!timeDiff || timeDiff <= 0 || timeDiff < 0.001) { // Less than 1ms or invalid
+      return currentStats.smoothedRate || 0;
+    }
+    
+    // Calculate rate in Mb/s (bytes * 8 for bits / 1,000,000 for Mb)
+    const instantRate = (bytes * 8) / (timeDiff * 1000000);
+    
+    // Validate the instant rate to prevent extreme values
+    if (!Number.isFinite(instantRate) || instantRate < 0) {
+      console.warn(`Invalid instant rate calculated: ${instantRate}, using previous value`);
+      return currentStats.smoothedRate || 0;
+    }
+    
+    // For very early measurements, be more cautious but still more responsive than before
+    const effectiveDampingFactor = currentStats.count < 10 ? 0.5 : dampingFactor; // Increased from 0.3 to 0.5
+    
+    // Apply damping using exponential smoothing
+    if (!currentStats.smoothedRate || currentStats.smoothedRate === 0 || !Number.isFinite(currentStats.smoothedRate)) {
+      currentStats.smoothedRate = instantRate;
+    } else {
+      // Sanity check - less aggressive adjustment for outliers
+      const ratio = instantRate / currentStats.smoothedRate;
+      
+      // Default to the effective damping factor
+      var adjustedDampingFactor = effectiveDampingFactor;
+      
+      // More responsive adjustment for extreme outliers - but with higher base damping
+      if (ratio > 20 || ratio < 0.05) {
+        adjustedDampingFactor = 0.3; // Increased from 0.1 to 0.3
+      }
+      
+      currentStats.smoothedRate = (adjustedDampingFactor * instantRate) + 
+                                 ((1 - adjustedDampingFactor) * currentStats.smoothedRate);
+    }
+    
+    // Update timestamp for next calculation
+    currentStats.lastTimestamp = now;
+    
+    // Calculate the unadjusted value (no damping applied)
+    const rawRateAverage = (currentStats.bytesReceived * 8) / 
+                           ((now - currentStats.firstTimestamp || now) / 1000 * 1000000);
+                           
+    // Track first timestamp if not set
+    if (!currentStats.firstTimestamp) {
+      currentStats.firstTimestamp = now;
+    }
+    
+    // For logging/debugging - track both smoothed and raw rates
+    const smoothedRate = currentStats.smoothedRate;
+    
+    // Log every 50th message
+    if (currentStats.count % 50 === 0) {
+      console.log(`FRONTEND RATE: Type: ${type}, Count: ${currentStats.count}, ` +
+                  `Size: ${bytes} bytes, Raw: ${instantRate.toFixed(2)} Mb/s, ` + 
+                  `Smoothed: ${smoothedRate.toFixed(2)} Mb/s, ` +
+                  `Overall Avg: ${rawRateAverage.toFixed(2)} Mb/s, ` +
+                  `Damping: ${adjustedDampingFactor.toFixed(2)}`);
+    }
+    
+    return smoothedRate;
+  };
+
+  useEffect(() => {
+    // Set up web message event listener
+    if (window.chrome && window.chrome.webview) {
+      window.chrome.webview.addEventListener('message', event => {
+        try {
+          // Get the message data and size
+          const message = event.data;
+          let messageType = 'string'; // Default type
+          let dataSize = 0;
+          
+          // Determine message type and size
+          if (typeof message === 'string') {
+            messageType = 'string';
+            dataSize = new Blob([message]).size;
+            
+            // Calculate rate and update state
+            const rate = calculateRate(stats, messageType, dataSize);
+            setStats(prevStats => ({ ...prevStats, string: { ...prevStats.string, smoothedRate: rate } }));
+          } 
+          else if (typeof message === 'object') {
+            // Try to identify the type
+            if (message.type === 'json') {
+              messageType = 'json';
+              dataSize = new Blob([JSON.stringify(message.data)]).size;
+              
+              const rate = calculateRate(stats, messageType, dataSize);
+              setStats(prevStats => ({ ...prevStats, json: { ...prevStats.json, smoothedRate: rate } }));
+            } 
+            else if (message.type === 'nativeObject') {
+              messageType = 'nativeObject';
+              dataSize = new Blob([JSON.stringify(message.data)]).size;
+              
+              const rate = calculateRate(stats, messageType, dataSize);
+              setStats(prevStats => ({ ...prevStats, nativeObject: { ...prevStats.nativeObject, smoothedRate: rate } }));
+            } 
+            else if (message.type === 'sharedBuffer') {
+              messageType = 'sharedBuffer';
+              // For shared buffer, message.data might be an ArrayBuffer
+              if (message.data instanceof ArrayBuffer) {
+                dataSize = message.data.byteLength;
+              } else {
+                dataSize = new Blob([JSON.stringify(message.data)]).size;
+              }
+              
+              const rate = calculateRate(stats, messageType, dataSize);
+              setStats(prevStats => ({ ...prevStats, sharedBuffer: { ...prevStats.sharedBuffer, smoothedRate: rate } }));
+            }
+            else {
+              // Handle generic objects
+              messageType = 'json'; // Default to JSON for objects
+              dataSize = new Blob([JSON.stringify(message)]).size;
+              
+              const rate = calculateRate(stats, messageType, dataSize);
+              setStats(prevStats => ({ ...prevStats, json: { ...prevStats.json, smoothedRate: rate } }));
+            }
+          }
+          
+          console.log(`Received ${messageType} of size ${dataSize} bytes, current rate: ${stats[messageType].smoothedRate.toFixed(2)} Mb/s`);
+          
+        } catch (error) {
+          console.error('Error processing message:', error);
+        }
+      });
+      
+      console.log('Web message event listener registered');
+    } else {
+      console.warn('chrome.webview not available - running outside of WebView2?');
+    }
+    
+    // Cleanup function
+    return () => {
+      if (window.chrome && window.chrome.webview) {
+        // WebView2 doesn't currently support removeEventListener for message events
+        // This is a placeholder for when it becomes available
+      }
+    };
+  }, [stats]); // Add stats to the dependency array
 
   const handleSendClick = () => {
     try {
@@ -34,24 +206,60 @@ function App() {
 
   return (
     <>
-      {/* Draggable div with app-region:drag attribute */}
-      <div 
-        style={{ 
-          width: '100px', 
-          height: '100px', 
-          backgroundColor: 'blue', 
-          color: 'white', 
-          display: 'flex', 
-          alignItems: 'center', 
-          justifyContent: 'center', 
-          margin: '0 auto 20px auto', 
-          cursor: 'move',
-          WebkitAppRegion: 'drag' // This enables dragging in WebView2
-        }}
-      >
-        Drag Me
+      <div style={{ display: 'flex', justifyContent: 'space-between', width: '100%', marginBottom: '20px' }}>
+        <div style={{ width: '24%' }}>
+          <RadialGauge
+            units='Mb/S'
+            title='PostWebMessageAsString'
+            value={isNaN(stats.string.smoothedRate) ? 0 : Math.min(Math.max(stats.string.smoothedRate, 0), 100)}
+            minValue={0}
+            maxValue={100}
+            majorTicks={['0', '10', '20', '30', '40', '50', '60', '70', '80', '90', '100']}
+            minorTicks={2}
+            width={200}
+            height={200}
+          />
+        </div>
+        <div style={{ width: '24%' }}>
+          <RadialGauge
+            units='Mb/S'
+            title='PostWebMessageAsJson'
+            value={isNaN(stats.json.smoothedRate) ? 0 : Math.min(Math.max(stats.json.smoothedRate, 0), 100)}
+            minValue={0}
+            maxValue={100}
+            majorTicks={['0', '10', '20', '30', '40', '50', '60', '70', '80', '90', '100']}
+            minorTicks={2}
+            width={200}
+            height={200}
+          />
+        </div>
+        <div style={{ width: '24%' }}>
+          <RadialGauge
+            units='Mb/S'
+            title='NativeHostObject'
+            value={isNaN(stats.nativeObject.smoothedRate) ? 0 : Math.min(Math.max(stats.nativeObject.smoothedRate, 0), 100)}
+            minValue={0}
+            maxValue={100}
+            majorTicks={['0', '10', '20', '30', '40', '50', '60', '70', '80', '90', '100']}
+            minorTicks={2}
+            width={200}
+            height={200}
+          />
+        </div>
+        <div style={{ width: '24%' }}>
+          <RadialGauge
+            units='Mb/S'
+            title='Shared Memory Buffer'
+            value={isNaN(stats.sharedBuffer.smoothedRate) ? 0 : Math.min(Math.max(stats.sharedBuffer.smoothedRate, 0), 100)}
+            minValue={0}
+            maxValue={100}
+            majorTicks={['0', '10', '20', '30', '40', '50', '60', '70', '80', '90', '100']}
+            minorTicks={2}
+            width={200}
+            height={200}
+          />
+        </div>
       </div>
-      
       <div>
         <div style={{ textAlign: 'center' }}>
           <button id="sendClickButton" onClick={handleSendClick}>Send Click to Native</button>
@@ -64,18 +272,6 @@ function App() {
           <img src={reactLogo} className="logo react" alt="React logo" />
         </a>
       </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.jsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
     </>
   )
 }

@@ -163,6 +163,13 @@ HRESULT WebViewManager::PostMessageToWebView(const std::wstring& message) {
     return m_webview->PostWebMessageAsString(message.c_str());
 }
 
+HRESULT WebViewManager::PostJSONMessageToWebView(const std::wstring& message) {
+    if (!m_webview)
+        return E_FAIL;
+
+    return m_webview->PostWebMessageAsJson(message.c_str());
+}
+
 void WebViewManager::NavigateToPage(const std::wstring& page) 
 {
     LOGD << "Navigating to page: " << SystemUtils::WideToUtf8(page);
