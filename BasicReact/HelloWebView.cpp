@@ -94,8 +94,6 @@ int CALLBACK WinMain(
 	_In_ int       nCmdShow
 )
 {
-	CPPGUI::MakeWindow window(hInstance, nCmdShow);
-
 	InitializeLog();
 
 	GlazeTest();
@@ -118,9 +116,9 @@ int CALLBACK WinMain(
 
 	
 	// Set the WebViewManager in the MakeWindow instance
-	window.SetWebViewManager(g_webViewManager.get());
-	window.SetThemeMode(CPPGUI::ThemeMode::Dark); // or ThemeMode::Light, ThemeMode::Dark, ThemeMode::System
-	window.SetTopMost(hWnd, false);  // Turn off topmost window behavior
+	makeWindow.SetWebViewManager(g_webViewManager.get());
+	makeWindow.SetThemeMode(CPPGUI::ThemeMode::Dark); // or ThemeMode::Light, ThemeMode::Dark, ThemeMode::System
+	makeWindow.SetTopMost(hWnd, false);  // Turn off topmost window behavior
 
 
 	// Add subscriptions here  
@@ -192,7 +190,7 @@ int CALLBACK WinMain(
 
 	TestDatabaseAccess(g_webViewManager->GetWebView());
 
-	auto result = window.RunMessageLoop();
+	auto result = makeWindow.RunMessageLoop();
 
 	return result;
 }

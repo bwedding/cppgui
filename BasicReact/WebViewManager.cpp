@@ -143,8 +143,10 @@ void WebViewManager::InitializeNativeControls() {
     }
 }
 
-void WebViewManager::Resize(const RECT& bounds) {
-    if (m_controller) {
+void WebViewManager::Resize(const RECT& bounds) 
+{
+    if (m_controller) 
+    {
         m_controller->put_Bounds(bounds);
     }
 }
