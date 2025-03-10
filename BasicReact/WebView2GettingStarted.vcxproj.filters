@@ -129,6 +129,9 @@
     <ClCompile Include="DataSender.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="DataSenderManager.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
@@ -633,6 +636,9 @@
       <Filter>Header Files\glaze\util</Filter>
     </ClInclude>
     <ClInclude Include="DataSender.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="DataSenderManager.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

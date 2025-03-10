@@ -15,6 +15,14 @@ function App() {
     sharedBuffer: { bytesReceived: 0, count: 0, rate: 0, lastTimestamp: null, smoothedRate: 0, firstTimestamp: null },
   });
 
+  // Add state for tracking which senders are running
+  const [runningSenders, setRunningSenders] = useState({
+    string: false,
+    json: false,
+    nativeObject: false,
+    sharedBuffer: false
+  });
+
   const calculateRate = (stats, type, bytes) => {
     // Guard against invalid inputs
     if (!stats || !type || !stats[type] || bytes === undefined || bytes < 0) {
@@ -100,6 +108,32 @@ function App() {
     
     return smoothedRate;
   };
+
+  // Function to send control messages to the backend
+  function sendDataSenderControl(senderType, action) {
+    if (window.chrome && window.chrome.webview) {
+      const controlData = {
+        type: "data-sender-control",
+        senderType: senderType,
+        action: action
+      };
+      
+      console.log(`Sending control: ${senderType} ${action}`);
+      window.chrome.webview.hostObjects.sync.nativeWindowControls.SendClick(JSON.stringify(controlData));
+      
+      // Update the local running state
+      setRunningSenders(prev => ({
+        ...prev,
+        [senderType]: action === 'start'
+      }));
+    }
+  }
+
+  // Toggle sender function
+  function toggleSender(senderType) {
+    const isRunning = runningSenders[senderType];
+    sendDataSenderControl(senderType, isRunning ? 'stop' : 'start');
+  }
 
   useEffect(() => {
     // Set up web message event listener
@@ -264,6 +298,56 @@ function App() {
         <div style={{ textAlign: 'center' }}>
           <button id="sendClickButton" onClick={handleSendClick}>Send Click to Native</button>
           <div id="result">{result}</div>
+        </div>
+        <div className="controls-container">
+          <div className="control-panel">
+            <h2>Data Sender Controls</h2>
+            <div className="sender-controls">
+              <div className="sender-control">
+                <h3>String Messages</h3>
+                <button 
+                  onClick={() => toggleSender('string')}
+                  className={runningSenders.string ? 'running' : ''}
+                >
+                  {runningSenders.string ? 'Stop' : 'Start'} String Sender
+                </button>
+                <div className="stats">Messages: {stats.string.count}</div>
+              </div>
+              
+              <div className="sender-control">
+                <h3>JSON Messages</h3>
+                <button 
+                  onClick={() => toggleSender('json')}
+                  className={runningSenders.json ? 'running' : ''}
+                >
+                  {runningSenders.json ? 'Stop' : 'Start'} JSON Sender
+                </button>
+                <div className="stats">Messages: {stats.json.count}</div>
+              </div>
+              
+              <div className="sender-control">
+                <h3>Native Object</h3>
+                <button 
+                  onClick={() => toggleSender('nativeObject')}
+                  className={runningSenders.nativeObject ? 'running' : ''}
+                >
+                  {runningSenders.nativeObject ? 'Stop' : 'Start'} Native Object
+                </button>
+                <div className="stats">Messages: {stats.nativeObject.count}</div>
+              </div>
+              
+              <div className="sender-control">
+                <h3>Shared Buffer</h3>
+                <button 
+                  onClick={() => toggleSender('sharedBuffer')}
+                  className={runningSenders.sharedBuffer ? 'running' : ''}
+                >
+                  {runningSenders.sharedBuffer ? 'Stop' : 'Start'} Shared Buffer
+                </button>
+                <div className="stats">Messages: {stats.sharedBuffer.count}</div>
+              </div>
+            </div>
+          </div>
         </div>
         <a href="https://vite.dev" target="_blank">
           <img src={viteLogo} className="logo" alt="Vite logo" />

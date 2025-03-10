@@ -21,6 +21,7 @@
 #include "MakeWindow.h"
 #include "../resource.h" // Added for resource identifiers
 #include "DataSender.h"
+#include "DataSenderManager.h"
 
 using namespace Microsoft::WRL;
 
@@ -31,13 +32,8 @@ HWND hWnd = nullptr;
 LRESULT CALLBACK WndProc(HWND, UINT, WPARAM, LPARAM);
 
 std::unique_ptr<WebViewManager> g_webViewManager = nullptr;
-
-std::string squarefoo(const CPPGUI::UIEvent& evt)
-{
-	LOGI << "CALLBACK EXECUTED: squarefoo called with event type: " << evt.type;
-	LOGI << "Event details - source: " << evt.target << " data: " << evt.payload;
-	return SystemUtils::FormatTimeStamp(evt.timestamp);
-}
+DataSenderManager* g_dataSenderManager = nullptr;
+bool g_senderStarted = false; // Keep this for now to avoid changing too much
 
 std::unique_ptr<WebViewManager> StartWebView(HINSTANCE hInstance, const std::wstring& navigationURL)
 {
@@ -91,31 +87,6 @@ extern void GlazeTest();
 // Timer ID for retrying WebView pointer acquisition
 #define TIMER_RETRY_WEBVIEW 1002
 
-// Global flag to track if we've started the sender thread
-bool g_senderStarted = false;
-
-// Timer procedure for retrying WebView pointer acquisition
-VOID CALLBACK WebViewRetryTimerProc(HWND hwnd, UINT msg, UINT_PTR timerId, DWORD time) {
-	LOGI << "Timer fired, retrying to get WebView pointer";
-	auto webview = g_webViewManager->GetWebView();
-	if (webview) {
-		LOGI << "WebView pointer is now valid on retry, starting sender thread";
-		std::thread stringDataSenderThread(SendStringData, hwnd);
-		stringDataSenderThread.detach();
-		KillTimer(hwnd, timerId);
-	} else {
-		static int retryCount = 0;
-		retryCount++;
-		
-		if (retryCount >= 10) {  // Give up after 10 retries (10 seconds)
-			LOGE << "Giving up after 10 retries. WebView pointer is still null!";
-			KillTimer(hwnd, timerId);
-		} else {
-			LOGE << "WebView pointer is still null on retry " << retryCount << "/10!";
-		}
-	}
-}
-
 int CALLBACK WinMain(
 	_In_ HINSTANCE hInstance,
 	_In_ HINSTANCE hPrevInstance,
@@ -143,7 +114,32 @@ int CALLBACK WinMain(
 	g_webViewManager = StartWebView(hInstance, L"file:///C:/Users/bruce/source/cppgui/Frontend/UI/dist/index.html");
 	//g_webViewManager = StartWebView(hInstance, L"edge://gpu/");
 
-	
+	g_dataSenderManager = new DataSenderManager(hWnd);
+
+	g_webViewManager->Subscribe("data-sender-control", [](const CPPGUI::UIEvent& evt) {
+		if (g_dataSenderManager) {
+			return g_dataSenderManager->HandleDataSenderEvent(evt);
+		}
+		return std::string{}; // Return empty JSON object string if the manager isn't initialized
+	});
+
+	g_webViewManager->SetSimpleNavigationCallback([hwndMain = hWnd](const std::wstring& uri, bool isSuccess, const std::wstring& errorMessage) {
+		if (isSuccess) {
+			LOGI << "Navigation successful to: " << SystemUtils::WideToUtf8(uri);
+			
+			// No need to start threads automatically anymore - controlled by UI now
+			
+			// Just mark as started to avoid other initialization attempts
+			if (!g_senderStarted) {
+				g_senderStarted = true;
+				LOGI << "Navigation successful, sender functionality ready";
+			}
+		}
+		else {
+			LOGE << "Navigation failed: " << SystemUtils::WideToUtf8(errorMessage);
+		}
+	});
+
 	// Set the WebViewManager in the MakeWindow instance
 	makeWindow.SetWebViewManager(g_webViewManager.get());
 	makeWindow.SetThemeMode(CPPGUI::ThemeMode::Dark); // or ThemeMode::Light, ThemeMode::Dark, ThemeMode::System
@@ -151,47 +147,6 @@ int CALLBACK WinMain(
 
 
 	// Add subscriptions here  
-	g_webViewManager->Subscribe("auto-manual-control", [](const CPPGUI::UIEvent& evt) {
-		return squarefoo(evt);
-	});
-
-	// Set up detailed navigation callback - more technical details
-	g_webViewManager->SetNavigationCompletedCallback([](const std::wstring& uri, bool isSuccess, COREWEBVIEW2_WEB_ERROR_STATUS errorStatus) {
-		if (isSuccess) {
-			LOGI << "Navigation completed to: " << SystemUtils::WideToUtf8(uri) << " Success: true";
-		}
-		else {
-			LOGW << "Navigation failed with status: " << errorStatus;
-		}
-	});
-
-	// Set up simplified navigation callback - much cleaner for frontend developers
-	g_webViewManager->SetSimpleNavigationCallback([hwndMain = hWnd](const std::wstring& uri, bool isSuccess, const std::wstring& errorMessage) {
-		if (isSuccess) {
-			LOGI << "Navigation successful to: " << SystemUtils::WideToUtf8(uri);
-			
-			// Start the string data sender thread after successful navigation
-			if (!g_senderStarted) {
-				g_senderStarted = true;
-				LOGI << "Starting string data sender thread after successful navigation";
-				
-				// Initialize the data sender with the main window handle
-				LOGI << "Initializing data sender with window handle: " << hwndMain;
-				InitializeDataSender(hwndMain);
-				
-				// Start the string data sender thread with the window handle
-				std::thread stringDataSenderThread(SendStringData, hwndMain);
-				stringDataSenderThread.detach();
-				
-				// Optionally start the JSON data sender thread as well
-				// std::thread jsonDataSenderThread(SendJSONData, hwndMain);
-				// jsonDataSenderThread.detach();
-			}
-		}
-		else {
-			LOGE << "Navigation failed: " << SystemUtils::WideToUtf8(errorMessage);
-		}
-	});
 
 	TestDatabaseAccess(g_webViewManager->GetWebView());
 
@@ -213,6 +168,11 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) 
 		}
 		return 0;
 	case WM_DESTROY:
+		if (g_dataSenderManager) {
+			g_dataSenderManager->StopAllSenders();
+			delete g_dataSenderManager;
+			g_dataSenderManager = nullptr;
+		}
 		PostQuitMessage(0);
 		return 0;
 	case WM_PROCESS_WEBVIEW_MESSAGE:

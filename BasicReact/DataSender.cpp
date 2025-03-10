@@ -4,6 +4,7 @@
 #include <queue>
 #include <mutex>
 #include "WebViewManager.h"
+#include "StringUtils.h"
 
 // Global atomic flag to control the sender threads
 std::atomic<bool> g_keepSending(true);
@@ -12,30 +13,6 @@ std::atomic<bool> g_keepSending(true);
 std::queue<WebViewMessage> g_messageQueue;
 std::mutex g_queueMutex;
 HWND g_targetWindow = NULL;
-
-// Helper function to generate random printable ASCII string
-std::wstring GenerateRandomString(size_t length) {
-    const wchar_t charset[] = 
-        L"0123456789"
-        L"ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-        L"abcdefghijklmnopqrstuvwxyz"
-        L"!@#$%^&*()-_=+[{]}\\|;:'\",<.>/?";
-    
-    const size_t charsetSize = sizeof(charset) / sizeof(charset[0]) - 1; // -1 for null terminator
-    
-    std::random_device rd;
-    std::mt19937 generator(rd());
-    std::uniform_int_distribution<int> distribution(0, charsetSize - 1);
-    
-    std::wstring randomString;
-    randomString.reserve(length);
-    
-    for (size_t i = 0; i < length; ++i) {
-        randomString += charset[distribution(generator)];
-    }
-    
-    return randomString;
-}
 
 // Initialize the data sender system with the target window handle
 void InitializeDataSender(HWND hwnd) {
@@ -179,7 +156,7 @@ void SendStringData(HWND targetWindow) {
         try {
             // Generate a random string with random size
             size_t stringSize = sizeDistribution(generator);
-            std::wstring randomData = GenerateRandomString(stringSize);
+            std::wstring randomData = StringUtils::GenerateRandomString(stringSize);
             
             // Create a message and queue it for the UI thread
             WebViewMessage message;
@@ -277,8 +254,8 @@ void SendJSONData(HWND targetWindow) {
             // Add random metadata
             size_t metadataCount = metadataCountDist(generator);
             for (size_t i = 0; i < metadataCount; ++i) {
-                std::wstring key = L"key_" + GenerateRandomString(stringSizeDist(generator));
-                std::wstring value = GenerateRandomString(stringSizeDist(generator));
+                std::wstring key = L"key_" + StringUtils::GenerateRandomString(stringSizeDist(generator));
+                std::wstring value = StringUtils::GenerateRandomString(stringSizeDist(generator));
                 message.metadata[std::string(key.begin(), key.end())] = std::string(value.begin(), value.end());
             }
             

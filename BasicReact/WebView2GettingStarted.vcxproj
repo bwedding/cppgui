@@ -230,6 +230,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="DataSender.cpp" />
+    <ClCompile Include="DataSenderManager.cpp" />
     <ClCompile Include="GlazeTest.cpp" />
     <ClCompile Include="HelloWebView.cpp" />
     <ClCompile Include="include\MakeWindow.cpp" />
@@ -257,6 +258,7 @@
     <ClInclude Include="AppMessageIDs.h" />
     <ClInclude Include="AsyncRollingFileAppender.h" />
     <ClInclude Include="DataSender.h" />
+    <ClInclude Include="DataSenderManager.h" />
     <ClInclude Include="FastTxtFormatter.h" />
     <ClInclude Include="INativeWindowControls.h" />
     <ClInclude Include="include\CallbackRegistry.h" />
@@ -412,6 +414,7 @@
     <ClInclude Include="NativeWindowControls.h" />
     <ClInclude Include="NativeWindowControls_h.h" />
     <ClInclude Include="resource.h" />
+    <ClInclude Include="StringUtils.h" />
     <ClInclude Include="SystemUtils.h" />
     <ClInclude Include="WebViewManager.h" />
   </ItemGroup>
