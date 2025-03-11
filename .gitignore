@@ -469,3 +469,11 @@ yarn-error.log*
 /BasicReact/MultiAppender.4.txt
 /BasicReact/MultiAppender.5.txt
 /BasicReact/MultiAppender.6.txt
+/Frontend/reactproject/astyle.exe
+/Frontend/reactproject/eslint.config.js.orig
+/Frontend/reactproject/package-lock.json.orig
+/Frontend/reactproject/package.json.orig
+/Frontend/reactproject/src/App.jsx.orig
+/Frontend/reactproject/src/main.jsx.orig
+/Frontend/reactproject/style.txt
+/Frontend/reactproject/vite.config.js.orig
