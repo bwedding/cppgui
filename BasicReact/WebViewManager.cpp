@@ -7,30 +7,38 @@
 WebViewManager::WebViewManager(HWND hWnd, HINSTANCE hInstance) 
     : m_hWnd(hWnd), m_hInstance(hInstance), m_uiThreadId(GetCurrentThreadId()) {}
 
-void WebViewManager::Initialize() {
+void WebViewManager::Initialize() 
+{
     InitializeWebView();
 }
 
-void WebViewManager::InitializeWebView() {
+void WebViewManager::InitializeWebView() 
+{
     auto options = Microsoft::WRL::Make<CoreWebView2EnvironmentOptions>();
+
     // --enable-features=SkiaGraphite,VulkanImplementation --use-vulkan=native 
      //options->put_AdditionalBrowserArguments(L"--allow-file-access-from-files --enable-gpu-rasterization --hide-scrollbars --enable-javascript-virtual-host-mapping-bytecode-caching --msWebView2NativeEventDispatch --msWebView2EnableDraggableRegions");
     options->put_AdditionalBrowserArguments(L"--allow-file-access-from-files --enable-gpu-rasterization --hide-scrollbars --msWebView2EnableDraggableRegions");
 
     CreateCoreWebView2EnvironmentWithOptions(nullptr, nullptr, options.Get(),
         Callback<ICoreWebView2CreateCoreWebView2EnvironmentCompletedHandler>(
-            [this](HRESULT result, ICoreWebView2Environment* env) -> HRESULT {
+            [this](HRESULT result, ICoreWebView2Environment* env) -> HRESULT 
+            {
+                m_Environment = env;
                 env->CreateCoreWebView2Controller(m_hWnd,
                     Callback<ICoreWebView2CreateCoreWebView2ControllerCompletedHandler>(
-                        [this](HRESULT result, ICoreWebView2Controller* controller) -> HRESULT {
-                            if (controller) {
+                        [this](HRESULT result, ICoreWebView2Controller* controller) -> HRESULT 
+                        {
+                            if (controller) 
+                            {
                                 m_controller = controller;
                                 m_controller->get_CoreWebView2(&m_webview);
                                 
                                 InitializeNativeControls();
 
                                 // Now start processing
-                                if (m_nativeControls) {
+                                if (m_nativeControls) 
+                                {
                                     m_nativeControls->StartEventProcessing();
                                 }
 
@@ -51,7 +59,8 @@ void WebViewManager::InitializeWebView() {
                                 // Register event handlers
                                 m_webview->add_NavigationStarting(
                                     Callback<ICoreWebView2NavigationStartingEventHandler>(
-                                        [this](ICoreWebView2* webview, ICoreWebView2NavigationStartingEventArgs* args) {
+                                        [this](ICoreWebView2* webview, ICoreWebView2NavigationStartingEventArgs* args) 
+                                        {
                                             LOGD << "Navigation starting";
                                             return S_OK;
                                         }).Get(), &m_navigationToken);
@@ -59,7 +68,8 @@ void WebViewManager::InitializeWebView() {
                                 // Add NavigationCompleted event handler
                                 m_webview->add_NavigationCompleted(
                                     Callback<ICoreWebView2NavigationCompletedEventHandler>(
-                                        [this](ICoreWebView2* webview, ICoreWebView2NavigationCompletedEventArgs* args) {
+                                        [this](ICoreWebView2* webview, ICoreWebView2NavigationCompletedEventArgs* args) 
+                                        {
                                             BOOL success;
                                             args->get_IsSuccess(&success);
                                             
@@ -73,19 +83,23 @@ void WebViewManager::InitializeWebView() {
                                             LOGD << "Navigation completed to: " << SystemUtils::WideToUtf8(uriStr) 
                                                  << " Success: " << (success ? "true" : "false");
                                             
-                                            if (!success) {
+                                            if (!success) 
+                                            {
                                                 LOGE << "Navigation error: " << errorStatus;
                                             }
                                             
                                             // Call the user-provided callback if set
-                                            if (m_navigationCompletedCallback) {
+                                            if (m_navigationCompletedCallback) 
+                                            {
                                                 m_navigationCompletedCallback(uriStr, success == TRUE, errorStatus);
                                             }
                                             
                                             // Call the simplified callback if set
-                                            if (m_simpleNavigationCallback) {
+                                            if (m_simpleNavigationCallback) 
+                                            {
                                                 std::wstring errorMessage;
-                                                if (!success) {
+                                                if (!success) 
+                                                {
                                                     errorMessage = GetUserFriendlyErrorMessage(errorStatus);
                                                 }
                                                 m_simpleNavigationCallback(uriStr, success == TRUE, errorMessage);
@@ -96,7 +110,8 @@ void WebViewManager::InitializeWebView() {
 
                                 m_webview->add_WebMessageReceived(
                                     Callback<ICoreWebView2WebMessageReceivedEventHandler>(
-                                        [this](ICoreWebView2* webview, ICoreWebView2WebMessageReceivedEventArgs* args) {
+                                        [this](ICoreWebView2* webview, ICoreWebView2WebMessageReceivedEventArgs* args) 
+                                        {
                                             wil::unique_cotaskmem_string message;
                                             args->TryGetWebMessageAsString(&message);
                                             
@@ -114,6 +129,18 @@ void WebViewManager::InitializeWebView() {
                                             return S_OK;
                                         }).Get(), &m_messageToken);
 
+                                wil::com_ptr<ICoreWebView2Environment12> environment12 = m_Environment.try_query<ICoreWebView2Environment12>();
+                                if (environment12)
+                                {
+                                     m_dataStreamer = std::make_unique<WebView2DataStreamer>(m_webview, environment12);
+                                
+                                     PLOGI << "Environment interfaces created successfully on UI thread";
+                                }
+                                else
+                                {
+                                     PLOGE << "Failed to query ICoreWebView2Environment12 interface";
+                                }
+
                                 RECT bounds;
                                 GetClientRect(m_hWnd, &bounds);
                                 Resize(bounds);
@@ -125,12 +152,14 @@ void WebViewManager::InitializeWebView() {
             }).Get());
 }
 
-void WebViewManager::InitializeNativeControls() {
+void WebViewManager::InitializeNativeControls() 
+{
     m_nativeControls = Microsoft::WRL::Make<NativeWindowControls>(m_hWnd);
     
     VARIANT var = {};
     var.vt = VT_DISPATCH;
-    if (SUCCEEDED(m_nativeControls->QueryInterface(IID_IDispatch, reinterpret_cast<void**>(&var.pdispVal)))) {
+    if (SUCCEEDED(m_nativeControls->QueryInterface(IID_IDispatch, reinterpret_cast<void**>(&var.pdispVal)))) 
+    {
         m_webview->AddHostObjectToScript(L"nativeWindowControls", &var);
         VariantClear(&var);
     }
@@ -144,19 +173,23 @@ void WebViewManager::Resize(const RECT& bounds)
     }
 }
 
-HRESULT WebViewManager::ExecuteScript(const std::wstring& script) {
-    if (!m_webview) return E_POINTER;
+HRESULT WebViewManager::ExecuteScript(const std::wstring& script) 
+{
+    if (!m_webview) 
+        return E_POINTER;
     return m_webview->ExecuteScript(script.c_str(), nullptr);
 }
 
-HRESULT WebViewManager::PostMessageToWebView(const std::wstring& message) {
+HRESULT WebViewManager::PostMessageToWebView(const std::wstring& message) 
+{
     if (!m_webview)
         return E_FAIL;
     
     return m_webview->PostWebMessageAsString(message.c_str());
 }
 
-HRESULT WebViewManager::PostJSONMessageToWebView(const std::wstring& message) {
+HRESULT WebViewManager::PostJSONMessageToWebView(const std::wstring& message) 
+{
     if (!m_webview)
         return E_FAIL;
 
@@ -170,20 +203,23 @@ void WebViewManager::NavigateToPage(const std::wstring& page)
     if (!m_webview)
         return;
 
-    if (m_localFolder.empty()) {
+    if (m_localFolder.empty()) 
+    {
         LOGE << "LocalFolder is empty";
         return;
     }
 
     // Basic path sanitization - prevent directory traversal
-    if (page.find(L"..") != std::wstring::npos) {
+    if (page.find(L"..") != std::wstring::npos) 
+    {
         LOGE << "Invalid page path contains '..'";
         return;
     }
 
     std::wstring destination = m_localFolder + page;
 
-    if (destination.length() >= MAX_PATH) {
+    if (destination.length() >= MAX_PATH) 
+    {
         LOGE << "Path exceeds MAX_PATH";
         return;
     }
@@ -224,7 +260,8 @@ void WebViewManager::NavigateToPage(const std::wstring& page)
         return;
     }
 
-    if (!(attrs & FILE_ATTRIBUTE_NORMAL) && (attrs & FILE_ATTRIBUTE_DIRECTORY)) {
+    if (!(attrs & FILE_ATTRIBUTE_NORMAL) && (attrs & FILE_ATTRIBUTE_DIRECTORY)) 
+    {
         LOGE << "Path is a directory, not a file: " << SystemUtils::WideToUtf8(destination);
         return;
     }

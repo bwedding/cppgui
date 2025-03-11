@@ -142,6 +142,29 @@ LRESULT ProcessWebViewMessage(HWND hwnd, WPARAM wParam, LPARAM lParam) {
     return 0;
 }
 
+// Process shared buffer messages on the UI thread
+LRESULT ProcessSharedBufferMessage(HWND hwnd, WPARAM wParam, LPARAM lParam) {
+    // Get the WebViewManager instance from the global variable
+    extern std::unique_ptr<WebViewManager> g_webViewManager;
+    
+    if (!g_webViewManager) {
+        PLOGE << "Failed to get WebViewManager: global variable is null in ProcessSharedBufferMessage";
+        return 0;
+    }
+    
+    // Get the data streamer from the WebViewManager
+    WebView2DataStreamer* dataStreamer = g_webViewManager->GetDataStreamer();
+    if (!dataStreamer) {
+        PLOGE << "Failed to get WebView2DataStreamer in ProcessSharedBufferMessage";
+        return 0;
+    }
+    
+    // Process the queued data (up to 10 items at a time)
+    dataStreamer->ProcessQueue(100); // Increased from 50 to 200 for better throughput
+    
+    return 0;
+}
+
 // Function to send string data to WebView in a loop
 void SendStringData(HWND targetWindow) {
     if (!targetWindow) {

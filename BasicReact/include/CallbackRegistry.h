@@ -9,7 +9,7 @@
 #include "EventDispatcher.h"
 #include <plog/Log.h> 
 #include <Windows.h>
-#include "AppMessageIDs.h"
+#include "../AppMessageIDs.h"
 
 namespace CPPGUI
 {
@@ -33,14 +33,14 @@ namespace CPPGUI
             std::lock_guard lock(mutex_);
             int id = nextId_++;
             pendingEvents_[id] = std::move(event);
-            LOGD << "Event registered with ID: {} (type: {})" << id << pendingEvents_[id].type;
+            LOGD << "Event registered with ID: " << id << " (type: )" << pendingEvents_[id].type;
 
             return id;
         }
 
         UIEvent retrieveEvent(int id) {
             std::lock_guard lock(mutex_);
-            PLOGD << "Retrieving event with ID: {}, pendingEvents_ size: {}" << id, pendingEvents_.size();
+            PLOGD << "Retrieving event with ID: " << id << " pendingEvents_ size: " << pendingEvents_.size();
             std::string keys;
             for (const auto& evt : pendingEvents_ | std::views::keys) {
                 keys += std::to_string(evt) + " ";
@@ -50,11 +50,11 @@ namespace CPPGUI
             if (const auto it = pendingEvents_.find(id); it != pendingEvents_.end()) {
                 auto result = std::move(it->second);
                 pendingEvents_.erase(it);
-                LOGD << "Event retrieved: {}" << result.type;
+                LOGD << "Event retrieved: " << result.type;
 
                 return result;
             }
-            LOGW << "Failed to find event with ID: {}" << id;
+            LOGW << "Failed to find event with ID: " << id;
 
             return UIEvent{}; // Empty event
         }
@@ -65,14 +65,14 @@ namespace CPPGUI
             int id = nextId_++;
             // Store a copy of the params, not just the pointer
             subscribeParams_[id] = *params;
-            LOGD << "Registered params with ID: {}" << id;
+            LOGD << "Registered params with ID: " << id;
             
             // Post the message to trigger the subscription process if we have a window handle
             if (hwnd_) {
                 PostMessage(hwnd_, WM_USER_SUBSCRIBE, 0, id);
-                LOGD << "Posted WM_USER_SUBSCRIBE message with ID: {}" << id;
+                LOGD << "Posted WM_USER_SUBSCRIBE message with ID: " << id;
             } else {
-                LOGW << "No window handle available, WM_USER_SUBSCRIBE not posted for ID: {}" << id;
+                LOGW << "No window handle available, WM_USER_SUBSCRIBE not posted for ID: " << id;
             }
 
             return id;

@@ -1,10 +1,12 @@
 #pragma once
 #include <string>
 #include <random>
+#include <Windows.h> // Include Windows.h for MultiByteToWideChar and WideCharToMultiByte
 
 namespace StringUtils {
     // Helper function to generate random printable ASCII string
-    inline std::wstring GenerateRandomString(size_t length) {
+    inline std::wstring GenerateRandomString(size_t length) 
+    {
         const wchar_t charset[] = 
             L"0123456789"
             L"ABCDEFGHIJKLMNOPQRSTUVWXYZ"
@@ -67,5 +69,47 @@ namespace StringUtils {
         }
         
         return randomString;
+    }
+    
+    // Convert UTF-8 string to wide string
+    inline std::wstring Utf8ToWide(const std::string& utf8Str) {
+        if (utf8Str.empty()) {
+            return std::wstring();
+        }
+        
+        // Get the required buffer size
+        int size_needed = MultiByteToWideChar(CP_UTF8, 0, utf8Str.c_str(), 
+                                             static_cast<int>(utf8Str.size()), nullptr, 0);
+        
+        // Allocate the wide string
+        std::wstring wideStr(size_needed, 0);
+        
+        // Convert the string
+        MultiByteToWideChar(CP_UTF8, 0, utf8Str.c_str(), 
+                           static_cast<int>(utf8Str.size()), &wideStr[0], size_needed);
+        
+        return wideStr;
+    }
+    
+    // Convert wide string to UTF-8 string
+    inline std::string WideToUtf8(const std::wstring& wideStr) {
+        if (wideStr.empty()) {
+            return std::string();
+        }
+        
+        // Get the required buffer size
+        int size_needed = WideCharToMultiByte(CP_UTF8, 0, wideStr.c_str(), 
+                                             static_cast<int>(wideStr.size()), nullptr, 0, 
+                                             nullptr, nullptr);
+        
+        // Allocate the UTF-8 string
+        std::string utf8Str(size_needed, 0);
+        
+        // Convert the string
+        WideCharToMultiByte(CP_UTF8, 0, wideStr.c_str(), 
+                           static_cast<int>(wideStr.size()), &utf8Str[0], size_needed, 
+                           nullptr, nullptr);
+        
+        return utf8Str;
     }
 }

@@ -336,7 +336,7 @@ STDMETHODIMP NativeDatabaseAccess::OpenConnection(BSTR connectionString, BOOL* s
         std::wstring connStr(connectionString);
         DatabaseType dbType = GetDatabaseTypeFromConnectionString(connStr);
 
-        LOGI << "Opening connection for database type: {}",
+        LOGI << "Opening connection for database type: ",
             dbType == DatabaseType::SQLite ? "SQLite" :
             dbType == DatabaseType::PostgreSQL ? "PostgreSQL" : "Unknown";
 
@@ -359,11 +359,11 @@ STDMETHODIMP NativeDatabaseAccess::OpenConnection(BSTR connectionString, BOOL* s
             std::string filenameUtf8(filename.begin(), filename.end());
             sqlite3* db = nullptr;
 
-            LOGI << "Opening SQLite database: {}" << filenameUtf8;
+            LOGI << "Opening SQLite database: " << filenameUtf8;
 
             if (sqlite3_open(filenameUtf8.c_str(), &db) != SQLITE_OK) {
                 std::string errorMsg = sqlite3_errmsg(db);
-                LOGE << "Failed to open SQLite database: {}" << errorMsg;
+                LOGE << "Failed to open SQLite database: " << errorMsg;
                 sqlite3_close(db);
                 return S_OK; // Return success but with *success = FALSE
             }
@@ -388,7 +388,7 @@ STDMETHODIMP NativeDatabaseAccess::OpenConnection(BSTR connectionString, BOOL* s
 
             if (PQstatus(pgConn) != CONNECTION_OK) {
                 std::string errorMsg = PQerrorMessage(pgConn);
-                LOGE << "Failed to connect to PostgreSQL: {}" << errorMsg;
+                LOGE << "Failed to connect to PostgreSQL: " << errorMsg;
                 PQfinish(pgConn);
                 return S_OK; // Return success but with *success = FALSE
             }
@@ -410,7 +410,7 @@ STDMETHODIMP NativeDatabaseAccess::OpenConnection(BSTR connectionString, BOOL* s
 
     }
     catch (const std::exception& e) {
-        LOGE << "Exception in OpenConnection: {}" << e.what();
+        LOGE << "Exception in OpenConnection: " << e.what();
         return E_FAIL;
     }
 
@@ -437,7 +437,7 @@ STDMETHODIMP NativeDatabaseAccess::CloseConnection(BSTR connectionString, BOOL* 
                 // There's an active transaction, roll it back
                 BOOL txnSuccess = FALSE;
                 RollbackTransaction(connectionString, &txnSuccess);
-                LOGI << "Auto-rolled back transaction during connection close: {}" << (txnSuccess == true ? "success" : "failed");
+                LOGI << "Auto-rolled back transaction during connection close: " << (txnSuccess == true ? "success" : "failed");
             }
         }
 
@@ -466,7 +466,7 @@ STDMETHODIMP NativeDatabaseAccess::CloseConnection(BSTR connectionString, BOOL* 
 
     }
     catch (const std::exception& e) {
-        LOGE << "Exception in CloseConnection: {}" << e.what();
+        LOGE << "Exception in CloseConnection: " << e.what();
         return E_FAIL;
     }
 
@@ -515,7 +515,7 @@ STDMETHODIMP NativeDatabaseAccess::BeginTransaction(BSTR connectionString, BOOL*
             if (sqlite3_exec(db, "BEGIN TRANSACTION", nullptr, nullptr, &errMsg) != SQLITE_OK) {
                 std::string errorMsg = errMsg;
                 sqlite3_free(errMsg);
-                LOGE << "Failed to begin SQLite transaction: {}" << errorMsg;
+                LOGE << "Failed to begin SQLite transaction: " << errorMsg;
                 return S_OK; // Return success but with *success = FALSE
             }
 
@@ -548,7 +548,7 @@ STDMETHODIMP NativeDatabaseAccess::BeginTransaction(BSTR connectionString, BOOL*
             if (PQresultStatus(res) != PGRES_COMMAND_OK) {
                 std::string errorMsg = PQerrorMessage(pgConn);
                 PQclear(res);
-                LOGE << "Failed to begin PostgreSQL transaction: {}" << errorMsg;
+                LOGE << "Failed to begin PostgreSQL transaction: " << errorMsg;
                 return S_OK; // Return success but with *success = FALSE
             }
 
@@ -572,7 +572,7 @@ STDMETHODIMP NativeDatabaseAccess::BeginTransaction(BSTR connectionString, BOOL*
 
     }
     catch (const std::exception& e) {
-        LOGE << "Exception in BeginTransaction: {}" << e.what();
+        LOGE << "Exception in BeginTransaction: " << e.what();
         return E_FAIL;
     }
 
@@ -625,7 +625,7 @@ STDMETHODIMP NativeDatabaseAccess::CommitTransaction(BSTR connectionString, BOOL
             {
                 std::string errorMsg = errMsg;
                 sqlite3_free(errMsg);
-                LOGE << "Failed to commit SQLite transaction: {}" << errorMsg;
+                LOGE << "Failed to commit SQLite transaction: " << errorMsg;
                 return S_OK; // Return success but with *success = FALSE
             }
 
@@ -658,7 +658,7 @@ STDMETHODIMP NativeDatabaseAccess::CommitTransaction(BSTR connectionString, BOOL
             if (PQresultStatus(res) != PGRES_COMMAND_OK) {
                 std::string errorMsg = PQerrorMessage(pgConn);
                 PQclear(res);
-                LOGE << "Failed to commit PostgreSQL transaction: {}" << errorMsg;
+                LOGE << "Failed to commit PostgreSQL transaction: " << errorMsg;
                 return S_OK; // Return success but with *success = FALSE
             }
 
@@ -680,7 +680,7 @@ STDMETHODIMP NativeDatabaseAccess::CommitTransaction(BSTR connectionString, BOOL
 
     }
     catch (const std::exception& e) {
-        LOGE << "Exception in CommitTransaction: {}" << e.what();
+        LOGE << "Exception in CommitTransaction: " << e.what();
         return E_FAIL;
     }
 
@@ -732,7 +732,7 @@ STDMETHODIMP NativeDatabaseAccess::RollbackTransaction(BSTR connectionString, BO
             if (sqlite3_exec(db, "ROLLBACK", nullptr, nullptr, &errMsg) != SQLITE_OK) {
                 std::string errorMsg = errMsg;
                 sqlite3_free(errMsg);
-                LOGE << "Failed to rollback SQLite transaction: {}" << errorMsg;
+                LOGE << "Failed to rollback SQLite transaction: " << errorMsg;
                 return S_OK; // Return success but with *success = FALSE
             }
 
@@ -765,7 +765,7 @@ STDMETHODIMP NativeDatabaseAccess::RollbackTransaction(BSTR connectionString, BO
             if (PQresultStatus(res) != PGRES_COMMAND_OK) {
                 std::string errorMsg = PQerrorMessage(pgConn);
                 PQclear(res);
-                LOGE << "Failed to rollback PostgreSQL transaction: {}" << errorMsg;
+                LOGE << "Failed to rollback PostgreSQL transaction: " << errorMsg;
                 return S_OK; // Return success but with *success = FALSE
             }
 
@@ -789,7 +789,7 @@ STDMETHODIMP NativeDatabaseAccess::RollbackTransaction(BSTR connectionString, BO
 
     }
     catch (const std::exception& e) {
-        LOGE << "Exception in RollbackTransaction: {}" << e.what();
+        LOGE << "Exception in RollbackTransaction: " << e.what();
         return E_FAIL;
     }
 
@@ -820,11 +820,11 @@ STDMETHODIMP NativeDatabaseAccess::CreateParameterizedQuery(BSTR query, BSTR* qu
 
         // Return the ID
         *queryId = SysAllocString(id.c_str());
-        LOGI << "Created parameterized query with ID: {}" << std::string(id.begin(), id.end());
+        LOGI << "Created parameterized query with ID: " << std::string(id.begin(), id.end());
 
     }
     catch (const std::exception& e) {
-        LOGE << "Exception in CreateParameterizedQuery: {}" << e.what();
+        LOGE << "Exception in CreateParameterizedQuery: " << e.what();
         return E_FAIL;
     }
 
@@ -847,7 +847,7 @@ STDMETHODIMP NativeDatabaseAccess::AddParameter(BSTR queryId, BSTR paramName, VA
         std::lock_guard<std::mutex> lock(m_queryMutex);
         auto queryIt = m_parameterizedQueries.find(id);
         if (queryIt == m_parameterizedQueries.end()) {
-            LOGE << "Parameterized query not found: {}" << std::string(id.begin(), id.end());
+            LOGE << "Parameterized query not found: " << std::string(id.begin(), id.end());
             return E_INVALIDARG;
         }
 
@@ -857,11 +857,11 @@ STDMETHODIMP NativeDatabaseAccess::AddParameter(BSTR queryId, BSTR paramName, VA
         VariantCopy(&param.value, &paramValue);
         queryIt->second.parameters.push_back(param);
 
-        LOGI << "Added parameter '{}' to query ID: {}" << std::string(name.begin(), name.end()) << std::string(id.begin(), id.end());
+        LOGI << "Added parameter '' to query ID: " << std::string(name.begin(), name.end()) << std::string(id.begin(), id.end());
 
     }
     catch (const std::exception& e) {
-        LOGE << "Exception in AddParameter: {}" << e.what();
+        LOGE << "Exception in AddParameter: " << e.what();
         return E_FAIL;
     }
 
@@ -890,7 +890,7 @@ STDMETHODIMP NativeDatabaseAccess::ExecuteParameterizedQuery(BSTR connectionStri
             std::lock_guard<std::mutex> lock(m_queryMutex);
             auto queryIt = m_parameterizedQueries.find(id);
             if (queryIt == m_parameterizedQueries.end()) {
-                LOGE << "Parameterized query not found: {}" << std::string(id.begin(), id.end());
+                LOGE << "Parameterized query not found: " << std::string(id.begin(), id.end());
                 SetStringResult(pVarResult, L"{\"error\": \"Query not found\"}");
                 return S_OK;
             }
@@ -923,7 +923,7 @@ STDMETHODIMP NativeDatabaseAccess::ExecuteParameterizedQuery(BSTR connectionStri
 
             if (sqlite3_prepare_v2(db, sqlQueryUtf8.c_str(), -1, &stmt, nullptr) != SQLITE_OK) {
                 std::string errorMsg = sqlite3_errmsg(db);
-                LOGE << "Failed to prepare SQLite statement: {}" << errorMsg;
+                LOGE << "Failed to prepare SQLite statement: " << errorMsg;
                 SetStringResult(pVarResult, std::wstring(L"{\"error\": \"") +
                     std::wstring(errorMsg.begin(), errorMsg.end()) + L"\"}");
                 return S_OK;
@@ -937,7 +937,7 @@ STDMETHODIMP NativeDatabaseAccess::ExecuteParameterizedQuery(BSTR connectionStri
 
                 if (paramIndex == 0) {
                     // Parameter not found in query
-                    LOGW << "Parameter not found in query: {}" << paramNameUtf8;
+                    LOGW << "Parameter not found in query: " << paramNameUtf8;
                     continue;
                 }
 
@@ -965,7 +965,7 @@ STDMETHODIMP NativeDatabaseAccess::ExecuteParameterizedQuery(BSTR connectionStri
                     sqlite3_bind_int(stmt, paramIndex, param.value.boolVal ? 1 : 0);
                     break;
                 default:
-                    LOGW << "Unsupported parameter type: {}" << param.value.vt;
+                    LOGW << "Unsupported parameter type: " << param.value.vt;
                     break;
                 }
             }
@@ -1058,7 +1058,7 @@ STDMETHODIMP NativeDatabaseAccess::ExecuteParameterizedQuery(BSTR connectionStri
                     valueStr = param.value.boolVal ? "true" : "false";
                     break;
                 default:
-                    LOGW << "Unsupported parameter type: {}" << param.value.vt;
+                    LOGW << "Unsupported parameter type: " << param.value.vt;
                     valueStr = "";
                     break;
                 }
@@ -1082,7 +1082,7 @@ STDMETHODIMP NativeDatabaseAccess::ExecuteParameterizedQuery(BSTR connectionStri
             if (PQresultStatus(res) != PGRES_TUPLES_OK && PQresultStatus(res) != PGRES_COMMAND_OK) {
                 std::string errorMsg = PQerrorMessage(pgConn);
                 PQclear(res);
-                LOGE << "Failed to execute PostgreSQL query: {}", errorMsg;
+                LOGE << "Failed to execute PostgreSQL query: ", errorMsg;
                 SetStringResult(pVarResult, std::wstring(L"{\"error\": \"") +
                     std::wstring(errorMsg.begin(), errorMsg.end()) + L"\"}");
                 return S_OK;
@@ -1127,7 +1127,7 @@ STDMETHODIMP NativeDatabaseAccess::ExecuteParameterizedQuery(BSTR connectionStri
 
     }
     catch (const std::exception& e) {
-        LOGE << "Exception in ExecuteParameterizedQuery: {}" << e.what();
+        LOGE << "Exception in ExecuteParameterizedQuery: " << e.what();
         std::string errorMsg = e.what();
         SetStringResult(pVarResult, std::wstring(L"{\"error\": \"") +
             std::wstring(errorMsg.begin(), errorMsg.end()) + L"\"}");
@@ -1158,7 +1158,7 @@ STDMETHODIMP NativeDatabaseAccess::ExecuteParameterizedNonQuery(BSTR connectionS
             std::lock_guard<std::mutex> lock(m_queryMutex);
             auto queryIt = m_parameterizedQueries.find(id);
             if (queryIt == m_parameterizedQueries.end()) {
-                LOGE << "Parameterized query not found: {}" << std::string(id.begin() , id.end());
+                LOGE << "Parameterized query not found: " << std::string(id.begin() , id.end());
                 return E_INVALIDARG;
             }
             query = queryIt->second;
@@ -1187,7 +1187,7 @@ STDMETHODIMP NativeDatabaseAccess::ExecuteParameterizedNonQuery(BSTR connectionS
 
             if (sqlite3_prepare_v2(db, sqlQueryUtf8.c_str(), -1, &stmt, nullptr) != SQLITE_OK) {
                 std::string errorMsg = sqlite3_errmsg(db);
-                LOGE << "Failed to prepare SQLite statement: {}" << errorMsg;
+                LOGE << "Failed to prepare SQLite statement: " << errorMsg;
                 return E_FAIL;
             }
 
@@ -1199,7 +1199,7 @@ STDMETHODIMP NativeDatabaseAccess::ExecuteParameterizedNonQuery(BSTR connectionS
 
                 if (paramIndex == 0) {
                     // Parameter not found in query
-                    LOGW << "Parameter not found in query: {}" << paramNameUtf8;
+                    LOGW << "Parameter not found in query: " << paramNameUtf8;
                     continue;
                 }
 
@@ -1227,7 +1227,7 @@ STDMETHODIMP NativeDatabaseAccess::ExecuteParameterizedNonQuery(BSTR connectionS
                     sqlite3_bind_int(stmt, paramIndex, param.value.boolVal ? 1 : 0);
                     break;
                 default:
-                    LOGW << "Unsupported parameter type: {}" << param.value.vt;
+                    LOGW << "Unsupported parameter type: " << param.value.vt;
                     break;
                 }
             }
@@ -1237,7 +1237,7 @@ STDMETHODIMP NativeDatabaseAccess::ExecuteParameterizedNonQuery(BSTR connectionS
             if (result != SQLITE_DONE) {
                 std::string errorMsg = sqlite3_errmsg(db);
                 sqlite3_finalize(stmt);
-                LOGE << "Failed to execute SQLite statement: {}", errorMsg;
+                LOGE << "Failed to execute SQLite statement: ", errorMsg;
                 return E_FAIL;
             }
 
@@ -1248,13 +1248,15 @@ STDMETHODIMP NativeDatabaseAccess::ExecuteParameterizedNonQuery(BSTR connectionS
             break;
         }
 
-        case DatabaseType::PostgreSQL: {
+        case DatabaseType::PostgreSQL: 
+        {
             // Get the PostgreSQL connection
             PGconn* pgConn = nullptr;
             {
                 std::lock_guard<std::mutex> lock(m_connectionMutex);
                 auto connIt = m_postgresConnections.find(connStr);
-                if (connIt == m_postgresConnections.end()) {
+                if (connIt == m_postgresConnections.end()) 
+                {
                     LOGE << "No open PostgreSQL connection found";
                     return E_FAIL;
                 }
@@ -1268,7 +1270,8 @@ STDMETHODIMP NativeDatabaseAccess::ExecuteParameterizedNonQuery(BSTR connectionS
             std::vector<std::string> paramValues;
             std::vector<const char*> paramValuesPtr;
 
-            for (const auto& param : query.parameters) {
+            for (const auto& param : query.parameters) 
+            {
                 std::string valueStr;
 
                 // Convert VARIANT to string
@@ -1295,7 +1298,7 @@ STDMETHODIMP NativeDatabaseAccess::ExecuteParameterizedNonQuery(BSTR connectionS
                     valueStr = param.value.boolVal ? "true" : "false";
                     break;
                 default:
-                    LOGW << "Unsupported parameter type: {}" << param.value.vt;
+                    LOGW << "Unsupported parameter type: " << param.value.vt;
                     valueStr = "";
                     break;
                 }
@@ -1316,16 +1319,18 @@ STDMETHODIMP NativeDatabaseAccess::ExecuteParameterizedNonQuery(BSTR connectionS
                 0         // result format - text
             );
 
-            if (PQresultStatus(res) != PGRES_COMMAND_OK) {
+            if (PQresultStatus(res) != PGRES_COMMAND_OK) 
+            {
                 std::string errorMsg = PQerrorMessage(pgConn);
                 PQclear(res);
-                LOGE << "Failed to execute PostgreSQL query: {}", errorMsg;
+                LOGE << "Failed to execute PostgreSQL query: ", errorMsg;
                 return E_FAIL;
             }
 
             // Get rows affected
             std::string rowsStr = PQcmdTuples(res);
-            if (!rowsStr.empty()) {
+            if (!rowsStr.empty()) 
+            {
                 *rowsAffected = std::stol(rowsStr);
             }
 
@@ -1339,8 +1344,9 @@ STDMETHODIMP NativeDatabaseAccess::ExecuteParameterizedNonQuery(BSTR connectionS
         }
 
     }
-    catch (const std::exception& e) {
-        LOGE << "Exception in ExecuteParameterizedNonQuery: {}" << e.what();
+    catch (const std::exception& e) 
+    {
+        LOGE << "Exception in ExecuteParameterizedNonQuery: " << e.what();
         return E_FAIL;
     }
 
@@ -1349,7 +1355,8 @@ STDMETHODIMP NativeDatabaseAccess::ExecuteParameterizedNonQuery(BSTR connectionS
 
 void NativeDatabaseAccess::SetStringResult(VARIANT* pVarResult, const std::wstring& str)
 {
-    if (pVarResult) {
+    if (pVarResult) 
+    {
         pVarResult->vt = VT_BSTR;
         pVarResult->bstrVal = SysAllocString(str.c_str());
     }
@@ -1374,10 +1381,12 @@ void NativeDatabaseAccess::SetStringResult(BSTR* pVarResult, const std::wstring&
     *pVarResult = SysAllocStringLen(str.c_str(), static_cast<UINT>(str.length()));
 }
 
-STDMETHODIMP NativeDatabaseAccess::ExecuteNonQuery(BSTR connectionString, BSTR query, LONG* rowsAffected) {
+STDMETHODIMP NativeDatabaseAccess::ExecuteNonQuery(BSTR connectionString, BSTR query, LONG* rowsAffected) 
+{
     LOGD << "ExecuteNonQuery called";
 
-    if (!connectionString || !query || !rowsAffected) {
+    if (!connectionString || !query || !rowsAffected) 
+    {
         return E_INVALIDARG;
     }
 
@@ -1389,19 +1398,22 @@ STDMETHODIMP NativeDatabaseAccess::ExecuteNonQuery(BSTR connectionString, BSTR q
         DatabaseType dbType = GetDatabaseTypeFromConnectionString(connStr);
 
         switch (dbType) {
-        case DatabaseType::PostgreSQL: {
+        case DatabaseType::PostgreSQL: 
+        {
             PGconn* conn = static_cast<PGconn*>(ConnectionPool::GetConnection(connStr, dbType));
-            if (!conn) {
+            if (!conn) 
+            {
                 return E_FAIL;
             }
 
             std::string queryUtf8 = BSTRToString(query);
             PGresult* res = PQexec(conn, queryUtf8.c_str());
 
-            if (PQresultStatus(res) != PGRES_COMMAND_OK) {
+            if (PQresultStatus(res) != PGRES_COMMAND_OK) 
+            {
                 std::string errorMsg = PQerrorMessage(conn);
                 PQclear(res);
-                LOGE << "PostgreSQL error: {}" << errorMsg;
+                LOGE << "PostgreSQL error: " << errorMsg;
                 return E_FAIL;
             }
 
@@ -1414,7 +1426,8 @@ STDMETHODIMP NativeDatabaseAccess::ExecuteNonQuery(BSTR connectionString, BSTR q
             break;
         }
 
-        case DatabaseType::SQLite: {
+        case DatabaseType::SQLite: 
+        {
             sqlite3* db = static_cast<sqlite3*>(ConnectionPool::GetConnection(connStr, dbType));
             if (!db) {
                 return E_FAIL;
@@ -1423,10 +1436,11 @@ STDMETHODIMP NativeDatabaseAccess::ExecuteNonQuery(BSTR connectionString, BSTR q
             std::string queryUtf8 = BSTRToString(query);
             char* errMsg = nullptr;
 
-            if (sqlite3_exec(db, queryUtf8.c_str(), nullptr, nullptr, &errMsg) != SQLITE_OK) {
+            if (sqlite3_exec(db, queryUtf8.c_str(), nullptr, nullptr, &errMsg) != SQLITE_OK) 
+            {
                 std::string errorMsg = errMsg;
                 sqlite3_free(errMsg);
-                LOGE << "SQLite error: {}" << errorMsg;
+                LOGE << "SQLite error: " << errorMsg;
                 return E_FAIL;
             }
 
@@ -1439,18 +1453,21 @@ STDMETHODIMP NativeDatabaseAccess::ExecuteNonQuery(BSTR connectionString, BSTR q
         }
 
     }
-    catch (const std::exception& e) {
-        LOGE << "Exception in ExecuteNonQuery: {}" << e.what();
+    catch (const std::exception& e) 
+    {
+        LOGE << "Exception in ExecuteNonQuery: " << e.what();
         return E_FAIL;
     }
 
     return S_OK;
 }
 
-STDMETHODIMP NativeDatabaseAccess::GetConnectionStatus(BSTR connectionString, BOOL* isConnected) {
+STDMETHODIMP NativeDatabaseAccess::GetConnectionStatus(BSTR connectionString, BOOL* isConnected) 
+{
     LOGD << "GetConnectionStatus called";
 
-    if (!connectionString || !isConnected) {
+    if (!connectionString || !isConnected) 
+    {
         return E_INVALIDARG;
     }
 
@@ -1461,18 +1478,21 @@ STDMETHODIMP NativeDatabaseAccess::GetConnectionStatus(BSTR connectionString, BO
         DatabaseType dbType = GetDatabaseTypeFromConnectionString(connStr);
 
         void* conn = ConnectionPool::GetConnection(connStr, dbType);
-        if (!conn) {
+        if (!conn) 
+        {
             return S_OK;  // Not connected, but not an error
         }
 
         switch (dbType) {
-        case DatabaseType::PostgreSQL: {
+        case DatabaseType::PostgreSQL: 
+        {
             PGconn* pgConn = static_cast<PGconn*>(conn);
             *isConnected = (PQstatus(pgConn) == CONNECTION_OK) ? TRUE : FALSE;
             break;
         }
 
-        case DatabaseType::SQLite: {
+        case DatabaseType::SQLite: 
+        {
             sqlite3* db = static_cast<sqlite3*>(conn);
             // For SQLite, if we have a connection handle, we're considered connected
             *isConnected = TRUE;
@@ -1485,15 +1505,17 @@ STDMETHODIMP NativeDatabaseAccess::GetConnectionStatus(BSTR connectionString, BO
         }
 
     }
-    catch (const std::exception& e) {
-        LOGE << "Exception in GetConnectionStatus: {}" << e.what();
+    catch (const std::exception& e) 
+    {
+        LOGE << "Exception in GetConnectionStatus: " << e.what();
         *isConnected = FALSE;
     }
 
     return S_OK;
 }
 STDMETHODIMP NativeDatabaseAccess::GetTypeInfoCount(UINT* pctinfo) {
-    if (!pctinfo) {
+    if (!pctinfo) 
+    {
         return E_INVALIDARG;
     }
     *pctinfo = 1;
@@ -1501,23 +1523,27 @@ STDMETHODIMP NativeDatabaseAccess::GetTypeInfoCount(UINT* pctinfo) {
 }
 
 STDMETHODIMP NativeDatabaseAccess::GetTypeInfo(UINT iTInfo, LCID lcid, ITypeInfo** ppTInfo) {
-    if (!ppTInfo) {
+    if (!ppTInfo) 
+    {
         return E_INVALIDARG;
     }
     *ppTInfo = nullptr;
 
-    if (iTInfo != 0) {
+    if (iTInfo != 0) 
+    {
         return DISP_E_BADINDEX;
     }
 
     // Load the type library if not already loaded
-    if (!m_typeLib) {
+    if (!m_typeLib) 
+    {
         OLECHAR szModulePath[MAX_PATH] = {};
         GetModuleFileName(nullptr, szModulePath, MAX_PATH);
 
         // Extract path without filename
         OLECHAR* pLastSlash = wcsrchr(szModulePath, L'\\');
-        if (pLastSlash) {
+        if (pLastSlash) 
+        {
             *(pLastSlash + 1) = L'\0';
         }
 

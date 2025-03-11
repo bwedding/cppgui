@@ -1,5 +1,6 @@
 #include "MakeWindow.h"
 #include "../DataSender.h"
+#include "../DataSenderManager.h"
 
 namespace CPPGUI
 {
@@ -29,14 +30,14 @@ namespace CPPGUI
 		case WM_USER_EVENT:
 		{
 			int eventId = static_cast<int>(lParam);
-			LOGD << "WM_USER_EVENT received with ID: {}" << eventId;
+			LOGD << "WM_USER_EVENT received with ID: " << eventId;
 			if (wvMgr && wvMgr->GetNativeControls())
 			{
 				auto event = wvMgr->GetNativeControls()->GetEventManager()->retrieveEvent(eventId);
 				if (!event.type.empty())
 				{
 					wvMgr->GetNativeControls()->GetEventDispatcher()->dispatch(event);
-					LOGD << "Dispatched event: {}" << event.type;
+					LOGD << "Dispatched event: " << event.type;
 				}
 				else
 				{
@@ -50,6 +51,11 @@ namespace CPPGUI
 			// Process messages queued by the data sender threads
 			//LOGD << "WM_PROCESS_WEBVIEW_MESSAGE received";
 			return ProcessWebViewMessage(hWnd, wParam, lParam);
+
+		case WM_PROCESS_SHARED_BUFFER:
+			// Process shared buffer messages
+			//LOGD << "WM_PROCESS_SHARED_BUFFER received";
+			return ProcessSharedBufferMessage(hWnd, wParam, lParam);
 
 		case WM_USER_DISPATCH:
 		{
@@ -100,6 +106,13 @@ namespace CPPGUI
 			return DefWindowProc(hWnd, message, wParam, lParam);
 
 		case WM_DESTROY:
+			// Clean up the DataSenderManager
+			extern DataSenderManager* g_dataSenderManager;
+			if (g_dataSenderManager) {
+				g_dataSenderManager->StopAllSenders();
+				delete g_dataSenderManager;
+				g_dataSenderManager = nullptr;
+			}
 			PostQuitMessage(0);
 			break;
 		default:

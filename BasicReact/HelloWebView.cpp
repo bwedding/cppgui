@@ -22,14 +22,15 @@
 #include "../resource.h" // Added for resource identifiers
 #include "DataSender.h"
 #include "DataSenderManager.h"
+#include "WebView2DataStreamer.h"
+#include "AppMessageIDs.h" // Include for message IDs
 
 using namespace Microsoft::WRL;
 
 HINSTANCE hInst;
 HWND hWnd = nullptr;
 
-// Forward declarations of functions included in this code module:
-LRESULT CALLBACK WndProc(HWND, UINT, WPARAM, LPARAM);
+// Note: We no longer need a separate window procedure as all message handling is done in MakeWindow::WndProc
 
 std::unique_ptr<WebViewManager> g_webViewManager = nullptr;
 DataSenderManager* g_dataSenderManager = nullptr;
@@ -156,28 +157,4 @@ int CALLBACK WinMain(
 	g_keepSending = false;
 
 	return result;
-}
-
-LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) {
-	switch (message) {
-	case WM_SIZE:
-		if (g_webViewManager) {
-			RECT bounds;
-			GetClientRect(hWnd, &bounds);
-			g_webViewManager->Resize(bounds);
-		}
-		return 0;
-	case WM_DESTROY:
-		if (g_dataSenderManager) {
-			g_dataSenderManager->StopAllSenders();
-			delete g_dataSenderManager;
-			g_dataSenderManager = nullptr;
-		}
-		PostQuitMessage(0);
-		return 0;
-	case WM_PROCESS_WEBVIEW_MESSAGE:
-		// Process messages queued by the data sender threads
-		return ProcessWebViewMessage(hWnd, wParam, lParam);
-	}
-	return DefWindowProcW(hWnd, message, wParam, lParam);
 }

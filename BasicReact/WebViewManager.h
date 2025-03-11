@@ -10,6 +10,7 @@
 #include "../packages/Microsoft.Windows.ImplementationLibrary.1.0.240803.1/include/wil/com.h"
 #include "../packages/Microsoft.Web.WebView2.1.0.3065.39/build/native/include/WebView2.h"
 #include "../packages/Microsoft.Web.WebView2.1.0.3065.39/build/native/include/WebView2EnvironmentOptions.h"
+#include "WebView2DataStreamer.h"
 
 // Define a custom timer ID for subscription retries
 #define TIMER_ID_SUBSCRIPTION_RETRY 1001
@@ -119,6 +120,10 @@ public:
         KillTimer(m_hWnd, TIMER_ID_SUBSCRIPTION_RETRY);
         m_subscriptionTimerActive = false;
     }
+    WebView2DataStreamer* GetDataStreamer() 
+    { 
+        return m_dataStreamer.get(); 
+    }
 
 private:
     HWND m_hWnd;
@@ -126,6 +131,9 @@ private:
     wil::com_ptr<ICoreWebView2Controller> m_controller;
     wil::com_ptr<ICoreWebView2> m_webview;
     wil::com_ptr<NativeWindowControls> m_nativeControls;
+    wil::com_ptr<ICoreWebView2Environment> m_Environment;
+    std::unique_ptr<WebView2DataStreamer> m_dataStreamer;
+    
     DWORD m_uiThreadId;
     EventRegistrationToken m_navigationToken;
     EventRegistrationToken m_messageToken;

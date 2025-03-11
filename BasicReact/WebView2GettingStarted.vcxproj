@@ -410,6 +410,7 @@
     <ClInclude Include="include\MakeWindow.h" />
     <ClInclude Include="include\NativeDatabaseAccess.h" />
     <ClInclude Include="include\UIEvent.h" />
+    <ClInclude Include="include\WebView2DataStreamer.h" />
     <ClInclude Include="MSVCDebugFormatter.h" />
     <ClInclude Include="NativeWindowControls.h" />
     <ClInclude Include="NativeWindowControls_h.h" />

@@ -225,6 +225,24 @@ function App() {
                 dataSize = new Blob([JSON.stringify(message.data || message)]).size;
               }
               
+              // Check if this is a dataready notification
+              if (message.action === 'dataready') {
+                console.log(`Shared buffer data ready notification: ${message.timestamp}, size: ${message.size} bytes`);
+                
+                // Update the shared buffer counter for the notification message
+                // This ensures we count the buffer even if the actual buffer event is delayed
+                setStats(prevStats => ({
+                  ...prevStats,
+                  sharedBuffer: {
+                    ...prevStats.sharedBuffer,
+                    count: prevStats.sharedBuffer.count + 1,
+                    bytesReceived: prevStats.sharedBuffer.bytesReceived + (message.size || 0),
+                    lastTimestamp: Date.now(),
+                    firstTimestamp: prevStats.sharedBuffer.firstTimestamp || Date.now()
+                  }
+                }));
+              }
+              
               const rate = calculateRate(stats, messageType, dataSize);
               setStats(prevStats => ({ ...prevStats, sharedBuffer: { ...prevStats.sharedBuffer, smoothedRate: rate } }));
             }
@@ -248,6 +266,102 @@ function App() {
       });
     }
   }, [stats]);
+
+  useEffect(() => {
+    if (window.chrome && window.chrome.webview) {
+      // Add event listener for shared buffer
+      window.chrome.webview.addEventListener('sharedbufferreceived', event => {
+        try {
+          // Log every shared buffer event for debugging
+          console.log('Shared buffer event received!');
+          
+          // Get the buffer and metadata
+          const buffer = event.getBuffer();
+          let metadata = {};
+          
+          try {
+            // Try to parse the metadata as JSON
+            if (typeof event.additionalData === 'string') {
+              metadata = JSON.parse(event.additionalData);
+            } else if (typeof event.additionalData === 'object') {
+              // If it's already an object, use it directly
+              metadata = event.additionalData;
+            }
+          } catch (parseError) {
+            console.warn('Error parsing metadata:', parseError);
+            console.log('Raw metadata:', event.additionalData);
+            // Continue with empty metadata object
+          }
+          
+          console.log('Shared buffer metadata:', metadata);
+          console.log('Buffer size:', buffer.byteLength);
+          
+          // Update stats for the shared buffer
+          const dataSize = metadata.dataSize || buffer.byteLength;
+          
+          setStats(prevStats => {
+            const now = Date.now();
+            const firstTimestamp = prevStats.sharedBuffer.firstTimestamp || now;
+            const elapsed = (now - firstTimestamp) / 1000; // seconds
+            
+            // Calculate bytes per second
+            const bytesReceived = prevStats.sharedBuffer.bytesReceived + dataSize;
+            const bytesPerSecond = elapsed > 0 ? bytesReceived / elapsed : 0;
+            const mbPerSecond = bytesPerSecond / (1024 * 1024);
+            
+            // Cap the rate for display purposes (0-100)
+            const displayRate = Math.min(100, mbPerSecond * 10); // Scale MB/s for better visualization
+            
+            const newCount = prevStats.sharedBuffer.count + 1;
+            
+            // Log every 10th update to avoid console spam
+            if (newCount % 10 === 0) {
+              console.log(`Shared buffer stats: Count=${newCount}, Rate=${mbPerSecond.toFixed(2)} MB/s`);
+            }
+            
+            return {
+              ...prevStats,
+              sharedBuffer: {
+                ...prevStats.sharedBuffer,
+                count: newCount,
+                bytesReceived: bytesReceived,
+                lastTimestamp: now,
+                firstTimestamp: firstTimestamp,
+                rate: mbPerSecond,
+                smoothedRate: displayRate
+              }
+            };
+          });
+          
+          // Process the buffer data
+          if (buffer && buffer.byteLength > 0) {
+            // Create appropriate views for the buffer
+            const floatView = new Float32Array(buffer);
+            const uint64View = new BigUint64Array(buffer.slice(4 * 4 * 4096)); // Offset to timestamp array
+            
+            // Log some sample data (not every buffer to avoid console spam)
+            if (Math.random() < 0.05) { // Only log ~5% of buffers
+              console.log(`Received shared buffer: ${buffer.byteLength} bytes`);
+              console.log(`Buffer ID: ${metadata.bufferId}, Timestamp: ${metadata.timestamp}`);
+              console.log(`Sample temperature: ${floatView[0]}`);
+              console.log(`Sample pressure: ${floatView[4096]}`);
+              console.log(`Sample humidity: ${floatView[2 * 4096]}`);
+              console.log(`Sample voltage: ${floatView[3 * 4096]}`);
+              console.log(`Sample timestamp: ${uint64View[0]}`);
+            }
+            
+            // Here you would process the data further as needed
+            // For example, update charts, display values, etc.
+          }
+        } catch (error) {
+          console.error('Error processing shared buffer:', error);
+        }
+      });
+      
+      // Also listen for dataready messages
+      console.log('Set up shared buffer event listeners');
+    }
+  }, []);
 
   const handleSendClick = () => {
     try {
@@ -320,11 +434,11 @@ function App() {
           <RadialGauge
             units='Mb/S'
             title='Shared Memory Buffer'
-            value={isNaN(stats.sharedBuffer.smoothedRate) ? 0 : Math.min(Math.max(stats.sharedBuffer.smoothedRate, 0), 100)}
+            value={isNaN(stats.sharedBuffer.smoothedRate) ? 0 : Math.min(Math.max(stats.sharedBuffer.smoothedRate, 0), 300)}
             minValue={0}
-            maxValue={100}
-            majorTicks={['0', '10', '20', '30', '40', '50', '60', '70', '80', '90', '100']}
-            minorTicks={2}
+            maxValue={300}
+            majorTicks={['0', '50', '100', '150', '200', '250', '300']}
+            minorTicks={5}
             width={200}
             height={200}
           />

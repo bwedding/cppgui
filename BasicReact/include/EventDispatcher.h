@@ -63,7 +63,7 @@ namespace CPPGUI
 
         void dispatch(const UIEvent& event)
         {
-            PLOGI << "Dispatching event type: '{}'" << event.type;
+            PLOGI << "Dispatching event type: " << event.type;
 
             std::vector<SubscriptionInfo> handlersToCall;
             {
@@ -71,7 +71,7 @@ namespace CPPGUI
                 if (const auto it = handlers_.find(event.type); it != handlers_.end()) 
                 {
                     handlersToCall = it->second;
-                    PLOGI << "Found {} handlers for event type: " << handlersToCall.size() << event.type;
+                    PLOGI << "Found " << handlersToCall.size() << " handlers for event type: "  << event.type;
                 }
                 else 
                 {
@@ -80,7 +80,7 @@ namespace CPPGUI
             }
 
             for (const auto& handler : handlersToCall) {
-                PLOGI << "Calling handler with ID: {}" << handler.id;
+                PLOGI << "Calling handler with ID: " << handler.id;
                 handler(event);
             }
         }
