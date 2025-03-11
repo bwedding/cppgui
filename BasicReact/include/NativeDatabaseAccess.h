@@ -13,7 +13,7 @@
 #include <comdef.h>
 #include <pdh.h>
 #include <wbemidl.h>
-#include <plog/Log.h> 
+#include <plog/Log.h>
 #pragma comment(lib, "wbemuuid.lib")
 #pragma comment(lib, "pdh.lib")
 #pragma comment(lib, "advapi32.lib")
@@ -47,27 +47,31 @@ private:
     std::unordered_map<std::wstring, bool> m_activeTransactions;
 
     // Parameterized query management
-    struct QueryParameter 
+    struct QueryParameter
     {
         std::wstring name;
         VARIANT value;
 
-        QueryParameter() {
+        QueryParameter()
+        {
             VariantInit(&value);
         }
-        ~QueryParameter() {
+        ~QueryParameter()
+        {
             VariantClear(&value);
         }
         // Copy constructor (to properly handle deep copies)
-        QueryParameter(const QueryParameter& other) {
+        QueryParameter(const QueryParameter& other)
+        {
             name = other.name;
             VariantInit(&value);
             VariantCopy(&value, &other.value);
         }
 
         // Copy assignment operator
-        QueryParameter& operator=(const QueryParameter& other) {
-            if (this != &other) 
+        QueryParameter& operator=(const QueryParameter& other)
+        {
+            if (this != &other)
             {
                 name = other.name;
                 VariantClear(&value);  // Clear existing value
@@ -78,15 +82,15 @@ private:
         }
 
         // Move constructor
-        QueryParameter(QueryParameter&& other) noexcept : name(std::move(other.name)), value(other.value) 
+        QueryParameter(QueryParameter&& other) noexcept : name(std::move(other.name)), value(other.value)
         {
             VariantInit(&other.value); // Reinitialize the moved-from variant
         }
 
         // Move assignment operator
-        QueryParameter& operator=(QueryParameter&& other) noexcept 
+        QueryParameter& operator=(QueryParameter&& other) noexcept
         {
-            if (this != &other) 
+            if (this != &other)
             {
                 name = std::move(other.name);
                 VariantClear(&value);
@@ -96,9 +100,9 @@ private:
             return *this;
         }
     };
-    
 
-    struct ParameterizedQuery 
+
+    struct ParameterizedQuery
     {
         std::wstring query;
         std::vector<QueryParameter> parameters;
@@ -124,11 +128,14 @@ private:
         VARIANT* pVarResult, EXCEPINFO* pExcepInfo, UINT* puArgErr) override;
 
 public:
-    NativeDatabaseAccess(ICoreWebView2* webview) : m_webview(webview) 
+    NativeDatabaseAccess(ICoreWebView2* webview) : m_webview(webview)
     {
         PLOGD << "NativeDatabaseAccess created";
     }
-    ~NativeDatabaseAccess() { PLOGD <<"NativeDatabaseAccess destroyed"; }
+    ~NativeDatabaseAccess()
+    {
+        PLOGD <<"NativeDatabaseAccess destroyed";
+    }
 
     // Connection management
     STDMETHODIMP OpenConnection(BSTR connectionString, BOOL* success) override;

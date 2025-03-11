@@ -3,7 +3,7 @@
 #include <shobjidl.h> // For modern file dialogs
 #include <wrl/implements.h>
 #include <wrl/client.h>
-#include <plog/Log.h> 
+#include <plog/Log.h>
 #include "nlohmann/json.hpp"
 #include "SystemUtils.h"
 
@@ -18,15 +18,15 @@ STDMETHODIMP NativeWindowControls::GetTypeInfoCount(UINT* pctinfo)
 
 STDMETHODIMP NativeWindowControls::GetTypeInfo(const UINT iTInfo, LCID lcid, ITypeInfo** ppTInfo)
 {
-     if (0 != iTInfo)
+    if (0 != iTInfo)
     {
-         return TYPE_E_ELEMENTNOTFOUND;
+        return TYPE_E_ELEMENTNOTFOUND;
     }
     if (!m_typeLib)
     {
-         RETURN_IF_FAILED(LoadTypeLib(L"NativeWindowControls.tlb", &m_typeLib));
+        RETURN_IF_FAILED(LoadTypeLib(L"NativeWindowControls.tlb", &m_typeLib));
     }
-     return m_typeLib->GetTypeInfoOfGuid(__uuidof(INativeWindowControls), ppTInfo);
+    return m_typeLib->GetTypeInfoOfGuid(__uuidof(INativeWindowControls), ppTInfo);
 }
 
 STDMETHODIMP NativeWindowControls::GetIDsOfNames(
@@ -45,10 +45,10 @@ STDMETHODIMP NativeWindowControls::Invoke(
     wil::com_ptr<ITypeInfo> typeInfo;
     RETURN_IF_FAILED(GetTypeInfo(0, lcid, &typeInfo));
 
-    if (pDispParams) 
+    if (pDispParams)
     {
         LOGI << "Args count: {}" << pDispParams->cArgs;
-        if (pDispParams->cArgs > 0) 
+        if (pDispParams->cArgs > 0)
         {
             LOGI << "First arg type: {}" << pDispParams->rgvarg[0].vt;
         }
@@ -66,7 +66,7 @@ STDMETHODIMP NativeWindowControls::Invoke(
     TYPEATTR* pTypeAttr = nullptr;
 
     const auto result = typeInfo->Invoke(
-        this, dispIdMember, wFlags, pDispParams, pVarResult, pExcepInfo, puArgErr);
+                            this, dispIdMember, wFlags, pDispParams, pVarResult, pExcepInfo, puArgErr);
 
     if (result != S_OK)
     {
@@ -80,28 +80,30 @@ STDMETHODIMP NativeWindowControls::Invoke(
 STDMETHODIMP NativeWindowControls::SendClick(const BSTR jsonData)
 {
 
-    if (!jsonData) 
+    if (!jsonData)
         return E_INVALIDARG;
 
     std::wstring wstr(jsonData);
     std::string str(wstr.begin(), wstr.end());
-    
+
     // Parse the JSON data
     const auto json = nlohmann::json::parse(str);
 
     LOGD << json.dump();
-    
+
     // Extract event type from JSON or use a default
     std::string eventType = "unknown-event";
     std::string eventSource = "WebView";
-    
+
     // Check if the JSON contains a type field
-    if (json.contains("type")) {
+    if (json.contains("type"))
+    {
         eventType = json["type"];
     }
-    
+
     // Create event with actual data from JSON
-    CPPGUI::UIEvent evt{
+    CPPGUI::UIEvent evt
+    {
         eventType,
         eventSource,
         str,  // Use the full JSON string as payload
@@ -129,18 +131,20 @@ STDMETHODIMP NativeWindowControls::SendForm(const BSTR jsonData)
     const auto json = nlohmann::json::parse(str);
 
     PLOGD << json.dump();
-    
+
     // Extract event type from JSON or use a default
     std::string eventType = "unknown-event";
     std::string eventSource = "WebView";
-    
+
     // Check if the JSON contains a type field
-    if (json.contains("type")) {
+    if (json.contains("type"))
+    {
         eventType = json["type"];
     }
-    
+
     // Create event with actual data from JSON
-    CPPGUI::UIEvent evt{
+    CPPGUI::UIEvent evt
+    {
         eventType,
         eventSource,
         str,  // Use the full JSON string as payload
@@ -180,7 +184,7 @@ STDMETHODIMP  NativeWindowControls::MaximizeWindow()
     return ShowWindow(hwnd, SW_MAXIMIZE) ? S_OK : E_FAIL;
 }
 
-STDMETHODIMP  NativeWindowControls::CloseWindow() 
+STDMETHODIMP  NativeWindowControls::CloseWindow()
 {
     if (!IsWindow(hwnd)) return E_FAIL;
     return PostMessage(hwnd, WM_CLOSE, 0, 0) ? S_OK : E_FAIL;
@@ -202,7 +206,7 @@ STDMETHODIMP  NativeWindowControls::FileOpenDialog(BSTR* pVarResult)
     std::wstring selectedFile;
 
     HRESULT hr = CoCreateInstance(CLSID_FileOpenDialog, nullptr, CLSCTX_ALL,
-        IID_IFileOpenDialog, reinterpret_cast<void**>(&pFileOpen));
+                                  IID_IFileOpenDialog, reinterpret_cast<void**>(&pFileOpen));
 
     if (SUCCEEDED(hr))
     {
@@ -226,7 +230,8 @@ STDMETHODIMP  NativeWindowControls::FileOpenDialog(BSTR* pVarResult)
                     {
                         // Get file size
                         LARGE_INTEGER fileSize;
-                        if (!GetFileSizeEx(hFile, &fileSize)) {
+                        if (!GetFileSizeEx(hFile, &fileSize))
+                        {
                             CloseHandle(hFile);
                             *pVarResult = SysAllocString(L"Failed to get file size");
                             return E_FAIL;
@@ -235,7 +240,8 @@ STDMETHODIMP  NativeWindowControls::FileOpenDialog(BSTR* pVarResult)
                         // Read first few bytes to detect file type
                         unsigned char buffer[1024];
                         DWORD bytesRead;
-                        if (!ReadFile(hFile, buffer, sizeof(buffer), &bytesRead, nullptr)) {
+                        if (!ReadFile(hFile, buffer, sizeof(buffer), &bytesRead, nullptr))
+                        {
                             CloseHandle(hFile);
                             *pVarResult = SysAllocString(L"Failed to read file");
                             return E_FAIL;
@@ -249,8 +255,10 @@ STDMETHODIMP  NativeWindowControls::FileOpenDialog(BSTR* pVarResult)
 
                         // Simple file type detection
                         bool isTextFile = true;
-                        for (DWORD i = 0; i < bytesRead && i < 1024; i++) {
-                            if (buffer[i] == 0 || (buffer[i] < 32 && buffer[i] != '\n' && buffer[i] != '\r' && buffer[i] != '\t')) {
+                        for (DWORD i = 0; i < bytesRead && i < 1024; i++)
+                        {
+                            if (buffer[i] == 0 || (buffer[i] < 32 && buffer[i] != '\n' && buffer[i] != '\r' && buffer[i] != '\t'))
+                            {
                                 isTextFile = false;
                                 break;
                             }
@@ -291,7 +299,7 @@ STDMETHODIMP  NativeWindowControls::FileSaveDialog(BSTR* pVarResult)
     std::wstring selectedFile;
 
     HRESULT hr = CoCreateInstance(CLSID_FileSaveDialog, nullptr, CLSCTX_ALL,
-        IID_IFileSaveDialog, reinterpret_cast<void**>(&pFileSave));
+                                  IID_IFileSaveDialog, reinterpret_cast<void**>(&pFileSave));
 
     if (SUCCEEDED(hr))
     {
@@ -316,7 +324,7 @@ STDMETHODIMP  NativeWindowControls::FileSaveDialog(BSTR* pVarResult)
         pFileSave->Release();
     }
 
-    if (SUCCEEDED(hr) && pVarResult) 
+    if (SUCCEEDED(hr) && pVarResult)
     {
         *pVarResult = SysAllocString(selectedFile.c_str());
     }
@@ -329,7 +337,7 @@ STDMETHODIMP  NativeWindowControls::BrowseForFolder(BSTR* pVarResult)
     std::wstring selectedFolder;
 
     HRESULT hr = CoCreateInstance(CLSID_FileOpenDialog, nullptr, CLSCTX_ALL,
-        IID_IFileOpenDialog, reinterpret_cast<void**>(&pFolderDialog));
+                                  IID_IFileOpenDialog, reinterpret_cast<void**>(&pFolderDialog));
 
     if (SUCCEEDED(hr))
     {
@@ -362,7 +370,8 @@ STDMETHODIMP  NativeWindowControls::BrowseForFolder(BSTR* pVarResult)
         }
         pFolderDialog->Release();
     }
-    if (SUCCEEDED(hr) && pVarResult) {
+    if (SUCCEEDED(hr) && pVarResult)
+    {
         *pVarResult = SysAllocString(selectedFolder.c_str());
     }
     return hr;
@@ -377,38 +386,43 @@ STDMETHODIMP  NativeWindowControls::OpenFolderDialog(BSTR* pVarResult)
 // Helper function to convert PWSTR to VARIANT
 void NativeWindowControls::SetStringResult(VARIANT* pVarResult, const std::wstring& str)
 {
-    if (pVarResult) {
+    if (pVarResult)
+    {
         pVarResult->vt = VT_BSTR;
         pVarResult->bstrVal = SysAllocString(str.c_str());
     }
     LOGD << "Exiting";
 }
 
-std::string NativeWindowControls::ReadFileContent(const std::wstring& wFilePath) {
+std::string NativeWindowControls::ReadFileContent(const std::wstring& wFilePath)
+{
     // Open the file
     const HANDLE hFile = CreateFileW(
-        wFilePath.c_str(),
-        GENERIC_READ,
-        FILE_SHARE_READ,
-        nullptr,
-        OPEN_EXISTING,
-        FILE_ATTRIBUTE_NORMAL,
-        nullptr
-    );
+                             wFilePath.c_str(),
+                             GENERIC_READ,
+                             FILE_SHARE_READ,
+                             nullptr,
+                             OPEN_EXISTING,
+                             FILE_ATTRIBUTE_NORMAL,
+                             nullptr
+                         );
 
-    if (hFile == INVALID_HANDLE_VALUE) {
+    if (hFile == INVALID_HANDLE_VALUE)
+    {
         throw std::runtime_error("Failed to open file");
     }
 
     // Get file size
     LARGE_INTEGER fileSize;
-    if (!GetFileSizeEx(hFile, &fileSize)) {
+    if (!GetFileSizeEx(hFile, &fileSize))
+    {
         CloseHandle(hFile);
         throw std::runtime_error("Failed to get file size");
     }
 
     // Ensure file size is not too large
-    if (fileSize.QuadPart > (1LL << 31)) {  // 2GB limit
+    if (fileSize.QuadPart > (1LL << 31))    // 2GB limit
+    {
         CloseHandle(hFile);
         throw std::runtime_error("File is too large");
     }
@@ -420,12 +434,13 @@ std::string NativeWindowControls::ReadFileContent(const std::wstring& wFilePath)
     // Read file content
     DWORD bytesRead;
     if (!ReadFile(
-        hFile,
-        &content[0],
-        static_cast<DWORD>(fileSize.QuadPart),
-        &bytesRead,
-        nullptr
-    )) {
+                hFile,
+                &content[0],
+                static_cast<DWORD>(fileSize.QuadPart),
+                &bytesRead,
+                nullptr
+            ))
+    {
         CloseHandle(hFile);
         throw std::runtime_error("Failed to read file");
     }
@@ -434,20 +449,23 @@ std::string NativeWindowControls::ReadFileContent(const std::wstring& wFilePath)
     CloseHandle(hFile);
 
     // Verify all bytes were read
-    if (bytesRead != fileSize.QuadPart) {
+    if (bytesRead != fileSize.QuadPart)
+    {
         throw std::runtime_error("Failed to read entire file");
     }
 
     return content;
 }
 
-void NativeWindowControls::HandleWebViewEvent(const std::string& eventType, const std::string& jsonData) {
+void NativeWindowControls::HandleWebViewEvent(const std::string& eventType, const std::string& jsonData)
+{
     CPPGUI::UIEvent evt;
     evt.type = eventType;
     evt.payload = jsonData;
     mEventQueue.enqueue(std::move(evt));
 }
 
-void NativeWindowControls::StartEventProcessing() {
+void NativeWindowControls::StartEventProcessing()
+{
     mEventQueue.startProcessing(mevtDispatcher);
 }

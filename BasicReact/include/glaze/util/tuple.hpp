@@ -12,13 +12,14 @@
 
 namespace glz
 {
-   template <class T>
-   concept is_std_tuple = is_specialization_v<T, std::tuple>;
+template <class T>
+concept is_std_tuple = is_specialization_v<T, std::tuple>;
 
-   // TODO: This doesn't appear to be used. Should it be removed?
-   template <class Type>
-   concept is_schema_class = requires {
-      requires std::is_class_v<Type>;
-      requires Type::schema_attributes;
-   };
+// TODO: This doesn't appear to be used. Should it be removed?
+template <class Type>
+concept is_schema_class = requires
+{
+    requires std::is_class_v<Type>;
+    requires Type::schema_attributes;
+};
 }

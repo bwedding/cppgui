@@ -11,7 +11,7 @@ using namespace Microsoft::WRL;
 using json = nlohmann::json;
 
 class NativeWindowControls final : public RuntimeClass<
-		RuntimeClassFlags<ClassicCom>, INativeWindowControls, IDispatch>
+    RuntimeClassFlags<ClassicCom>, INativeWindowControls, IDispatch>
 {
     HWND hwnd;
     std::mutex m_connectionMutex;
@@ -19,12 +19,15 @@ class NativeWindowControls final : public RuntimeClass<
     wil::com_ptr<ITypeLib> m_typeLib;
 
 public:
-    explicit NativeWindowControls(const HWND window) : hwnd(window) { SPDLOG_TRACE("Entering"); }
+    explicit NativeWindowControls(const HWND window) : hwnd(window)
+    {
+        SPDLOG_TRACE("Entering");
+    }
 
     STDMETHODIMP SendClick(BSTR jsonData) override;
 
     STDMETHODIMP SendForm(BSTR jsonData) override;
- 
+
     STDMETHODIMP GetTypeInfoCount(UINT* pctinfo) override;
 
     STDMETHODIMP GetTypeInfo(UINT iTInfo, LCID lcid, ITypeInfo** ppTInfo) override;

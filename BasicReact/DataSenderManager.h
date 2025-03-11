@@ -8,7 +8,8 @@
 #include <mutex>
 #include "WebViewManager.h" // This includes CPPGUI::UIEvent
 
-class DataSenderManager {
+class DataSenderManager
+{
 private:
     std::map<std::string, std::thread> m_senderThreads;
     std::map<std::string, std::atomic<bool>> m_threadRunFlags;

@@ -16,7 +16,8 @@
 constexpr size_t MAX_STRING_SIZE = 512 * 1024; // 512KB
 
 // Message types
-enum class MessageType {
+enum class MessageType
+{
     String,
     Json
 };
@@ -25,7 +26,8 @@ enum class MessageType {
 // WM_PROCESS_WEBVIEW_MESSAGE and WM_PROCESS_SHARED_BUFFER are defined in AppMessageIDs.h
 
 // Structure to hold pending messages
-struct WebViewMessage {
+struct WebViewMessage
+{
     MessageType type;
     std::wstring data;
 };

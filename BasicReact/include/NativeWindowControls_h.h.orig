@@ -1,0 +1,317 @@
+
+
+/* this ALWAYS GENERATED file contains the definitions for the interfaces */
+
+
+ /* File created by MIDL compiler version 8.01.0628 */
+/* at Tue Jan 19 04:14:07 2038
+ */
+/* Compiler settings for ..\src\NativeWindowControls.idl:
+    Oicf, W1, Zp8, env=Win64 (32b run), target_arch=AMD64 8.01.0628 
+    protocol : all , ms_ext, c_ext, robust
+    error checks: allocation ref bounds_check enum stub_data 
+    VC __declspec() decoration level: 
+         __declspec(uuid()), __declspec(selectany), __declspec(novtable)
+         DECLSPEC_UUID(), MIDL_INTERFACE()
+*/
+/* @@MIDL_FILE_HEADING(  ) */
+
+
+
+/* verify that the <rpcndr.h> version is high enough to compile this file*/
+#ifndef __REQUIRED_RPCNDR_H_VERSION__
+#define __REQUIRED_RPCNDR_H_VERSION__ 500
+#endif
+
+#include "rpc.h"
+#include "rpcndr.h"
+
+#ifndef __RPCNDR_H_VERSION__
+#error this stub requires an updated version of <rpcndr.h>
+#endif /* __RPCNDR_H_VERSION__ */
+
+
+#ifndef __NativeWindowControls_h_h__
+#define __NativeWindowControls_h_h__
+
+#if defined(_MSC_VER) && (_MSC_VER >= 1020)
+#pragma once
+#endif
+
+#ifndef DECLSPEC_XFGVIRT
+#if defined(_CONTROL_FLOW_GUARD_XFG)
+#define DECLSPEC_XFGVIRT(base, func) __declspec(xfg_virtual(base, func))
+#else
+#define DECLSPEC_XFGVIRT(base, func)
+#endif
+#endif
+
+/* Forward Declarations */ 
+
+#ifndef __INativeWindowControls_FWD_DEFINED__
+#define __INativeWindowControls_FWD_DEFINED__
+typedef interface INativeWindowControls INativeWindowControls;
+
+#endif 	/* __INativeWindowControls_FWD_DEFINED__ */
+
+
+/* header files for imported files */
+#include "oaidl.h"
+#include "ocidl.h"
+
+#ifdef __cplusplus
+extern "C"{
+#endif 
+
+
+
+#ifndef __NativeWindowControlsLib_LIBRARY_DEFINED__
+#define __NativeWindowControlsLib_LIBRARY_DEFINED__
+
+/* library NativeWindowControlsLib */
+/* [version][uuid] */ 
+
+
+EXTERN_C const IID LIBID_NativeWindowControlsLib;
+
+#ifndef __INativeWindowControls_INTERFACE_DEFINED__
+#define __INativeWindowControls_INTERFACE_DEFINED__
+
+/* interface INativeWindowControls */
+/* [unique][helpstring][nonextensible][dual][object][uuid] */ 
+
+
+EXTERN_C const IID IID_INativeWindowControls;
+
+#if defined(__cplusplus) && !defined(CINTERFACE)
+    
+    MIDL_INTERFACE("bf3778c3-a587-4ad3-afc3-e3bef12d301d")
+    INativeWindowControls : public IDispatch
+    {
+    public:
+        virtual /* [id] */ HRESULT STDMETHODCALLTYPE MinimizeWindow( void) = 0;
+        
+        virtual /* [id] */ HRESULT STDMETHODCALLTYPE MaximizeWindow( void) = 0;
+        
+        virtual /* [id] */ HRESULT STDMETHODCALLTYPE CloseWindow( void) = 0;
+        
+        virtual /* [id] */ HRESULT STDMETHODCALLTYPE StartWindowDrag( void) = 0;
+        
+        virtual /* [id] */ HRESULT STDMETHODCALLTYPE FileOpenDialog( 
+            /* [retval][out] */ BSTR *result) = 0;
+        
+        virtual /* [id] */ HRESULT STDMETHODCALLTYPE FileSaveDialog( 
+            /* [retval][out] */ BSTR *result) = 0;
+        
+        virtual /* [id] */ HRESULT STDMETHODCALLTYPE BrowseForFolder( 
+            /* [retval][out] */ BSTR *result) = 0;
+        
+        virtual /* [id] */ HRESULT STDMETHODCALLTYPE OpenFolderDialog( 
+            /* [retval][out] */ BSTR *result) = 0;
+        
+        virtual /* [id] */ HRESULT STDMETHODCALLTYPE SendClick( 
+            /* [in] */ BSTR jsonData) = 0;
+        
+        virtual /* [id] */ HRESULT STDMETHODCALLTYPE SendForm( 
+            /* [in] */ BSTR jsonData) = 0;
+        
+    };
+    
+    
+#else 	/* C style interface */
+
+    typedef struct INativeWindowControlsVtbl
+    {
+        BEGIN_INTERFACE
+        
+        DECLSPEC_XFGVIRT(IUnknown, QueryInterface)
+        HRESULT ( STDMETHODCALLTYPE *QueryInterface )( 
+            INativeWindowControls * This,
+            /* [in] */ REFIID riid,
+            /* [annotation][iid_is][out] */ 
+            _COM_Outptr_  void **ppvObject);
+        
+        DECLSPEC_XFGVIRT(IUnknown, AddRef)
+        ULONG ( STDMETHODCALLTYPE *AddRef )( 
+            INativeWindowControls * This);
+        
+        DECLSPEC_XFGVIRT(IUnknown, Release)
+        ULONG ( STDMETHODCALLTYPE *Release )( 
+            INativeWindowControls * This);
+        
+        DECLSPEC_XFGVIRT(IDispatch, GetTypeInfoCount)
+        HRESULT ( STDMETHODCALLTYPE *GetTypeInfoCount )( 
+            INativeWindowControls * This,
+            /* [out] */ UINT *pctinfo);
+        
+        DECLSPEC_XFGVIRT(IDispatch, GetTypeInfo)
+        HRESULT ( STDMETHODCALLTYPE *GetTypeInfo )( 
+            INativeWindowControls * This,
+            /* [in] */ UINT iTInfo,
+            /* [in] */ LCID lcid,
+            /* [out] */ ITypeInfo **ppTInfo);
+        
+        DECLSPEC_XFGVIRT(IDispatch, GetIDsOfNames)
+        HRESULT ( STDMETHODCALLTYPE *GetIDsOfNames )( 
+            INativeWindowControls * This,
+            /* [in] */ REFIID riid,
+            /* [size_is][in] */ LPOLESTR *rgszNames,
+            /* [range][in] */ UINT cNames,
+            /* [in] */ LCID lcid,
+            /* [size_is][out] */ DISPID *rgDispId);
+        
+        DECLSPEC_XFGVIRT(IDispatch, Invoke)
+        /* [local] */ HRESULT ( STDMETHODCALLTYPE *Invoke )( 
+            INativeWindowControls * This,
+            /* [annotation][in] */ 
+            _In_  DISPID dispIdMember,
+            /* [annotation][in] */ 
+            _In_  REFIID riid,
+            /* [annotation][in] */ 
+            _In_  LCID lcid,
+            /* [annotation][in] */ 
+            _In_  WORD wFlags,
+            /* [annotation][out][in] */ 
+            _In_  DISPPARAMS *pDispParams,
+            /* [annotation][out] */ 
+            _Out_opt_  VARIANT *pVarResult,
+            /* [annotation][out] */ 
+            _Out_opt_  EXCEPINFO *pExcepInfo,
+            /* [annotation][out] */ 
+            _Out_opt_  UINT *puArgErr);
+        
+        DECLSPEC_XFGVIRT(INativeWindowControls, MinimizeWindow)
+        /* [id] */ HRESULT ( STDMETHODCALLTYPE *MinimizeWindow )( 
+            INativeWindowControls * This);
+        
+        DECLSPEC_XFGVIRT(INativeWindowControls, MaximizeWindow)
+        /* [id] */ HRESULT ( STDMETHODCALLTYPE *MaximizeWindow )( 
+            INativeWindowControls * This);
+        
+        DECLSPEC_XFGVIRT(INativeWindowControls, CloseWindow)
+        /* [id] */ HRESULT ( STDMETHODCALLTYPE *CloseWindow )( 
+            INativeWindowControls * This);
+        
+        DECLSPEC_XFGVIRT(INativeWindowControls, StartWindowDrag)
+        /* [id] */ HRESULT ( STDMETHODCALLTYPE *StartWindowDrag )( 
+            INativeWindowControls * This);
+        
+        DECLSPEC_XFGVIRT(INativeWindowControls, FileOpenDialog)
+        /* [id] */ HRESULT ( STDMETHODCALLTYPE *FileOpenDialog )( 
+            INativeWindowControls * This,
+            /* [retval][out] */ BSTR *result);
+        
+        DECLSPEC_XFGVIRT(INativeWindowControls, FileSaveDialog)
+        /* [id] */ HRESULT ( STDMETHODCALLTYPE *FileSaveDialog )( 
+            INativeWindowControls * This,
+            /* [retval][out] */ BSTR *result);
+        
+        DECLSPEC_XFGVIRT(INativeWindowControls, BrowseForFolder)
+        /* [id] */ HRESULT ( STDMETHODCALLTYPE *BrowseForFolder )( 
+            INativeWindowControls * This,
+            /* [retval][out] */ BSTR *result);
+        
+        DECLSPEC_XFGVIRT(INativeWindowControls, OpenFolderDialog)
+        /* [id] */ HRESULT ( STDMETHODCALLTYPE *OpenFolderDialog )( 
+            INativeWindowControls * This,
+            /* [retval][out] */ BSTR *result);
+        
+        DECLSPEC_XFGVIRT(INativeWindowControls, SendClick)
+        /* [id] */ HRESULT ( STDMETHODCALLTYPE *SendClick )( 
+            INativeWindowControls * This,
+            /* [in] */ BSTR jsonData);
+        
+        DECLSPEC_XFGVIRT(INativeWindowControls, SendForm)
+        /* [id] */ HRESULT ( STDMETHODCALLTYPE *SendForm )( 
+            INativeWindowControls * This,
+            /* [in] */ BSTR jsonData);
+        
+        END_INTERFACE
+    } INativeWindowControlsVtbl;
+
+    interface INativeWindowControls
+    {
+        CONST_VTBL struct INativeWindowControlsVtbl *lpVtbl;
+    };
+
+    
+
+#ifdef COBJMACROS
+
+
+#define INativeWindowControls_QueryInterface(This,riid,ppvObject)	\
+    ( (This)->lpVtbl -> QueryInterface(This,riid,ppvObject) ) 
+
+#define INativeWindowControls_AddRef(This)	\
+    ( (This)->lpVtbl -> AddRef(This) ) 
+
+#define INativeWindowControls_Release(This)	\
+    ( (This)->lpVtbl -> Release(This) ) 
+
+
+#define INativeWindowControls_GetTypeInfoCount(This,pctinfo)	\
+    ( (This)->lpVtbl -> GetTypeInfoCount(This,pctinfo) ) 
+
+#define INativeWindowControls_GetTypeInfo(This,iTInfo,lcid,ppTInfo)	\
+    ( (This)->lpVtbl -> GetTypeInfo(This,iTInfo,lcid,ppTInfo) ) 
+
+#define INativeWindowControls_GetIDsOfNames(This,riid,rgszNames,cNames,lcid,rgDispId)	\
+    ( (This)->lpVtbl -> GetIDsOfNames(This,riid,rgszNames,cNames,lcid,rgDispId) ) 
+
+#define INativeWindowControls_Invoke(This,dispIdMember,riid,lcid,wFlags,pDispParams,pVarResult,pExcepInfo,puArgErr)	\
+    ( (This)->lpVtbl -> Invoke(This,dispIdMember,riid,lcid,wFlags,pDispParams,pVarResult,pExcepInfo,puArgErr) ) 
+
+
+#define INativeWindowControls_MinimizeWindow(This)	\
+    ( (This)->lpVtbl -> MinimizeWindow(This) ) 
+
+#define INativeWindowControls_MaximizeWindow(This)	\
+    ( (This)->lpVtbl -> MaximizeWindow(This) ) 
+
+#define INativeWindowControls_CloseWindow(This)	\
+    ( (This)->lpVtbl -> CloseWindow(This) ) 
+
+#define INativeWindowControls_StartWindowDrag(This)	\
+    ( (This)->lpVtbl -> StartWindowDrag(This) ) 
+
+#define INativeWindowControls_FileOpenDialog(This,result)	\
+    ( (This)->lpVtbl -> FileOpenDialog(This,result) ) 
+
+#define INativeWindowControls_FileSaveDialog(This,result)	\
+    ( (This)->lpVtbl -> FileSaveDialog(This,result) ) 
+
+#define INativeWindowControls_BrowseForFolder(This,result)	\
+    ( (This)->lpVtbl -> BrowseForFolder(This,result) ) 
+
+#define INativeWindowControls_OpenFolderDialog(This,result)	\
+    ( (This)->lpVtbl -> OpenFolderDialog(This,result) ) 
+
+#define INativeWindowControls_SendClick(This,jsonData)	\
+    ( (This)->lpVtbl -> SendClick(This,jsonData) ) 
+
+#define INativeWindowControls_SendForm(This,jsonData)	\
+    ( (This)->lpVtbl -> SendForm(This,jsonData) ) 
+
+#endif /* COBJMACROS */
+
+
+#endif 	/* C style interface */
+
+
+
+
+#endif 	/* __INativeWindowControls_INTERFACE_DEFINED__ */
+
+#endif /* __NativeWindowControlsLib_LIBRARY_DEFINED__ */
+
+/* Additional Prototypes for ALL interfaces */
+
+/* end of Additional Prototypes */
+
+#ifdef __cplusplus
+}
+#endif
+
+#endif
+
+

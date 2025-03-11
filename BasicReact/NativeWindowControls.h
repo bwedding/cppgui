@@ -9,13 +9,13 @@
 #include "UIEvent.h"
 #include "EventManager.h"
 #include "AppMessageIDs.h"
-#include <plog/Log.h> 
+#include <plog/Log.h>
 
 using namespace Microsoft::WRL;
 using json = nlohmann::json;
 
 class NativeWindowControls final : public RuntimeClass<
-		RuntimeClassFlags<ClassicCom>, INativeWindowControls, IDispatch>
+    RuntimeClassFlags<ClassicCom>, INativeWindowControls, IDispatch>
 {
     HWND hwnd;
     std::unique_ptr<CPPGUI::EventManager> mEventManager;
@@ -36,9 +36,9 @@ class NativeWindowControls final : public RuntimeClass<
 
 public:
     explicit NativeWindowControls(const HWND window ) : hwnd(window)
-    { 
+    {
         mEventManager = std::make_unique<CPPGUI::EventManager>(window, mevtDispatcher);
-        LOGD << "Entering"; 
+        LOGD << "Entering";
     }
 
     STDMETHODIMP SendClick(BSTR jsonData) override;
@@ -57,9 +57,18 @@ public:
     static std::string ReadFileContent(const std::wstring& wFilePath);
 
     // Getter methods for event-related components
-    CPPGUI::EventManager* GetEventManager() const { return mEventManager.get(); }
-    CPPGUI::EventDispatcher* GetEventDispatcher() { return &mevtDispatcher; }
-    CPPGUI::EventQueue* GetEventQueue() { return &mEventQueue; }
+    CPPGUI::EventManager* GetEventManager() const
+    {
+        return mEventManager.get();
+    }
+    CPPGUI::EventDispatcher* GetEventDispatcher()
+    {
+        return &mevtDispatcher;
+    }
+    CPPGUI::EventQueue* GetEventQueue()
+    {
+        return &mEventQueue;
+    }
 
     void HandleWebViewEvent(const std::string& eventType, const std::string& jsonData);
     void StartEventProcessing();

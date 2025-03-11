@@ -6,7 +6,7 @@
 // {2B442739-0920-4489-A943-B6AA7573D4D8}
 interface __declspec(uuid("bf3778c3-a587-4ad3-afc3-e3bef12d301d")) INativeWindowControls : IDispatch
 {
-	virtual HRESULT STDMETHODCALLTYPE MinimizeWindow() = 0;
+    virtual HRESULT STDMETHODCALLTYPE MinimizeWindow() = 0;
     virtual HRESULT STDMETHODCALLTYPE MaximizeWindow() = 0;
     virtual HRESULT STDMETHODCALLTYPE CloseWindow() = 0;
     virtual HRESULT STDMETHODCALLTYPE StartWindowDrag() = 0;

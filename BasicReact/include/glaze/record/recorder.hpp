@@ -13,253 +13,298 @@
 
 namespace glz
 {
-   namespace detail
-   {
-      template <class Data>
-      struct recorder_assigner
-      {
-         Data& data;
-         sv name{};
+namespace detail
+{
+template <class Data>
+struct recorder_assigner
+{
+    Data& data;
+    sv name{};
 
-         template <class T>
-         void operator=(T& ref)
-         {
-            using container_type = std::decay_t<decltype(data[0].second.first)>;
-            data.emplace_back(
-               std::make_pair(name, std::make_pair(container_type{std::deque<std::decay_t<T>>{}}, &ref)));
-         }
-      };
-   }
+    template <class T>
+    void operator=(T& ref)
+    {
+        using container_type = std::decay_t<decltype(data[0].second.first)>;
+        data.emplace_back(
+            std::make_pair(name, std::make_pair(container_type{std::deque<std::decay_t<T>>{}}, &ref)));
+    }
+};
+}
 
-   /// <summary>
-   /// recorder for saving state over the course of a run
-   /// deques are used to avoid reallocation for large amounts of data as the recording length is typically unknown
-   /// </summary>
-   template <class... Ts>
-   struct recorder
-   {
-      static constexpr auto glaze_reflect = false;
+/// <summary>
+/// recorder for saving state over the course of a run
+/// deques are used to avoid reallocation for large amounts of data as the recording length is typically unknown
+/// </summary>
+template <class... Ts>
+struct recorder
+{
+    static constexpr auto glaze_reflect = false;
 
-      using container_type = std::variant<std::deque<Ts>...>;
+    using container_type = std::variant<std::deque<Ts>...>;
 
-      std::deque<std::pair<std::string, std::pair<container_type, const void*>>> data;
+    std::deque<std::pair<std::string, std::pair<container_type, const void*>>> data;
 
-      auto operator[](const sv name) { return detail::recorder_assigner<decltype(data)>{data, name}; }
+    auto operator[](const sv name)
+    {
+        return detail::recorder_assigner<decltype(data)> {data, name};
+    }
 
-      void update()
-      {
-         for (auto& [name, value] : data) {
+    void update()
+    {
+        for (auto& [name, value] : data)
+        {
             auto* ptr = value.second;
             std::visit(
-               [&](auto&& container) {
-                  using ContainerType = std::decay_t<decltype(container)>;
-                  using T = typename ContainerType::value_type;
+                [&](auto&& container)
+            {
+                using ContainerType = std::decay_t<decltype(container)>;
+                using T = typename ContainerType::value_type;
 
-                  container.emplace_back(*static_cast<const T*>(ptr));
-               },
-               value.first);
-         }
-      }
-   };
+                container.emplace_back(*static_cast<const T*>(ptr));
+            },
+            value.first);
+        }
+    }
+};
 
-   template <class T>
-   concept is_recorder = is_specialization_v<T, recorder>;
+template <class T>
+concept is_recorder = is_specialization_v<T, recorder>;
 
-   template <is_recorder T>
-   struct to<JSON, T>
-   {
-      template <auto Opts, class... Args>
-      static void op(auto&& value, is_context auto&& ctx, Args&&... args)
-      {
-         dump<'{'>(std::forward<Args>(args)...);
+template <is_recorder T>
+struct to<JSON, T>
+{
+    template <auto Opts, class... Args>
+    static void op(auto&& value, is_context auto&& ctx, Args&&... args)
+    {
+        dump<'{'>(std::forward<Args>(args)...);
 
-         if constexpr (Opts.prettify) {
+        if constexpr (Opts.prettify)
+        {
             ctx.indentation_level += Opts.indentation_width;
             dump<'\n'>(args...);
             dumpn<Opts.indentation_char>(ctx.indentation_level, args...);
-         }
+        }
 
-         const size_t n = value.data.size();
-         for (size_t i = 0; i < n; ++i) {
+        const size_t n = value.data.size();
+        for (size_t i = 0; i < n; ++i)
+        {
             auto& [name, v] = value.data[i];
             serialize<JSON>::op<Opts>(name, ctx, args...); // write name as key
 
             dump<':'>(args...);
-            if constexpr (Opts.prettify) {
-               dump<' '>(args...);
+            if constexpr (Opts.prettify)
+            {
+                dump<' '>(args...);
             }
 
             serialize<JSON>::op<Opts>(v.first, ctx, args...); // write deque
-            if (i < n - 1) {
-               dump<','>(std::forward<Args>(args)...);
+            if (i < n - 1)
+            {
+                dump<','>(std::forward<Args>(args)...);
             }
 
-            if constexpr (Opts.prettify) {
-               dump<'\n'>(args...);
-               dumpn<Opts.indentation_char>(ctx.indentation_level, args...);
+            if constexpr (Opts.prettify)
+            {
+                dump<'\n'>(args...);
+                dumpn<Opts.indentation_char>(ctx.indentation_level, args...);
             }
-         }
+        }
 
-         if constexpr (Opts.prettify) {
+        if constexpr (Opts.prettify)
+        {
             ctx.indentation_level -= Opts.indentation_width;
             dump<'\n'>(args...);
             dumpn<Opts.indentation_char>(ctx.indentation_level, args...);
-         }
-         dump<'}'>(args...);
-      }
-   };
+        }
+        dump<'}'>(args...);
+    }
+};
 
-   template <is_recorder T>
-   struct from<JSON, T>
-   {
-      template <auto Options>
-      static void op(auto&& value, is_context auto&& ctx, auto&& it, auto&& end)
-      {
-         if (bool(ctx.error)) [[unlikely]] {
+template <is_recorder T>
+struct from<JSON, T>
+{
+    template <auto Options>
+    static void op(auto&& value, is_context auto&& ctx, auto&& it, auto&& end)
+    {
+        if (bool(ctx.error)) [[unlikely]]
+        {
             return;
-         }
+        }
 
-         constexpr auto Opts = opening_handled_off<ws_handled_off<Options>()>();
+        constexpr auto Opts = opening_handled_off<ws_handled_off<Options>()>();
 
-         if constexpr (!has_opening_handled(Options)) {
-            if (skip_ws<Opts>(ctx, it, end)) {
-               return;
+        if constexpr (!has_opening_handled(Options))
+        {
+            if (skip_ws<Opts>(ctx, it, end))
+            {
+                return;
             }
-            if (match_invalid_end<'{', Opts>(ctx, it, end)) {
-               return;
+            if (match_invalid_end<'{', Opts>(ctx, it, end))
+            {
+                return;
             }
-         }
+        }
 
-         if (skip_ws<Opts>(ctx, it, end)) {
+        if (skip_ws<Opts>(ctx, it, end))
+        {
             return;
-         }
+        }
 
-         // we read into available containers, we do not intialize here
-         const size_t n = value.data.size();
-         for (size_t i = 0; i < n; ++i) {
-            if (*it == '}') [[unlikely]] {
-               ctx.error = error_code::expected_brace;
+        // we read into available containers, we do not intialize here
+        const size_t n = value.data.size();
+        for (size_t i = 0; i < n; ++i)
+        {
+            if (*it == '}') [[unlikely]]
+            {
+                ctx.error = error_code::expected_brace;
             }
 
             // find the string, escape characters are not supported for recorders
-            if (skip_ws<Opts>(ctx, it, end)) {
-               return;
+            if (skip_ws<Opts>(ctx, it, end))
+            {
+                return;
             }
             const auto name = parse_key(ctx, it, end);
 
             auto& [str, v] = value.data[i];
-            if (name != str) {
-               ctx.error = error_code::name_mismatch; // Recorder read of name does not match initialized state
-               return;
+            if (name != str)
+            {
+                ctx.error = error_code::name_mismatch; // Recorder read of name does not match initialized state
+                return;
             }
 
-            if (skip_ws<Opts>(ctx, it, end)) {
-               return;
+            if (skip_ws<Opts>(ctx, it, end))
+            {
+                return;
             }
-            if (match_invalid_end<':', Opts>(ctx, it, end)) {
-               return;
+            if (match_invalid_end<':', Opts>(ctx, it, end))
+            {
+                return;
             }
-            if (skip_ws<Opts>(ctx, it, end)) {
-               return;
+            if (skip_ws<Opts>(ctx, it, end))
+            {
+                return;
             }
 
-            std::visit([&](auto&& deq) { parse<JSON>::op<Opts>(deq, ctx, it, end); }, v.first);
+            std::visit([&](auto&& deq)
+            {
+                parse<JSON>::op<Opts>(deq, ctx, it, end);
+            }, v.first);
 
-            if (i < n - 1) {
-               if (skip_ws<Opts>(ctx, it, end)) {
-                  return;
-               }
-               if (match_invalid_end<',', Opts>(ctx, it, end)) {
-                  return;
-               }
-               if (skip_ws<Opts>(ctx, it, end)) {
-                  return;
-               }
+            if (i < n - 1)
+            {
+                if (skip_ws<Opts>(ctx, it, end))
+                {
+                    return;
+                }
+                if (match_invalid_end<',', Opts>(ctx, it, end))
+                {
+                    return;
+                }
+                if (skip_ws<Opts>(ctx, it, end))
+                {
+                    return;
+                }
             }
-         }
+        }
 
-         if (skip_ws<Opts>(ctx, it, end)) {
+        if (skip_ws<Opts>(ctx, it, end))
+        {
             return;
-         }
-         match<'}'>(ctx, it);
-      }
-   };
+        }
+        match<'}'>(ctx, it);
+    }
+};
 
-   template <is_recorder T>
-   struct to<CSV, T>
-   {
-      template <auto Opts>
-      static void op(auto&& value, is_context auto&& ctx, auto&&... args)
-      {
-         if constexpr (Opts.layout == rowwise) {
+template <is_recorder T>
+struct to<CSV, T>
+{
+    template <auto Opts>
+    static void op(auto&& value, is_context auto&& ctx, auto&&... args)
+    {
+        if constexpr (Opts.layout == rowwise)
+        {
             const size_t n = value.data.size();
-            for (size_t i = 0; i < n; ++i) {
-               auto& [name, v] = value.data[i];
-               dump_maybe_empty(name, args...);
+            for (size_t i = 0; i < n; ++i)
+            {
+                auto& [name, v] = value.data[i];
+                dump_maybe_empty(name, args...);
 
-               dump<','>(args...);
+                dump<','>(args...);
 
-               std::visit(
-                  [&](auto& x) {
-                     serialize<CSV>::op<Opts>(x, ctx, args...); // write deque
-                  },
-                  v.first);
+                std::visit(
+                    [&](auto& x)
+                {
+                    serialize<CSV>::op<Opts>(x, ctx, args...); // write deque
+                },
+                v.first);
 
-               if (i < n - 1) {
-                  dump<'\n'>(args...);
-               }
+                if (i < n - 1)
+                {
+                    dump<'\n'>(args...);
+                }
             }
-         }
-         else {
+        }
+        else
+        {
             // dump titles
             const auto n = value.data.size();
             size_t i = 0;
-            for (auto& [name, data] : value.data) {
-               dump_maybe_empty(name, args...);
-               ++i;
-               if (i < n) {
-                  dump<','>(args...);
-               }
+            for (auto& [name, data] : value.data)
+            {
+                dump_maybe_empty(name, args...);
+                ++i;
+                if (i < n)
+                {
+                    dump<','>(args...);
+                }
             }
 
             dump<'\n'>(args...);
 
             size_t row = 0;
             bool end = false;
-            while (true) {
-               i = 0;
-               for (auto& [name, data] : value.data) {
-                  bool breakout = false;
-                  std::visit(
-                     [&](auto& v) {
-                        if (row >= v.size()) {
-                           end = true;
-                           breakout = true;
-                           return;
+            while (true)
+            {
+                i = 0;
+                for (auto& [name, data] : value.data)
+                {
+                    bool breakout = false;
+                    std::visit(
+                        [&](auto& v)
+                    {
+                        if (row >= v.size())
+                        {
+                            end = true;
+                            breakout = true;
+                            return;
                         }
                         serialize<CSV>::op<Opts>(v[row], ctx, args...); // write deque
-                     },
-                     data.first);
+                    },
+                    data.first);
 
-                  if (breakout) {
-                     break;
-                  }
+                    if (breakout)
+                    {
+                        break;
+                    }
 
-                  ++i;
-                  if (i < n) {
-                     dump<','>(args...);
-                  }
-               }
+                    ++i;
+                    if (i < n)
+                    {
+                        dump<','>(args...);
+                    }
+                }
 
-               if (end) {
-                  break;
-               }
+                if (end)
+                {
+                    break;
+                }
 
-               dump<'\n'>(args...);
+                dump<'\n'>(args...);
 
-               ++row;
+                ++row;
             }
-         }
-      }
-   };
+        }
+    }
+};
 }

@@ -14,33 +14,41 @@ struct glz::meta<my_struct>
     static constexpr std::string_view name = "my_struct";
     using T = my_struct;
     static constexpr auto value = object(
-        "i", [](auto&& v) -> auto& { return v.i; }, //
-        &T::d, //
-        "hello", &T::hello, //
-        &T::arr //
-    );
+                                      "i", [](auto&& v) -> auto&
+    {
+        return v.i;
+    }, //
+    &T::d, //
+    "hello", &T::hello, //
+    &T::arr //
+                                  );
 };
 
-static constexpr auto info = glz::reflect<my_struct>{};
+static constexpr auto info = glz::reflect<my_struct> {};
 
 #include <iostream>
-#include <plog/Log.h> 
+#include <plog/Log.h>
 
 void GlazeTest()
 {
     std::cout << "Field types:\n";
-    glz::for_each<info.size>([](auto I) {
+    glz::for_each<info.size>([](auto I)
+    {
         PLOGI << glz::name_v<decltype(glz::get<I>(info.values))> << '\n';
-        });
+    });
 
     PLOGI << "Field keys:\n";
-    glz::for_each<info.size>([](auto I) { PLOGI << info.keys[I] << '\n'; });
+    glz::for_each<info.size>([](auto I)
+    {
+        PLOGI << info.keys[I] << '\n';
+    });
 
     my_struct obj{};
     PLOGI << '\n' << glz::write_json(obj).value() << '\n';
     constexpr std::string_view input = R"({"i":287,"d":3.14,"hello":"Hello World","arr":[1,2,3]})";
     auto ec = glz::read_json(obj, input);
-    if (ec) {
+    if (ec)
+    {
         PLOGE << "error: " << glz::format_error(ec, input);
     }
 }

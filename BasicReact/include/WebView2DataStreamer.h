@@ -13,10 +13,10 @@
 #include <winnt.h>
 #include <winrt/Windows.UI.Composition.h>
 #include <winrt/Windows.UI.ViewManagement.h>
-#include <plog/Log.h> 
+#include <plog/Log.h>
 using namespace Microsoft::WRL;
 
-struct SensorData 
+struct SensorData
 {
     float temperature[24096];
     float pressure[24096];
@@ -25,28 +25,28 @@ struct SensorData
     uint64_t timestamp[24096];
 };
 
-class WebView2DataStreamer 
+class WebView2DataStreamer
 {
 public:
     // Modified constructor to accept a buffer size parameter
     WebView2DataStreamer(wil::com_ptr<ICoreWebView2> webview,
-        wil::com_ptr<ICoreWebView2Environment12> environment,
-        UINT64 bufferSize = sizeof(SensorData))  
-        : m_webView(webview), m_environment12(environment), m_bufferSize(bufferSize) 
+                         wil::com_ptr<ICoreWebView2Environment12> environment,
+                         UINT64 bufferSize = sizeof(SensorData))
+        : m_webView(webview), m_environment12(environment), m_bufferSize(bufferSize)
     {
         InitializeBuffers();
     }
 
     // Initialize buffers (call on UI thread)
-    void InitializeBuffers() 
+    void InitializeBuffers()
     {
-		if (!m_webView || !m_environment12) 
+        if (!m_webView || !m_environment12)
         {
             return;
-		}
+        }
         m_webView17 = m_webView.try_query<ICoreWebView2_17>();
-        
-        if (!m_webView17) 
+
+        if (!m_webView17)
         {
             throw std::runtime_error("WebView2 does not support ICoreWebView2_17 interface");
         }
@@ -57,7 +57,7 @@ public:
         HRESULT hr2 = m_environment12->CreateSharedBuffer(m_bufferSize, &m_sharedBuffer2);
         PLOGI << "CreateSharedBuffer 2 result: 0x{:x}" << hr1 << " pointer: " << "size : " << (m_sharedBuffer1 ? "valid" : "NULL") << m_bufferSize;
 
-        if (FAILED(hr1) || !m_sharedBuffer1 || FAILED(hr2) || !m_sharedBuffer2) 
+        if (FAILED(hr1) || !m_sharedBuffer1 || FAILED(hr2) || !m_sharedBuffer2)
         {
             throw std::runtime_error("Failed to create shared buffers");
         }
@@ -65,17 +65,17 @@ public:
 
     // Generic template method to queue any data type
     template<typename T>
-    void QueueData(const T& data) 
+    void QueueData(const T& data)
     {
         // Make sure data fits in buffer
-        if (sizeof(T) > m_bufferSize) 
+        if (sizeof(T) > m_bufferSize)
         {
             PLOGE << "Data size: " <<  sizeof(T) << " exceeds buffer size: " << m_bufferSize;
             return;
         }
 
         std::lock_guard<std::mutex> lock(m_mutex);
-        
+
         // Create a byte array copy of the data
         std::vector<uint8_t> dataCopy(sizeof(T));
         memcpy(dataCopy.data(), &data, sizeof(T));
@@ -85,9 +85,9 @@ public:
     }
 
     // Queue a string or arbitrary data
-    void QueueData(const void* data, size_t dataSize) 
+    void QueueData(const void* data, size_t dataSize)
     {
-        if (dataSize > m_bufferSize) 
+        if (dataSize > m_bufferSize)
         {
             PLOGE << "Data size (" << dataSize << " bytes) exceeds buffer size: " <<  m_bufferSize;
             return;
@@ -101,12 +101,12 @@ public:
     }
 
     // Process queued data (call on UI thread)
-    void ProcessQueue(int maxItems = 100) 
+    void ProcessQueue(int maxItems = 100)
     {
         std::lock_guard<std::mutex> lock(m_mutex);
 
         int processed = 0;
-        while (!m_dataQueue.empty() && processed < maxItems) 
+        while (!m_dataQueue.empty() && processed < maxItems)
         {
             const auto& dataItem = m_dataQueue.front();
             const std::vector<uint8_t>& dataCopy = dataItem.first;
@@ -119,39 +119,39 @@ public:
     }
 
     // Clear all queued data (call when stopping sender)
-    void ClearQueue() 
+    void ClearQueue()
     {
         std::lock_guard<std::mutex> lock(m_mutex);
-        
+
         // Create an empty queue and swap with the current queue to clear it
         std::queue<std::pair<std::vector<uint8_t>, size_t>> emptyQueue;
         std::swap(m_dataQueue, emptyQueue);
-        
+
         PLOGD << "Cleared shared buffer queue with " << emptyQueue.size() << " pending items";
     }
 
     // Get the current buffer size
-    UINT64 GetBufferSize() const 
+    UINT64 GetBufferSize() const
     {
         return m_bufferSize;
     }
 
 private:
     // Stream data to WebView (UI thread only)
-    void StreamData(const void* data, size_t dataSize) 
+    void StreamData(const void* data, size_t dataSize)
     {
         // Determine which buffer to use
-		if (!m_sharedBuffer1 || !m_sharedBuffer2) 
+        if (!m_sharedBuffer1 || !m_sharedBuffer2)
         {
-			PLOGE << "Shared buffers not initialized";
-			return;
-		}
+            PLOGE << "Shared buffers not initialized";
+            return;
+        }
         auto activeBuffer = m_useBuffer1 ? m_sharedBuffer1.get() : m_sharedBuffer2.get();
 
         // Get stream for writing to shared buffer
         wil::com_ptr<IStream> stream;
         HRESULT hr = activeBuffer->OpenStream(&stream);
-        if (FAILED(hr)) 
+        if (FAILED(hr))
         {
             PLOGE << "OpenStream failed: 0x{:x}" <<  hr;
             return;
@@ -159,7 +159,7 @@ private:
 
         // Write data to the stream
         hr = stream->Write(data, static_cast<ULONG>(dataSize), nullptr);
-        if (FAILED(hr)) 
+        if (FAILED(hr))
         {
             PLOGE << "Stream->Write failed: 0x{:x}" << hr;
             return;
@@ -178,11 +178,11 @@ private:
 
         // Post the buffer to the script
         hr = m_webView17->PostSharedBufferToScript(
-            activeBuffer,
-            COREWEBVIEW2_SHARED_BUFFER_ACCESS_READ_ONLY,
-            metadata.c_str());
+                 activeBuffer,
+                 COREWEBVIEW2_SHARED_BUFFER_ACCESS_READ_ONLY,
+                 metadata.c_str());
 
-        if (FAILED(hr)) 
+        if (FAILED(hr))
         {
             PLOGE << "PostSharedBufferToScript failed: 0x{:x}" << hr;
             return;

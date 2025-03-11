@@ -9,9 +9,9 @@
 
 namespace glz
 {
-   template <class T>
-   struct meta<std::unordered_set<T>>
-   {
-      static constexpr std::string_view name = join_v<chars<"std::unordered_set<">, name_v<T>, chars<">">>;
-   };
+template <class T>
+struct meta<std::unordered_set<T>>
+{
+    static constexpr std::string_view name = join_v<chars<"std::unordered_set<">, name_v<T>, chars<">">>;
+};
 }

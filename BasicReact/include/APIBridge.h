@@ -18,7 +18,8 @@
 using namespace Microsoft::WRL;
 using json = nlohmann::json;
 
-struct EndpointConfig {
+struct EndpointConfig
+{
     std::wstring endpoint;
     std::function<std::string(const json&)> handler;
 };
@@ -32,8 +33,10 @@ public:
     explicit ApiBridge(const ComPtr<ICoreWebView2> wv) : webview(wv) {}
 
     // IUnknown methods
-    HRESULT __stdcall QueryInterface(REFIID riid, void** ppvObject) override {
-        if (riid == IID_IUnknown || riid == IID_IDispatch) {
+    HRESULT __stdcall QueryInterface(REFIID riid, void** ppvObject) override
+    {
+        if (riid == IID_IUnknown || riid == IID_IDispatch)
+        {
             *ppvObject = static_cast<IDispatch*>(this);
             AddRef();
             return S_OK;
@@ -42,40 +45,50 @@ public:
         return E_NOINTERFACE;
     }
 
-    ULONG __stdcall AddRef() override {
+    ULONG __stdcall AddRef() override
+    {
         return InterlockedIncrement(&m_refCount);
     }
 
-    ULONG __stdcall Release() override {
-	    const ULONG refCount = InterlockedDecrement(&m_refCount);
-        if (refCount == 0) {
+    ULONG __stdcall Release() override
+    {
+        const ULONG refCount = InterlockedDecrement(&m_refCount);
+        if (refCount == 0)
+        {
             delete this;
         }
         return refCount;
     }
 
     // IDispatch methods
-    HRESULT __stdcall GetTypeInfoCount(UINT* pctinfo) override {
+    HRESULT __stdcall GetTypeInfoCount(UINT* pctinfo) override
+    {
         *pctinfo = 0;
         return S_OK;
     }
 
-    HRESULT __stdcall GetTypeInfo(UINT iTInfo, LCID lcid, ITypeInfo** ppTInfo) override {
+    HRESULT __stdcall GetTypeInfo(UINT iTInfo, LCID lcid, ITypeInfo** ppTInfo) override
+    {
         *ppTInfo = nullptr;
         return E_NOTIMPL;
     }
 
-    HRESULT __stdcall GetIDsOfNames(REFIID riid, LPOLESTR* rgszNames, UINT cNames, LCID lcid, DISPID* rgDispId) override {
-        if (wcscmp(rgszNames[0], L"getData") == 0) {
+    HRESULT __stdcall GetIDsOfNames(REFIID riid, LPOLESTR* rgszNames, UINT cNames, LCID lcid, DISPID* rgDispId) override
+    {
+        if (wcscmp(rgszNames[0], L"getData") == 0)
+        {
             *rgDispId = 1;
             return S_OK;
         }
         return DISP_E_UNKNOWNNAME;
     }
 
-    HRESULT __stdcall Invoke(DISPID dispIdMember, REFIID riid, LCID lcid, WORD wFlags, DISPPARAMS* pDispParams, VARIANT* pVarResult, EXCEPINFO* pExcepInfo, UINT* puArgErr) override {
-        if (dispIdMember == 1) {
-            if (pDispParams->cArgs != 1) {
+    HRESULT __stdcall Invoke(DISPID dispIdMember, REFIID riid, LCID lcid, WORD wFlags, DISPPARAMS* pDispParams, VARIANT* pVarResult, EXCEPINFO* pExcepInfo, UINT* puArgErr) override
+    {
+        if (dispIdMember == 1)
+        {
+            if (pDispParams->cArgs != 1)
+            {
                 return DISP_E_BADPARAMCOUNT;
             }
 
@@ -92,16 +105,19 @@ public:
             std::wstring endpoint(endpointStr.begin(), endpointStr.end());
 
             if (auto it = std::ranges::find_if(endpoints,
-                                               [&endpoint](const auto& config) {
-	                                               return endpoint == config.endpoint;
-                                               }); it != endpoints.end()) {
+                                               [&endpoint](const auto& config)
+        {
+            return endpoint == config.endpoint;
+        }); it != endpoints.end())
+            {
                 std::string jsonResponse = it->handler(requestPayload);
                 pVarResult->vt = VT_BSTR;
                 pVarResult->bstrVal = SysAllocString(std::wstring(jsonResponse.begin(), jsonResponse.end()).c_str());
                 return S_OK;
             }
 
-            if (endpoint == L"/api/users") {
+            if (endpoint == L"/api/users")
+            {
                 auto userData = "Bruce Wedding";//model.getUsers();
                 json jsonData = userData;
                 std::string jsonResponse = jsonData.dump();
@@ -121,7 +137,8 @@ public:
             //    return S_OK;
             //}
 
-            if (endpoint == L"/api/submitForm") {
+            if (endpoint == L"/api/submitForm")
+            {
                 auto postData = requestPayload["postData"];
                 std::string username = postData["username"];
                 std::string password = postData["password"];
@@ -134,7 +151,8 @@ public:
                 return S_OK;
             }
 
-            if (endpoint == L"/api/saveFileDialog") {
+            if (endpoint == L"/api/saveFileDialog")
+            {
                 std::wstring filePath = SaveFileDialog();
                 auto jsonResponse = std::string(filePath.begin(), filePath.end());
 
@@ -143,13 +161,15 @@ public:
                 return S_OK;
             }
 
-            if (endpoint == L"/api/openFileDialog") {
+            if (endpoint == L"/api/openFileDialog")
+            {
                 std::wstring filePath = OpenFileDialog();
                 std::string fileContent = ReadFileContent(filePath);
                 auto divName = requestPayload["divName"].get<std::string>();
                 std::string script = "document.getElementById('" + divName + "').innerText = `" + fileContent + "`;";
 
-                if (webview) {
+                if (webview)
+                {
                     webview->ExecuteScript(std::wstring(script.begin(), script.end()).c_str(), nullptr);
                 }
 
@@ -163,7 +183,7 @@ public:
                 return S_OK;
             }
 
-            if (endpoint == L"/api/browseForFolder") 
+            if (endpoint == L"/api/browseForFolder")
             {
                 std::wstring folderPath = BrowseForFolder();
                 auto jsonResponse = std::string(folderPath.begin(), folderPath.end());
@@ -173,21 +193,23 @@ public:
                 return S_OK;
             }
 
-        	if (endpoint == L"/api/openFolderDialog") 
+            if (endpoint == L"/api/openFolderDialog")
             {
-	            std::wstring folderPath = OpenFolderDialog();
-	            auto jsonResponse = std::string(folderPath.begin(), folderPath.end());
+                std::wstring folderPath = OpenFolderDialog();
+                auto jsonResponse = std::string(folderPath.begin(), folderPath.end());
 
-	            pVarResult->vt = VT_BSTR;
-	            pVarResult->bstrVal = SysAllocString(std::wstring(jsonResponse.begin(), jsonResponse.end()).c_str());
-	            return S_OK;
+                pVarResult->vt = VT_BSTR;
+                pVarResult->bstrVal = SysAllocString(std::wstring(jsonResponse.begin(), jsonResponse.end()).c_str());
+                return S_OK;
             }
 
-            if (endpoint == L"/api/clipboard/copy") {
+            if (endpoint == L"/api/clipboard/copy")
+            {
                 std::string text = requestPayload["postData"]["text"];
 
                 // Copy text to clipboard
-                if (!OpenClipboard(nullptr)) {
+                if (!OpenClipboard(nullptr))
+                {
                     pVarResult->vt = VT_BSTR;
                     pVarResult->bstrVal = SysAllocString(L"Failed to open clipboard");
                     return E_FAIL;
@@ -195,7 +217,8 @@ public:
 
                 EmptyClipboard();
                 HGLOBAL hGlob = GlobalAlloc(GMEM_FIXED, text.size() + 1);
-                if (hGlob == nullptr) {
+                if (hGlob == nullptr)
+                {
                     CloseClipboard();
                     pVarResult->vt = VT_BSTR;
                     pVarResult->bstrVal = SysAllocString(L"Failed to allocate global memory");
@@ -203,7 +226,8 @@ public:
                 }
 
                 strcpy_s(static_cast<char*>(hGlob), text.size() + 1, text.c_str());
-                if (SetClipboardData(CF_TEXT, hGlob) == nullptr) {
+                if (SetClipboardData(CF_TEXT, hGlob) == nullptr)
+                {
                     GlobalFree(hGlob);
                     CloseClipboard();
                     pVarResult->vt = VT_BSTR;
@@ -216,7 +240,8 @@ public:
                 pVarResult->bstrVal = SysAllocString(L"Text copied to clipboard");
                 return S_OK;
             }
-            if (endpoint == L"/api/systemMetrics") {
+            if (endpoint == L"/api/systemMetrics")
+            {
                 json metrics = GetSystemMetrics();
                 std::string jsonResponse = metrics.dump();
 

@@ -7,5 +7,8 @@
 
 namespace glz
 {
-   consteval uint16_t to_uint16_t(const char chars[2]) { return uint16_t(chars[0]) | (uint16_t(chars[1]) << 8); }
+consteval uint16_t to_uint16_t(const char chars[2])
+{
+    return uint16_t(chars[0]) | (uint16_t(chars[1]) << 8);
+}
 }

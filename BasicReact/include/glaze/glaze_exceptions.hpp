@@ -13,31 +13,34 @@
 
 namespace glz::ex
 {
-   template <auto Opts>
-   void read(auto& value, auto&& buffer)
-   {
-      auto ec = glz::read<Opts>(value, buffer);
-      if (ec) {
-         if constexpr (Opts.format == JSON) {
+template <auto Opts>
+void read(auto& value, auto&& buffer)
+{
+    auto ec = glz::read<Opts>(value, buffer);
+    if (ec)
+    {
+        if constexpr (Opts.format == JSON)
+        {
             throw std::runtime_error("read error: " + glz::format_error(ec, buffer));
-         }
-         else {
+        }
+        else
+        {
             throw std::runtime_error("read error");
-         }
-      }
-   }
+        }
+    }
+}
 
-   template <auto Opts, class T, output_buffer Buffer>
-   void write(T&& value, Buffer& buffer) noexcept
-   {
-      glz::write<Opts>(std::forward<T>(value), buffer);
-   }
+template <auto Opts, class T, output_buffer Buffer>
+void write(T&& value, Buffer& buffer) noexcept
+{
+    glz::write<Opts>(std::forward<T>(value), buffer);
+}
 
-   template <auto Opts, class T, raw_buffer Buffer>
-   size_t write(T&& value, Buffer&& buffer) noexcept
-   {
-      return glz::write<Opts>(std::forward<T>(value), std::forward<Buffer>(buffer));
-   }
+template <auto Opts, class T, raw_buffer Buffer>
+size_t write(T&& value, Buffer&& buffer) noexcept
+{
+    return glz::write<Opts>(std::forward<T>(value), std::forward<Buffer>(buffer));
+}
 }
 
 #endif

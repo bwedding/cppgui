@@ -9,15 +9,15 @@
 
 namespace glz
 {
-   template <num_t T>
-   void format_to(std::string& buffer, T&& value)
-   {
-      auto ix = buffer.size();
-      buffer.resize((std::max)(buffer.size() * 2, ix + 64));
+template <num_t T>
+void format_to(std::string& buffer, T&& value)
+{
+    auto ix = buffer.size();
+    buffer.resize((std::max)(buffer.size() * 2, ix + 64));
 
-      const auto start = buffer.data() + ix;
-      const auto end = glz::to_chars(start, std::forward<T>(value));
-      ix += size_t(end - start);
-      buffer.resize(ix);
-   }
+    const auto start = buffer.data() + ix;
+    const auto end = glz::to_chars(start, std::forward<T>(value));
+    ix += size_t(end - start);
+    buffer.resize(ix);
+}
 }

@@ -103,7 +103,7 @@ std::wstring SystemUtils::UTF8_to_wchar(const char* in)
 
 std::string SystemUtils::FormatTimeStamp(const system_clock::time_point& time_point)
 {
-	const std::time_t time = system_clock::to_time_t(time_point);
+    const std::time_t time = system_clock::to_time_t(time_point);
     std::tm tm;
 
     // Use localtime_s for thread safety and to avoid warnings
@@ -122,13 +122,13 @@ std::string SystemUtils::WideToUtf8(const std::wstring& wstr)
 
     // Get the required buffer size
     int size_needed = WideCharToMultiByte(CP_UTF8, 0, wstr.data(), (int)wstr.size(), nullptr, 0, nullptr, nullptr);
-    
+
     // Allocate the buffer
     std::string utf8str(size_needed, 0);
-    
+
     // Perform the conversion
     WideCharToMultiByte(CP_UTF8, 0, wstr.data(), (int)wstr.size(), &utf8str[0], size_needed, nullptr, nullptr);
-    
+
     return utf8str;
 }
 
@@ -139,7 +139,8 @@ double SystemUtils::GetDiskSpaceUsage(const std::wstring& drive)
     return static_cast<double>(totalBytes.QuadPart - totalFreeBytes.QuadPart) / static_cast<double>(totalBytes.QuadPart) * 100;
 }
 
-double SystemUtils::GetMemoryUsage() {
+double SystemUtils::GetMemoryUsage()
+{
     MEMORYSTATUSEX memInfo;
     memInfo.dwLength = sizeof(MEMORYSTATUSEX);
     GlobalMemoryStatusEx(&memInfo);
@@ -148,7 +149,8 @@ double SystemUtils::GetMemoryUsage() {
     return static_cast<double>(physMemUsed) / static_cast<double>(totalPhysMem) * 100;
 }
 
-double SystemUtils::GetCpuUsage() {
+double SystemUtils::GetCpuUsage()
+{
     PDH_HQUERY hQuery;
     PDH_HCOUNTER hCounter;
     PDH_FMT_COUNTERVALUE counterVal;
@@ -171,7 +173,8 @@ double SystemUtils::GetCpuUsage() {
     return counterVal.doubleValue;
 }
 
-json SystemUtils::GetSystemMetrics() {
+json SystemUtils::GetSystemMetrics()
+{
     json metrics;
     metrics["cpuUsage"] = GetCpuUsage();
     metrics["memoryUsage"] = GetMemoryUsage();
