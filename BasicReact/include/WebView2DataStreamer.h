@@ -19,13 +19,14 @@
 #include <cstdlib>
 using namespace Microsoft::WRL;
 
+const int SensorDataSize = 333000; // 440Mb/s
 struct SensorData
 {
-    float temperature[24096];
-    float pressure[24096];
-    float humidity[24096];
-    float voltage[24096];
-    uint64_t timestamp[24096];
+    float temperature[SensorDataSize];
+    float pressure[SensorDataSize];
+    float humidity[SensorDataSize];
+    float voltage[SensorDataSize];
+    uint64_t timestamp[SensorDataSize];
 };
 
 class WebView2DataStreamer
@@ -38,6 +39,12 @@ public:
         : m_webView(webview), m_environment12(environment), m_bufferSize(bufferSize)
     {
         InitializeBuffers();
+    }
+
+    ~WebView2DataStreamer()
+    {
+        m_sharedBuffer1->Close();
+        m_sharedBuffer2->Close();
     }
 
     // Initialize buffers (call on UI thread)

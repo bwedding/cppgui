@@ -2,17 +2,27 @@ import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import { viteSingleFile } from "vite-plugin-singlefile";
 import path from "path";
+import tailwindcss from '@tailwindcss/postcss';
+import autoprefixer from 'autoprefixer';
 
 // Shared configuration
 const sharedConfig = {
   plugins: [react(), viteSingleFile()],
   resolve: {
     alias: {
-      '@': path.resolve(__dirname, './src'),
-      'lib': path.resolve(__dirname, './src/lib')
+      '@': path.resolve(new URL('.', import.meta.url).pathname, './src'),
+      'lib': path.resolve(new URL('.', import.meta.url).pathname, './src/lib')
     }
   },
   cacheDir: '.vite',
+  css: {
+    postcss: {
+      plugins: [
+        tailwindcss,
+        autoprefixer
+      ],
+    },
+  },
   optimizeDeps: {
     force: false,
     entries: ['./src/**/*.{js,jsx,ts,tsx}'],

@@ -1,0 +1,52 @@
+{
+  "hash": "75f562b0",
+  "configHash": "2bb75e96",
+  "lockfileHash": "5113a3f8",
+  "browserHash": "ee779883",
+  "optimized": {
+    "react": {
+      "src": "../../node_modules/react/index.js",
+      "file": "react.js",
+      "fileHash": "b609b7da",
+      "needsInterop": true
+    },
+    "react-dom": {
+      "src": "../../node_modules/react-dom/index.js",
+      "file": "react-dom.js",
+      "fileHash": "6a2540e2",
+      "needsInterop": true
+    },
+    "react/jsx-dev-runtime": {
+      "src": "../../node_modules/react/jsx-dev-runtime.js",
+      "file": "react_jsx-dev-runtime.js",
+      "fileHash": "2d7b0842",
+      "needsInterop": true
+    },
+    "react/jsx-runtime": {
+      "src": "../../node_modules/react/jsx-runtime.js",
+      "file": "react_jsx-runtime.js",
+      "fileHash": "57948198",
+      "needsInterop": true
+    },
+    "react-canvas-gauges": {
+      "src": "../../node_modules/react-canvas-gauges/dist/index.js",
+      "file": "react-canvas-gauges.js",
+      "fileHash": "64fca4a2",
+      "needsInterop": true
+    },
+    "react-dom/client": {
+      "src": "../../node_modules/react-dom/client.js",
+      "file": "react-dom_client.js",
+      "fileHash": "7139be30",
+      "needsInterop": true
+    }
+  },
+  "chunks": {
+    "chunk-G2SXFLS7": {
+      "file": "chunk-G2SXFLS7.js"
+    },
+    "chunk-3ARHY7UZ": {
+      "file": "chunk-3ARHY7UZ.js"
+    }
+  }
+}

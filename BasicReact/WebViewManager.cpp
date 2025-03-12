@@ -144,17 +144,25 @@ void WebViewManager::InitializeWebView()
                             if (typeIt != obj.end() && typeIt->second.is_string() && 
                                 typeIt->second.get_string() == "sharedBuffer" &&
                                 actionIt != obj.end() && actionIt->second.is_string() && 
-                                actionIt->second.get_string() == "pong") {
+                                actionIt->second.get_string() == "pong") 
+                                {
                                 
                                 // Extract buffer ID
                                 auto bufferIdIt = obj.find("bufferId");
-                                if (bufferIdIt != obj.end()) {
-                                    if (bufferIdIt->second.is_number()) {
+                                if (bufferIdIt != obj.end()) 
+                                {
+                                    if (bufferIdIt->second.is_number()) 
+                                    {
                                         bufferId = static_cast<int>(bufferIdIt->second.get_number());
-                                    } else if (bufferIdIt->second.is_string()) {
-                                        try {
+                                    } 
+                                    else if (bufferIdIt->second.is_string()) 
+                                    {
+                                        try 
+                                        {
                                             bufferId = std::stoi(bufferIdIt->second.get_string());
-                                        } catch (...) {
+                                        }
+                                        catch (...) 
+                                        {
                                             PLOGE << "Failed to convert bufferId string to int";
                                         }
                                     }
@@ -163,7 +171,8 @@ void WebViewManager::InitializeWebView()
                                 // Handle pong message directly
                                 //PLOGI << "Received pong message with bufferId: " << bufferId;
                                 
-                                if (m_dataStreamer) {
+                                if (m_dataStreamer) 
+                                {
                                     m_dataStreamer->HandlePongResponse(bufferId);
                                     
                                     // Post a message to process the next buffer if available
@@ -176,17 +185,22 @@ void WebViewManager::InitializeWebView()
                         
                         // For other message types, use the standard event handling
                         std::string eventType;
-                        if (json.has_value() && json->is_object()) {
+                        if (json.has_value() && json->is_object()) 
+                        {
                             auto& obj = json->get_object();
                             auto typeIt = obj.find("type");
-                            if (typeIt != obj.end() && typeIt->second.is_string()) {
+                            if (typeIt != obj.end() && typeIt->second.is_string()) 
+                            {
                                 eventType = typeIt->second.get_string();
                             }
                         }
                         
-                        if (!eventType.empty()) {
+                        if (!eventType.empty()) 
+                        {
                             m_nativeControls->HandleWebViewEvent(eventType, utf8Msg);
-                        } else {
+                        }
+                        else 
+                        {
                             LOGW << "Received message with no type field: " << utf8Msg.substr(0, 100);
                         }
                     }
@@ -200,6 +214,7 @@ void WebViewManager::InitializeWebView()
                 wil::com_ptr<ICoreWebView2Environment12> environment12 = m_Environment.try_query<ICoreWebView2Environment12>();
                 if (environment12)
                 {
+                    // TODO Don't arbitrarily create this if it's not needed
                     m_dataStreamer = std::make_unique<WebView2DataStreamer>(m_webview, environment12);
 
                     PLOGI << "Environment interfaces created successfully on UI thread";

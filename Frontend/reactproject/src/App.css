@@ -1,3 +1,5 @@
+@import "tailwindcss";
+
 #root {
   max-width: 1280px;
   margin: 0 auto;
@@ -105,3 +107,4 @@
   font-size: 0.8rem;
   color: #a0a0a0;
 }
+

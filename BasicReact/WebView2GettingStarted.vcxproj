@@ -151,6 +151,9 @@
       <SubSystem>Windows</SubSystem>
       <AdditionalDependencies>kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;libpq.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>C:\Users\bruce\source\cppgui\BasicReact\libs;C:\Program Files\PostgreSQL\17\lib;C:\Program Files\PostgreSQL\17\bin;C:\Users\bruce\source\cppgui\libs</AdditionalLibraryDirectories>
+      <HeapReserveSize>24000000</HeapReserveSize>
+      <StackReserveSize>24000000</StackReserveSize>
+      <StackCommitSize>16000</StackCommitSize>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'">
@@ -208,6 +211,9 @@
       <SubSystem>Windows</SubSystem>
       <AdditionalDependencies>libpq.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>C:\Users\bruce\source\cppgui\libs;C:\Program Files\PostgreSQL\17\lib;C:\Users\bruce\source\cppgui;C:\Program Files\PostgreSQL\17\bin;C:\Users\bruce\source\cppgui\BasicReact\libs;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <HeapReserveSize>24000000</HeapReserveSize>
+      <StackReserveSize>24000000</StackReserveSize>
+      <StackCommitSize>16000</StackCommitSize>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'">

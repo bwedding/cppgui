@@ -344,7 +344,7 @@ void DataSenderManager::StringSenderThreadFunc()
             }
 
             // Just a minimal delay to allow other threads to run
-            std::this_thread::sleep_for(std::chrono::microseconds(50));
+            std::this_thread::sleep_for(std::chrono::microseconds(10));
         }
         catch (const std::exception& e)
         {
@@ -383,7 +383,7 @@ void DataSenderManager::JsonSenderThreadFunc()
     auto lastLogTime = std::chrono::high_resolution_clock::now();
     
     // For throttling
-    int sleepTimeMs = 10; // Start with 10ms sleep
+    int sleepTimeUs = 1; // Start with 1ms sleep
     size_t queueSize = 0;
     
     // Get WebViewManager for queue size monitoring
@@ -404,22 +404,22 @@ void DataSenderManager::JsonSenderThreadFunc()
                 // Adaptive sleep time based on queue size
                 if (queueSize > 100) {
                     // If queue is getting large, sleep longer to let it drain
-                    sleepTimeMs = 100;
+                    sleepTimeUs = 50;
                 } 
                 else if (queueSize > 50) {
-                    sleepTimeMs = 50;
+                    sleepTimeUs = 10;
                 } 
                 else if (queueSize > 10) {
-                    sleepTimeMs = 20;
+                    sleepTimeUs = 5;
                 } 
                 else {
                     // Queue is small, we can generate data faster
-                    sleepTimeMs = 10;
+                    sleepTimeUs = 11;
                 }
                 
                 // If we're waiting for a pong, slow down even more
                 if (dataStreamer->IsWaitingForPong()) {
-                    sleepTimeMs = (sleepTimeMs > 50) ? sleepTimeMs : 50;
+                    sleepTimeUs = (sleepTimeUs > 50) ? sleepTimeUs : 50;
                 }
             }
             
@@ -495,7 +495,7 @@ void DataSenderManager::JsonSenderThreadFunc()
                          << megaBytesPerSecond << " MB/sec (" << totalBytes << " bytes in "
                          << elapsedSeconds << " seconds), UTF-8 equivalent: " << utf8MegaBytesPerSecond << " MB/sec"
                          << ", Queue size: " << queueSize
-                         << ", Sleep time: " << sleepTimeMs << "ms";
+                         << ", Sleep time: " << sleepTimeUs << "ms";
 
                     lastLogTime = currentTime;
                 }
@@ -506,7 +506,7 @@ void DataSenderManager::JsonSenderThreadFunc()
             }
 
             // Sleep to allow other threads to run and prevent overwhelming the system
-            std::this_thread::sleep_for(std::chrono::milliseconds(sleepTimeMs));
+            std::this_thread::sleep_for(std::chrono::milliseconds(sleepTimeUs));
         }
         catch (const std::exception& e)
         {
@@ -570,7 +570,7 @@ void DataSenderManager::SharedBufferSenderThreadFunc(HWND targetWindow, std::ato
     auto lastLogTime = std::chrono::high_resolution_clock::now();
     
     // For adaptive sleep timing
-    int sleepTimeMs = 10; // Start with 10ms sleep as per memory
+    int sleepTimeUs = 1; // Start with 10ms sleep as per memory
     
     while (*runFlag) 
     {
@@ -583,41 +583,41 @@ void DataSenderManager::SharedBufferSenderThreadFunc(HWND targetWindow, std::ato
             if (queueSize > 500) 
             {
                 // If queue is extremely large, sleep much longer
-                sleepTimeMs = 200;
+                sleepTimeUs = 80;
             }
             else if (queueSize > 200) 
             {
                 // If queue is very large, sleep longer
-                sleepTimeMs = 100;
+                sleepTimeUs = 40;
             }
             else if (queueSize > 100) 
             {
                 // If queue is getting large, sleep longer to let it drain
-                sleepTimeMs = 50;
+                sleepTimeUs = 20;
             } 
             else if (queueSize > 50) 
             {
-                sleepTimeMs = 20;
+                sleepTimeUs = 10;
             } 
             else if (queueSize > 10) 
             {
-                sleepTimeMs = 10;
+                sleepTimeUs = 3;
             } 
             else 
             {
                 // Queue is small, we can generate data faster
-                sleepTimeMs = 1;
+                sleepTimeUs = 1;
             }
             
             // If we're waiting for a pong, slow down even more
             if (dataStreamer->IsWaitingForPong()) {
-                sleepTimeMs = (sleepTimeMs > 50) ? sleepTimeMs : 50;
+                sleepTimeUs = (sleepTimeUs > 50) ? sleepTimeUs : 50;
             }
             
             // Skip generating new data if queue is too large
             if (queueSize > 1000) {
                 // Just sleep and check again
-                std::this_thread::sleep_for(std::chrono::milliseconds(sleepTimeMs));
+                std::this_thread::sleep_for(std::chrono::microseconds(sleepTimeUs * 10));
                 continue;
             }
             
@@ -628,7 +628,7 @@ void DataSenderManager::SharedBufferSenderThreadFunc(HWND targetWindow, std::ato
             uint64_t currentTimestamp = std::chrono::duration_cast<std::chrono::milliseconds>(
                 std::chrono::system_clock::now().time_since_epoch()).count();
                 
-            for (int i = 0; i < 4096; i++) 
+            for (int i = 0; i < SensorDataSize; i++)
             {
                 sensorData.temperature[i] = tempDist(generator);
                 sensorData.pressure[i] = pressureDist(generator);
@@ -668,7 +668,7 @@ void DataSenderManager::SharedBufferSenderThreadFunc(HWND targetWindow, std::ato
                     PLOGI << "Shared buffer sending rate: " << std::fixed << std::setprecision(2) 
                           << msgsPerSec << " msgs/sec (" << mbPerSec << " MB/sec), Queue size: " << queueSize
                           << ", Waiting for pong: " << (waitingForPong ? "Yes" : "No")
-                          << ", Sleep time: " << sleepTimeMs << "ms";
+                          << ", Sleep time: " << sleepTimeUs << "us";
                     
                     lastLogTime = currentTime;
                 }
@@ -679,7 +679,7 @@ void DataSenderManager::SharedBufferSenderThreadFunc(HWND targetWindow, std::ato
             }
             
             // Sleep to control the rate (adaptive based on queue size)
-            std::this_thread::sleep_for(std::chrono::milliseconds(sleepTimeMs));
+            std::this_thread::sleep_for(std::chrono::milliseconds(sleepTimeUs));
         }
         catch (const std::exception& e) 
         {
