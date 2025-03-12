@@ -281,13 +281,17 @@ function App() {
           
           try {
             // Try to parse the metadata as JSON
-            if (typeof event.additionalData === 'string') {
+            if (typeof event.additionalData === 'string') 
+            {
               metadata = JSON.parse(event.additionalData);
-            } else if (typeof event.additionalData === 'object') {
+            } 
+            else if (typeof event.additionalData === 'object') 
+            {
               // If it's already an object, use it directly
               metadata = event.additionalData;
             }
-          } catch (parseError) {
+          } catch (parseError) 
+          {
             console.warn('Error parsing metadata:', parseError);
             console.log('Raw metadata:', event.additionalData);
             // Continue with empty metadata object
@@ -299,7 +303,8 @@ function App() {
           // Update stats for the shared buffer
           const dataSize = metadata.dataSize || buffer.byteLength;
           
-          setStats(prevStats => {
+          setStats(prevStats => 
+          {
             const now = Date.now();
             const firstTimestamp = prevStats.sharedBuffer.firstTimestamp || now;
             const elapsed = (now - firstTimestamp) / 1000; // seconds
@@ -334,13 +339,15 @@ function App() {
           });
           
           // Process the buffer data
-          if (buffer && buffer.byteLength > 0) {
+          if (buffer && buffer.byteLength > 0) 
+          {
             // Create appropriate views for the buffer
             const floatView = new Float32Array(buffer);
             const uint64View = new BigUint64Array(buffer.slice(4 * 4 * 4096)); // Offset to timestamp array
             
             // Log some sample data (not every buffer to avoid console spam)
-            if (Math.random() < 0.05) { // Only log ~5% of buffers
+            if (Math.random() < 0.001) 
+            { // Only log ~5% of buffers
               console.log(`Received shared buffer: ${buffer.byteLength} bytes`);
               console.log(`Buffer ID: ${metadata.bufferId}, Timestamp: ${metadata.timestamp}`);
               console.log(`Sample temperature: ${floatView[0]}`);
@@ -352,6 +359,28 @@ function App() {
             
             // Here you would process the data further as needed
             // For example, update charts, display values, etc.
+            
+            // Send a pong response back to the backend to signal we're ready for more data
+            // This implements flow control - backend won't send more until we process this buffer
+            if (window.chrome && window.chrome.webview) {
+              try {
+                const pongMessage = {
+                  type: "sharedBuffer",
+                  action: "pong",
+                  bufferId: parseInt(metadata.bufferId, 10), // Ensure bufferId is a number
+                  timestamp: metadata.timestamp,
+                  receivedAt: Date.now()
+                };
+                
+                // Always log pong messages for debugging
+                console.log(`Sending pong for buffer ${pongMessage.bufferId}`);
+                
+                const messageString = JSON.stringify(pongMessage);
+                window.chrome.webview.postMessage(messageString);
+              } catch (error) {
+                console.error("Error sending pong message:", error);
+              }
+            }
           }
         } catch (error) {
           console.error('Error processing shared buffer:', error);
