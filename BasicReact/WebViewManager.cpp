@@ -18,10 +18,10 @@ void WebViewManager::InitializeWebView() {
 
     CreateCoreWebView2EnvironmentWithOptions(nullptr, nullptr, options.Get(),
         Callback<ICoreWebView2CreateCoreWebView2EnvironmentCompletedHandler>(
-            [this](HRESULT result, ICoreWebView2Environment* env) -> HRESULT {
+            [this](HRESULT, ICoreWebView2Environment* env) -> HRESULT {
                 env->CreateCoreWebView2Controller(m_hWnd,
                     Callback<ICoreWebView2CreateCoreWebView2ControllerCompletedHandler>(
-                        [this](HRESULT result, ICoreWebView2Controller* controller) -> HRESULT {
+                        [this](HRESULT, ICoreWebView2Controller* controller) -> HRESULT {
                             if (controller) {
                                 m_controller = controller;
                                 m_controller->get_CoreWebView2(&m_webview);
@@ -50,7 +50,7 @@ void WebViewManager::InitializeWebView() {
                                 // Register event handlers
                                 m_webview->add_NavigationStarting(
                                     Callback<ICoreWebView2NavigationStartingEventHandler>(
-                                        [this](ICoreWebView2* webview, ICoreWebView2NavigationStartingEventArgs* args) {
+                                        [this](ICoreWebView2*, ICoreWebView2NavigationStartingEventArgs*) {
                                             LOGD << "Navigation starting";
                                             return S_OK;
                                         }).Get(), &m_navigationToken);
@@ -95,7 +95,7 @@ void WebViewManager::InitializeWebView() {
 
                                 m_webview->add_WebMessageReceived(
                                     Callback<ICoreWebView2WebMessageReceivedEventHandler>(
-                                        [this](ICoreWebView2* webview, ICoreWebView2WebMessageReceivedEventArgs* args) {
+                                        [this](ICoreWebView2*, ICoreWebView2WebMessageReceivedEventArgs* args) {
                                             wil::unique_cotaskmem_string message;
                                             args->TryGetWebMessageAsString(&message);
                                             

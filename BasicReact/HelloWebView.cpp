@@ -95,10 +95,10 @@ int CALLBACK WinMain(
 	CPPGUI::MakeWindow window(hInstance, nCmdShow);
 
 	InitializeLog();
-	/*ondemand::parser parser;
+	ondemand::parser parser;
 	padded_string json = padded_string::load("twitter.json");
 	ondemand::document tweets = parser.iterate(json);
-	LOGD << uint64_t(tweets["search_metadata"]["count"]) << " results." << std::endl;*/
+	LOGD << uint64_t(tweets["search_metadata"]["count"]) << " results." << std::endl;
 
 	// Make the window with defaults
 	CPPGUI::MakeWindow makeWindow(hInstance, nCmdShow);
@@ -109,7 +109,6 @@ int CALLBACK WinMain(
 	config2.titleBarColor = RGB(0, 0, 0);
 	config2.frameColor = RGB(0, 0, 0);
 	config2.textColor = RGB(100, 100, 100);
-	config2.resizable = false;
 	hWnd = makeWindow.CreateMainWindow();
 	if (!hWnd) 
 		return -1;
@@ -134,8 +133,7 @@ int CALLBACK WinMain(
 	window.SetWebViewManager(g_webViewManager.get());
 	//window.SetThemeMode(CPPGUI::ThemeMode::Dark); // or ThemeMode::Light, ThemeMode::Dark, ThemeMode::System
 	window.SetTopMost(hWnd, false);  // Turn off topmost window behavior
-
-
+	
 	// Add subscriptions here  
 	g_webViewManager->Subscribe("auto-manual-control", [](const CPPGUI::UIEvent& evt) {
 		return squarefoo(evt);

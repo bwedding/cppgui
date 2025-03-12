@@ -439,7 +439,7 @@ STDMETHODIMP NativeDatabaseAccess::CloseConnection(BSTR connectionString, BOOL* 
                 // There's an active transaction, roll it back
                 BOOL txnSuccess = FALSE;
                 RollbackTransaction(connectionString, &txnSuccess);
-                LOGI << "Auto-rolled back transaction during connection close: {}" << (txnSuccess == true ? "success" : "failed");
+                LOGI << "Auto-rolled back transaction during connection close: {}" << (((bool)txnSuccess == true) ? "success" : "failed");
             }
         }
 
