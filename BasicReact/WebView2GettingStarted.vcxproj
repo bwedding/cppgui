@@ -142,15 +142,15 @@
       <PreprocessorDefinitions>_DEBUG;_WINDOWS;SPDLOG_WCHAR_TO_UTF8_SUPPORT;SPDLOG_ACTIVE_LEVEL=SPDLOG_LEVEL_TRACE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
-      <LanguageStandard>stdcpp23</LanguageStandard>
-      <AdditionalIncludeDirectories>C:\Users\bruce\source\cppgui\BasicReact\libs;C:\Users\bruce\source\cppgui\BasicReact\include;C:\Program Files\PostgreSQL\17\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <LanguageStandard>stdcpplatest</LanguageStandard>
+      <AdditionalIncludeDirectories>C:\Users\bruce\source\cppgui\BasicReact\libs;C:\Users\bruce\source\cppgui\BasicReact\include;C:\Program Files\PostgreSQL\17\include;D:\source\cppgui\BasicReact\include;D:\source\cppgui\BasicReact\libs;D:\source\cppgui\BasicReact\packages\Microsoft.Web.WebView2.1.0.3124.44\build\native\include;D:\source\cppgui\BasicReact\packages\Microsoft.Windows.ImplementationLibrary.1.0.240803.1\include;D:\Program Files\PostgreSQL\17\include;D:\source\cppgui\BasicReact\packages\nlohmann.json.3.11.3\build\native\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AdditionalOptions>/utf-8</AdditionalOptions>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <SubSystem>Windows</SubSystem>
       <AdditionalDependencies>kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;libpq.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>C:\Users\bruce\source\cppgui\BasicReact\libs;C:\Program Files\PostgreSQL\17\lib;C:\Program Files\PostgreSQL\17\bin;C:\Users\bruce\source\cppgui\libs</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>C:\Users\bruce\source\cppgui\BasicReact\libs;C:\Program Files\PostgreSQL\17\lib;C:\Program Files\PostgreSQL\17\bin;C:\Users\bruce\source\cppgui\libs;D:\Program Files\PostgreSQL\17\lib</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'">
@@ -196,8 +196,8 @@
       <PreprocessorDefinitions>NDEBUG;_WINDOWS;SPDLOG_WCHAR_TO_UTF8_SUPPORT;SPDLOG_ACTIVE_LEVEL=SPDLOG_LEVEL_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
-      <LanguageStandard>stdcpp23</LanguageStandard>
-      <AdditionalIncludeDirectories>C:\Users\bruce\source\cppgui\BasicReact\libs;C:\Users\bruce\source\cppgui\BasicReact\include;C:\Program Files\PostgreSQL\17\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <LanguageStandard>stdcpplatest</LanguageStandard>
+      <AdditionalIncludeDirectories>C:\Users\bruce\source\cppgui\BasicReact\libs;C:\Users\bruce\source\cppgui\BasicReact\include;C:\Program Files\PostgreSQL\17\include;D:\source\cppgui\BasicReact\include;D:\source\cppgui\BasicReact\libs;D:\source\cppgui\BasicReact\packages\Microsoft.Web.WebView2.1.0.3124.44\build\native\include;D:\source\cppgui\BasicReact\packages\Microsoft.Windows.ImplementationLibrary.1.0.240803.1\include;D:\Program Files\PostgreSQL\17\include;D:\source\cppgui\BasicReact\packages\nlohmann.json.3.11.3\build\native\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AdditionalOptions>/utf-8</AdditionalOptions>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
     </ClCompile>
@@ -207,7 +207,7 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <SubSystem>Windows</SubSystem>
       <AdditionalDependencies>libpq.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>C:\Users\bruce\source\cppgui\libs;C:\Program Files\PostgreSQL\17\lib;C:\Users\bruce\source\cppgui;C:\Program Files\PostgreSQL\17\bin;C:\Users\bruce\source\cppgui\BasicReact\libs;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>C:\Users\bruce\source\cppgui\libs;C:\Program Files\PostgreSQL\17\lib;C:\Users\bruce\source\cppgui;C:\Program Files\PostgreSQL\17\bin;C:\Users\bruce\source\cppgui\BasicReact\libs;%(AdditionalLibraryDirectories);D:\Program Files\PostgreSQL\17\lib</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'">
@@ -231,7 +231,6 @@
   <ItemGroup>
     <ClCompile Include="DataSender.cpp" />
     <ClCompile Include="DataSenderManager.cpp" />
-    <ClCompile Include="GlazeTest.cpp" />
     <ClCompile Include="HelloWebView.cpp" />
     <ClCompile Include="include\MakeWindow.cpp" />
     <ClCompile Include="libs\shell.c" />
@@ -427,18 +426,16 @@
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
-    <Import Project="..\packages\Microsoft.Web.WebView2.1.0.3065.39\build\native\Microsoft.Web.WebView2.targets" Condition="Exists('..\packages\Microsoft.Web.WebView2.1.0.3065.39\build\native\Microsoft.Web.WebView2.targets')" />
-    <Import Project="..\packages\nlohmann.json.3.11.3\build\native\nlohmann.json.targets" Condition="Exists('..\packages\nlohmann.json.3.11.3\build\native\nlohmann.json.targets')" />
-    <Import Project="..\packages\Microsoft.Windows.ImplementationLibrary.1.0.240803.1\build\native\Microsoft.Windows.ImplementationLibrary.targets" Condition="Exists('..\packages\Microsoft.Windows.ImplementationLibrary.1.0.240803.1\build\native\Microsoft.Windows.ImplementationLibrary.targets')" />
     <Import Project="packages\plog.1.1.10\build\native\plog.targets" Condition="Exists('packages\plog.1.1.10\build\native\plog.targets')" />
+    <Import Project="packages\Microsoft.Web.WebView2.1.0.3124.44\build\native\Microsoft.Web.WebView2.targets" Condition="Exists('packages\Microsoft.Web.WebView2.1.0.3124.44\build\native\Microsoft.Web.WebView2.targets')" />
+    <Import Project="packages\nlohmann.json.3.11.3\build\native\nlohmann.json.targets" Condition="Exists('packages\nlohmann.json.3.11.3\build\native\nlohmann.json.targets')" />
   </ImportGroup>
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
     <PropertyGroup>
       <ErrorText>This project references NuGet package(s) that are missing on this computer. Use NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
     </PropertyGroup>
-    <Error Condition="!Exists('..\packages\Microsoft.Web.WebView2.1.0.3065.39\build\native\Microsoft.Web.WebView2.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\Microsoft.Web.WebView2.1.0.3065.39\build\native\Microsoft.Web.WebView2.targets'))" />
-    <Error Condition="!Exists('..\packages\nlohmann.json.3.11.3\build\native\nlohmann.json.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\nlohmann.json.3.11.3\build\native\nlohmann.json.targets'))" />
-    <Error Condition="!Exists('..\packages\Microsoft.Windows.ImplementationLibrary.1.0.240803.1\build\native\Microsoft.Windows.ImplementationLibrary.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\Microsoft.Windows.ImplementationLibrary.1.0.240803.1\build\native\Microsoft.Windows.ImplementationLibrary.targets'))" />
     <Error Condition="!Exists('packages\plog.1.1.10\build\native\plog.targets')" Text="$([System.String]::Format('$(ErrorText)', 'packages\plog.1.1.10\build\native\plog.targets'))" />
+    <Error Condition="!Exists('packages\Microsoft.Web.WebView2.1.0.3124.44\build\native\Microsoft.Web.WebView2.targets')" Text="$([System.String]::Format('$(ErrorText)', 'packages\Microsoft.Web.WebView2.1.0.3124.44\build\native\Microsoft.Web.WebView2.targets'))" />
+    <Error Condition="!Exists('packages\nlohmann.json.3.11.3\build\native\nlohmann.json.targets')" Text="$([System.String]::Format('$(ErrorText)', 'packages\nlohmann.json.3.11.3\build\native\nlohmann.json.targets'))" />
   </Target>
 </Project>

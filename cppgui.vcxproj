@@ -115,6 +115,7 @@
     <SourcePath>C:Users\bruce\source\cppgui\src;$(SourcePath)</SourcePath>
     <IncludePath>C:\Users\bruce\source\cppgui\src;</IncludePath>
     <RunCodeAnalysis>false</RunCodeAnalysis>
+    <PreBuildEventUseInBuild>false</PreBuildEventUseInBuild>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'">
     <LinkIncremental>true</LinkIncremental>
@@ -155,7 +156,7 @@
       <ConformanceMode>true</ConformanceMode>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <LanguageStandard>stdcpp20</LanguageStandard>
-      <AdditionalIncludeDirectories>C:\Program Files\PostgreSQL\17\include;C:\Users\bruce\source\cppgui\libs;$(SolutionDir)\src\spdlog\sinks;$(SolutionDir)\src\spdlog;$(SolutionDir)\src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>D:\Program Files\PostgreSQL\17\include;C:\Program Files\PostgreSQL\17\include;C:\Users\bruce\source\cppgui\libs;$(SolutionDir)\src\spdlog\sinks;$(SolutionDir)\src\spdlog;$(SolutionDir)\src;D:\source\cppgui\libs;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <AdditionalOptions>/utf-8 %(AdditionalOptions)</AdditionalOptions>
       <LanguageStandard_C>stdc17</LanguageStandard_C>
@@ -165,7 +166,7 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <SubSystem>Windows</SubSystem>
       <AdditionalDependencies>Pathcch.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;libpq.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>C:\Program Files\PostgreSQL\17\lib;C:\Program Files\PostgreSQL\17\bin;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>C:\Program Files\PostgreSQL\17\lib;C:\Program Files\PostgreSQL\17\bin;D:\Program Files\PostgreSQL\17\lib;D:\Program Files\PostgreSQL\17\bin;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
     <PreBuildEvent>
       <Command>
@@ -451,16 +452,5 @@
     <Error Condition="!Exists('packages\nlohmann.json.3.11.3\build\native\nlohmann.json.targets')" Text="$([System.String]::Format('$(ErrorText)', 'packages\nlohmann.json.3.11.3\build\native\nlohmann.json.targets'))" />
     <Error Condition="!Exists('packages\Microsoft.Web.WebView2.1.0.3065.39\build\native\Microsoft.Web.WebView2.targets')" Text="$([System.String]::Format('$(ErrorText)', 'packages\Microsoft.Web.WebView2.1.0.3065.39\build\native\Microsoft.Web.WebView2.targets'))" />
     <Error Condition="!Exists('packages\Microsoft.Windows.ImplementationLibrary.1.0.240803.1\build\native\Microsoft.Windows.ImplementationLibrary.targets')" Text="$([System.String]::Format('$(ErrorText)', 'packages\Microsoft.Windows.ImplementationLibrary.1.0.240803.1\build\native\Microsoft.Windows.ImplementationLibrary.targets'))" />
-  </Target>
-  <Target Name="GenerateHandlers" BeforeTargets="PreBuildEvent" Inputs="$(ProjectDir)Frontend/kitchensink/**/*.js;$(ProjectDir)Frontend/kitchensink/**/*.jsx;$(ProjectDir)Frontend/kitchensink/**/*.ts;$(ProjectDir)Frontend/kitchensink/**/*.tsx" Outputs="$(ProjectDir)Generated/InputHandler.h">
-    <!-- Step 1: Extract UI elements -->
-    <Message Text="Running UI element extraction..." Importance="high" />
-    <Exec Command="extractor &quot;$(ProjectDir)Frontend/kitchensink&quot; --output &quot;$(ProjectDir)UI-Metadata/ui-elements.json&quot; --backend-only" />
-    <!-- Step 2: Convert to compact format -->
-    <Message Text="Converting to compact format..." Importance="high" />
-    <Exec Command="node &quot;$(ProjectDir)Scripts/convert-format.js&quot;" />
-    <!-- Step 3: Generate handlers using the direct script -->
-    <Message Text="Generating input handlers..." Importance="high" />
-    <Exec Command="node &quot;$(ProjectDir)Scripts/generate-handlers-direct.js&quot;" />
   </Target>
 </Project>

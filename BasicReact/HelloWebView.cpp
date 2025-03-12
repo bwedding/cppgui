@@ -83,7 +83,7 @@ void InitializeLog()
     LOGD << "Launching Hello WebView!";
 }
 
-extern void GlazeTest();
+//extern void GlazeTest();
 
 // Timer ID for retrying WebView pointer acquisition
 #define TIMER_RETRY_WEBVIEW 1002
@@ -97,7 +97,7 @@ int CALLBACK WinMain(
 {
     InitializeLog();
 
-    GlazeTest();
+    //GlazeTest();
 
     // Make the window with defaults
     CPPGUI::MakeWindow makeWindow(hInstance, nCmdShow);
@@ -112,10 +112,21 @@ int CALLBACK WinMain(
     if (!hWnd)
         return -1;
 
-    g_webViewManager = StartWebView(hInstance, L"file:///C:/Users/bruce/source/cppgui/Frontend/UI/dist/index.html");
-    //g_webViewManager = StartWebView(hInstance, L"edge://gpu/");
+    // g_webViewManager = StartWebView(hInstance, L"file:///C:/Users/bruce/source/cppgui/Frontend/UI/dist/index.html");
+    g_webViewManager = StartWebView(hInstance, L"file:///D:/source/cppgui/Frontend/UI/dist/index.html");
+
+	//g_webViewManager = StartWebView(hInstance, L"edge://gpu/");
 
     g_dataSenderManager = new DataSenderManager(hWnd);
+
+    g_webViewManager->Subscribe("sharedBuffer", [](const CPPGUI::UIEvent& evt)
+        {
+            if (g_dataSenderManager)
+            {
+                return g_dataSenderManager->HandleDataSenderEvent(evt);
+            }
+            return std::string{}; // Return empty JSON object string if the manager isn't initialized
+        });
 
     g_webViewManager->Subscribe("data-sender-control", [](const CPPGUI::UIEvent& evt)
     {
