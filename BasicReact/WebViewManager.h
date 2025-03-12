@@ -11,6 +11,7 @@
 #include "../packages/Microsoft.Web.WebView2.1.0.3065.39/build/native/include/WebView2.h"
 #include "../packages/Microsoft.Web.WebView2.1.0.3065.39/build/native/include/WebView2EnvironmentOptions.h"
 #include "WebView2DataStreamer.h"
+#include "AppMessageIDs.h"
 
 // Define a custom timer ID for subscription retries
 #define TIMER_ID_SUBSCRIPTION_RETRY 1001

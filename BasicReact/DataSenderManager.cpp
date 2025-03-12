@@ -6,6 +6,7 @@
 #include <nlohmann/json.hpp>
 #include <sstream>
 #include <iomanip>
+#include <string>
 #include <glaze/glaze.hpp>
 #include "AppMessageIDs.h" // Include for message IDs
 
@@ -58,6 +59,66 @@ std::string DataSenderManager::HandleDataSenderEvent(const CPPGUI::UIEvent& evt)
 {
     try
     {
+        // Check if this is a pong response from the frontend for shared buffer flow control
+        //auto payload = json::parse(evt.payload);
+        auto pos1 = evt.payload.contains("\"type\":\"sharedBuffer\"");
+        auto pos2 = evt.payload.contains("\"action\":\"pong\"");
+
+        // Then check if the required fields exist
+        if (pos1 && pos2)
+        {
+            // Parse the JSON
+           // Parse the JSON using Glaze
+            auto result = glz::read_json<glz::json_t>(evt.payload);
+
+            // Check if parsing was successful
+            int bufferId = 0;
+
+            if (!result.error()) {
+                auto& pongData = result.value();
+
+                // Now check if bufferId exists and extract it
+                if (pongData.contains("bufferId")) {
+
+                    // Try to get bufferId value
+                    if (auto* id = glz::get_if<int>(pongData, "bufferId")) {
+                        bufferId = *id;
+                    }
+                    else if (auto* id = glz::get_if<double>(pongData, "bufferId")) {
+                        // Handle case where JSON number might be parsed as double
+                        bufferId = static_cast<int>(*id);
+                    }
+                    else if (auto* id = glz::get_if<std::string>(pongData, "bufferId")) {
+                        // Handle case where bufferId might be a string
+                        try {
+                            bufferId = std::stoi(*id);
+                        }
+                        catch (...) {
+                            // Handle conversion error
+                        }
+                    }
+                }
+            }
+            ///////////////////
+            // Handle the pong response
+            extern std::unique_ptr<WebViewManager> g_webViewManager;
+            if (g_webViewManager)
+            {
+                WebView2DataStreamer* dataStreamer = g_webViewManager->GetDataStreamer();
+                if (dataStreamer)
+                {
+                    // Handle the pong response in the data streamer
+                    dataStreamer->HandlePongResponse(bufferId);
+                    
+                    // Post a message to process the next buffer if available
+                    PostMessage(m_targetWindow, WM_PROCESS_SHARED_BUFFER, 0, 0);
+                    
+                    // Return empty response for pong messages
+                    return "{}";
+                }
+            }
+        }
+        
         // Get the JSON data from the event
         std::string jsonStr = evt.payload;
         PLOGI << "Received data sender control event: " << jsonStr;
@@ -320,11 +381,48 @@ void DataSenderManager::JsonSenderThreadFunc()
     size_t totalBytes = 0;
     auto startTime = std::chrono::high_resolution_clock::now();
     auto lastLogTime = std::chrono::high_resolution_clock::now();
+    
+    // For throttling
+    int sleepTimeMs = 10; // Start with 10ms sleep
+    size_t queueSize = 0;
+    
+    // Get WebViewManager for queue size monitoring
+    extern std::unique_ptr<WebViewManager> g_webViewManager;
+    WebView2DataStreamer* dataStreamer = nullptr;
+    if (g_webViewManager) {
+        dataStreamer = g_webViewManager->GetDataStreamer();
+    }
 
     while (m_threadRunFlags["json"])
     {
         try
         {
+            // Check if we need to throttle based on shared buffer queue size
+            if (dataStreamer) {
+                queueSize = dataStreamer->GetQueueSize();
+                
+                // Adaptive sleep time based on queue size
+                if (queueSize > 100) {
+                    // If queue is getting large, sleep longer to let it drain
+                    sleepTimeMs = 100;
+                } 
+                else if (queueSize > 50) {
+                    sleepTimeMs = 50;
+                } 
+                else if (queueSize > 10) {
+                    sleepTimeMs = 20;
+                } 
+                else {
+                    // Queue is small, we can generate data faster
+                    sleepTimeMs = 10;
+                }
+                
+                // If we're waiting for a pong, slow down even more
+                if (dataStreamer->IsWaitingForPong()) {
+                    sleepTimeMs = (sleepTimeMs > 50) ? sleepTimeMs : 50;
+                }
+            }
+            
             // Create a timestamp
             auto now = std::chrono::system_clock::now();
             auto time_t_now = std::chrono::system_clock::to_time_t(now);
@@ -395,7 +493,9 @@ void DataSenderManager::JsonSenderThreadFunc()
 
                     LOGI << "JSON sender rate: " << messagesPerSecond << " msgs/sec, "
                          << megaBytesPerSecond << " MB/sec (" << totalBytes << " bytes in "
-                         << elapsedSeconds << " seconds), UTF-8 equivalent: " << utf8MegaBytesPerSecond << " MB/sec";
+                         << elapsedSeconds << " seconds), UTF-8 equivalent: " << utf8MegaBytesPerSecond << " MB/sec"
+                         << ", Queue size: " << queueSize
+                         << ", Sleep time: " << sleepTimeMs << "ms";
 
                     lastLogTime = currentTime;
                 }
@@ -405,10 +505,8 @@ void DataSenderManager::JsonSenderThreadFunc()
                 LOGE << "Failed to serialize JSON data";
             }
 
-            // Just a minimal delay to allow other threads to run
-            std::this_thread::sleep_for(std::chrono::microseconds(50));
-            //Sleep(0);
-
+            // Sleep to allow other threads to run and prevent overwhelming the system
+            std::this_thread::sleep_for(std::chrono::milliseconds(sleepTimeMs));
         }
         catch (const std::exception& e)
         {
@@ -436,28 +534,28 @@ void DataSenderManager::NativeObjectSenderThreadFunc(HWND targetWindow, std::ato
     PLOGI << "Native object sender thread stopped";
 }
 
-void DataSenderManager::SharedBufferSenderThreadFunc(HWND targetWindow, std::atomic<bool>* runFlag)
+void DataSenderManager::SharedBufferSenderThreadFunc(HWND targetWindow, std::atomic<bool>* runFlag) 
 {
     PLOGI << "Shared buffer sender thread started";
-
+    
     // Declare the external global variable
     extern std::unique_ptr<WebViewManager> g_webViewManager;
-
+    
     // Check if the WebViewManager is available
-    if (!g_webViewManager)
+    if (!g_webViewManager) 
     {
         PLOGE << "Failed to get WebViewManager: global variable is null";
         return;
     }
-
+    
     // Get the data streamer from the WebViewManager
     WebView2DataStreamer* dataStreamer = g_webViewManager->GetDataStreamer();
-    if (!dataStreamer)
+    if (!dataStreamer) 
     {
         PLOGE << "Failed to get WebView2DataStreamer";
         return;
     }
-
+    
     // Setup random number generators for generating random sensor data
     std::random_device rd;
     std::mt19937 generator(rd());
@@ -465,24 +563,72 @@ void DataSenderManager::SharedBufferSenderThreadFunc(HWND targetWindow, std::ato
     std::uniform_real_distribution<float> pressureDist(980.0f, 1030.0f); // Pressure range in hPa
     std::uniform_real_distribution<float> humidityDist(0.0f, 100.0f);    // Humidity range in %
     std::uniform_real_distribution<float> voltageDist(0.0f, 5.0f);       // Voltage range in V
-
+    
     // For rate calculation
     size_t messageCount = 0;
     auto startTime = std::chrono::high_resolution_clock::now();
     auto lastLogTime = std::chrono::high_resolution_clock::now();
-
-    while (*runFlag)
+    
+    // For adaptive sleep timing
+    int sleepTimeMs = 10; // Start with 10ms sleep as per memory
+    
+    while (*runFlag) 
     {
-        try
+        try 
         {
+            // Check queue size to determine if we should generate more data
+            size_t queueSize = dataStreamer->GetQueueSize();
+            
+            // Adaptive sleep time based on queue size
+            if (queueSize > 500) 
+            {
+                // If queue is extremely large, sleep much longer
+                sleepTimeMs = 200;
+            }
+            else if (queueSize > 200) 
+            {
+                // If queue is very large, sleep longer
+                sleepTimeMs = 100;
+            }
+            else if (queueSize > 100) 
+            {
+                // If queue is getting large, sleep longer to let it drain
+                sleepTimeMs = 50;
+            } 
+            else if (queueSize > 50) 
+            {
+                sleepTimeMs = 20;
+            } 
+            else if (queueSize > 10) 
+            {
+                sleepTimeMs = 10;
+            } 
+            else 
+            {
+                // Queue is small, we can generate data faster
+                sleepTimeMs = 1;
+            }
+            
+            // If we're waiting for a pong, slow down even more
+            if (dataStreamer->IsWaitingForPong()) {
+                sleepTimeMs = (sleepTimeMs > 50) ? sleepTimeMs : 50;
+            }
+            
+            // Skip generating new data if queue is too large
+            if (queueSize > 1000) {
+                // Just sleep and check again
+                std::this_thread::sleep_for(std::chrono::milliseconds(sleepTimeMs));
+                continue;
+            }
+            
             // Create sensor data structure
             SensorData sensorData;
-
+            
             // Fill with random data
             uint64_t currentTimestamp = std::chrono::duration_cast<std::chrono::milliseconds>(
-                                            std::chrono::system_clock::now().time_since_epoch()).count();
-
-            for (int i = 0; i < 4096; i++)
+                std::chrono::system_clock::now().time_since_epoch()).count();
+                
+            for (int i = 0; i < 4096; i++) 
             {
                 sensorData.temperature[i] = tempDist(generator);
                 sensorData.pressure[i] = pressureDist(generator);
@@ -490,58 +636,57 @@ void DataSenderManager::SharedBufferSenderThreadFunc(HWND targetWindow, std::ato
                 sensorData.voltage[i] = voltageDist(generator);
                 sensorData.timestamp[i] = currentTimestamp + i;
             }
-
-            // Queue the data to the streamer
-            dataStreamer->QueueData(sensorData);
-
-            // Post a message to the UI thread to process the shared buffer queue
-            PostMessage(targetWindow, WM_PROCESS_SHARED_BUFFER, 0, 0);
-
-            // Send a notification to the frontend that data is ready
-            // Create a simple JSON message
-            json dataReadyMsg =
+            
+            // Prepare the data for the shared buffer (thread-safe)
+            bool success = dataStreamer->PrepareSharedBufferData(sensorData);
+            
+            if (success)
             {
-                {"type", "sharedBuffer"},
-                {"action", "dataready"},
-                {"timestamp", std::to_string(currentTimestamp)},
-                {"size", sizeof(SensorData)}
-            };
-
-            // Convert to string and send
-            std::string jsonStr = dataReadyMsg.dump();
-            WebViewMessage webviewMsg;
-            webviewMsg.type = MessageType::Json;
-            webviewMsg.data = StringUtils::Utf8ToWide(jsonStr);
-            QueueWebViewMessage(webviewMsg);
-
-            // Update message count for rate calculation
-            messageCount++;
-
-            // Calculate and log rate every second
-            auto now = std::chrono::high_resolution_clock::now();
-            auto elapsed = std::chrono::duration_cast<std::chrono::seconds>(now - lastLogTime).count();
-
-            if (elapsed >= 1)
-            {
-                double rate = static_cast<double>(messageCount) / elapsed;
-                double mbPerSec = (rate * sizeof(SensorData)) / (1024.0 * 1024.0);
-
-                PLOGI << "Shared buffer sending rate: " << std::fixed << std::setprecision(2)
-                      << rate << " msgs/sec (" << mbPerSec << " MB/sec)";
-
-                messageCount = 0;
-                lastLogTime = now;
+                // Post a message to the UI thread to process the shared buffer queue
+                // This ensures WebView2 API calls happen on the UI thread
+                PostMessage(targetWindow, WM_PROCESS_SHARED_BUFFER, 0, 0);
+                
+                // Update message count for rate calculation
+                messageCount++;
+                
+                // Calculate and log the rate periodically
+                auto currentTime = std::chrono::high_resolution_clock::now();
+                auto elapsedSecs = std::chrono::duration_cast<std::chrono::seconds>(currentTime - lastLogTime).count();
+                
+                if (elapsedSecs >= 1) 
+                {
+                    // Calculate messages per second
+                    double msgsPerSec = static_cast<double>(messageCount) / 
+                        std::chrono::duration_cast<std::chrono::seconds>(currentTime - startTime).count();
+                    
+                    // Calculate MB per second
+                    double mbPerSec = (msgsPerSec * sizeof(SensorData)) / (1024 * 1024);
+                    
+                    // Get queue size and ping-pong status for monitoring
+                    bool waitingForPong = dataStreamer->IsWaitingForPong();
+                    
+                    PLOGI << "Shared buffer sending rate: " << std::fixed << std::setprecision(2) 
+                          << msgsPerSec << " msgs/sec (" << mbPerSec << " MB/sec), Queue size: " << queueSize
+                          << ", Waiting for pong: " << (waitingForPong ? "Yes" : "No")
+                          << ", Sleep time: " << sleepTimeMs << "ms";
+                    
+                    lastLogTime = currentTime;
+                }
             }
-
-            // Sleep to control the rate (adjust as needed)
-            std::this_thread::sleep_for(std::chrono::milliseconds(1)); // Reduced from 100ms to 1ms for much higher throughput
+            else
+            {
+                PLOGE << "Failed to prepare shared buffer data";
+            }
+            
+            // Sleep to control the rate (adaptive based on queue size)
+            std::this_thread::sleep_for(std::chrono::milliseconds(sleepTimeMs));
         }
-        catch (const std::exception& e)
+        catch (const std::exception& e) 
         {
             PLOGE << "Error in shared buffer sender thread: " << e.what();
             std::this_thread::sleep_for(std::chrono::seconds(1)); // Sleep longer on error
         }
     }
-
+    
     PLOGI << "Shared buffer sender thread stopped";
 }

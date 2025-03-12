@@ -178,8 +178,32 @@ LRESULT ProcessSharedBufferMessage(HWND hwnd, WPARAM wParam, LPARAM lParam)
         return 0;
     }
 
-    // Process the queued data (up to 10 items at a time)
-    dataStreamer->ProcessQueue(100); // Increased from 50 to 200 for better throughput
+    // Track if we're already processing to prevent recursive calls
+    static bool isProcessing = false;
+    if (isProcessing)
+    {
+        // Already processing, just return
+        return 0;
+    }
+
+    // Set the processing flag
+    isProcessing = true;
+
+    // Process the queued data (up to 10 items at a time to prevent UI freezing)
+    // The ProcessQueue function now returns a boolean indicating if data was processed
+    bool processed = dataStreamer->ProcessQueue(10); // Process up to 10 items at once
+    
+    // If we processed data and there's more in the queue, and we're not waiting for a pong,
+    // post another message to continue processing
+    if (dataStreamer->HasQueuedData() && !dataStreamer->IsWaitingForPong())
+    {
+        // Post another message to continue processing if there's more data
+        // Use a slight delay to give the UI thread time to breathe
+        PostMessage(hwnd, WM_PROCESS_SHARED_BUFFER, 0, 0);
+    }
+
+    // Clear the processing flag
+    isProcessing = false;
 
     return 0;
 }

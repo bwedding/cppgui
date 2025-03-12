@@ -3,6 +3,7 @@
 #include "SystemUtils.h"
 #include <WebView2EnvironmentOptions.h>
 #include <wrl/event.h>
+#include <glaze/glaze.hpp>
 
 WebViewManager::WebViewManager(HWND hWnd, HINSTANCE hInstance)
     : m_hWnd(hWnd), m_hInstance(hInstance), m_uiThreadId(GetCurrentThreadId()) {}
@@ -61,7 +62,6 @@ void WebViewManager::InitializeWebView()
                     Callback<ICoreWebView2NavigationStartingEventHandler>(
                         [this](ICoreWebView2* webview, ICoreWebView2NavigationStartingEventArgs* args)
                 {
-                    LOGD << "Navigation starting";
                     return S_OK;
                 }).Get(), &m_navigationToken);
 
@@ -80,9 +80,6 @@ void WebViewManager::InitializeWebView()
                     webview->get_Source(&uri);
 
                     std::wstring uriStr = uri.get();
-                    LOGD << "Navigation completed to: " << SystemUtils::WideToUtf8(uriStr)
-                         << " Success: " << (success ? "true" : "false");
-
                     if (!success)
                     {
                         LOGE << "Navigation error: " << errorStatus;
@@ -115,15 +112,83 @@ void WebViewManager::InitializeWebView()
                     wil::unique_cotaskmem_string message;
                     args->TryGetWebMessageAsString(&message);
 
-                    // Parse event type from JSON
                     try
                     {
+                        int bufferId = 0;
                         auto msg = message.get();
-                        // Convert wide string to UTF-8
-                        std::string utf8Msg = SystemUtils::wchar_to_UTF8(msg);
-                        auto json = nlohmann::json::parse(utf8Msg);
-                        std::string eventType = json["type"];
-                        m_nativeControls->HandleWebViewEvent(eventType, json.dump());
+                        // Add null check before converting to UTF8
+                        std::string utf8Msg;
+                        if (msg != nullptr) {
+                            utf8Msg = SystemUtils::wchar_to_UTF8(msg);
+                            //PLOGI << "Received WebMessage: " << utf8Msg.substr(0, 100) << (utf8Msg.length() > 100 ? "..." : "");
+                        } else {
+                            return S_OK; // Skip processing for null messages
+                        }
+                        
+                        // Skip empty messages
+                        if (utf8Msg.empty() || utf8Msg == "{}") {
+                            return S_OK;
+                        }
+                        
+                        // Parse with Glaze
+                        auto json = glz::read_json<glz::json_t>(utf8Msg);
+                        
+                        // Check if this is a pong message for shared buffer flow control
+                        if (json.has_value() && json->is_object()) {
+                            auto& obj = json->get_object();
+                            
+                            // Check if this is a pong message
+                            auto typeIt = obj.find("type");
+                            auto actionIt = obj.find("action");
+                            
+                            if (typeIt != obj.end() && typeIt->second.is_string() && 
+                                typeIt->second.get_string() == "sharedBuffer" &&
+                                actionIt != obj.end() && actionIt->second.is_string() && 
+                                actionIt->second.get_string() == "pong") {
+                                
+                                // Extract buffer ID
+                                auto bufferIdIt = obj.find("bufferId");
+                                if (bufferIdIt != obj.end()) {
+                                    if (bufferIdIt->second.is_number()) {
+                                        bufferId = static_cast<int>(bufferIdIt->second.get_number());
+                                    } else if (bufferIdIt->second.is_string()) {
+                                        try {
+                                            bufferId = std::stoi(bufferIdIt->second.get_string());
+                                        } catch (...) {
+                                            PLOGE << "Failed to convert bufferId string to int";
+                                        }
+                                    }
+                                }
+                                
+                                // Handle pong message directly
+                                //PLOGI << "Received pong message with bufferId: " << bufferId;
+                                
+                                if (m_dataStreamer) {
+                                    m_dataStreamer->HandlePongResponse(bufferId);
+                                    
+                                    // Post a message to process the next buffer if available
+                                    PostMessage(m_hWnd, WM_PROCESS_SHARED_BUFFER, 0, 0);
+                                }
+                                
+                                return S_OK;
+                            }
+                        }
+                        
+                        // For other message types, use the standard event handling
+                        std::string eventType;
+                        if (json.has_value() && json->is_object()) {
+                            auto& obj = json->get_object();
+                            auto typeIt = obj.find("type");
+                            if (typeIt != obj.end() && typeIt->second.is_string()) {
+                                eventType = typeIt->second.get_string();
+                            }
+                        }
+                        
+                        if (!eventType.empty()) {
+                            m_nativeControls->HandleWebViewEvent(eventType, utf8Msg);
+                        } else {
+                            LOGW << "Received message with no type field: " << utf8Msg.substr(0, 100);
+                        }
                     }
                     catch (const std::exception& e)
                     {
@@ -201,8 +266,6 @@ HRESULT WebViewManager::PostJSONMessageToWebView(const std::wstring& message)
 
 void WebViewManager::NavigateToPage(const std::wstring& page)
 {
-    LOGD << "Navigating to page: " << SystemUtils::WideToUtf8(page);
-
     if (!m_webview)
         return;
 
