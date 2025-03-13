@@ -60,35 +60,38 @@ std::string DataSenderManager::HandleDataSenderEvent(const CPPGUI::UIEvent& evt)
     try
     {
         // Check if this is a pong response from the frontend for shared buffer flow control
-        //auto payload = json::parse(evt.payload);
         auto pos1 = evt.payload.contains("\"type\":\"sharedBuffer\"");
         auto pos2 = evt.payload.contains("\"action\":\"pong\"");
 
         // Then check if the required fields exist
         if (pos1 && pos2)
         {
-            // Parse the JSON
            // Parse the JSON using Glaze
             auto result = glz::read_json<glz::json_t>(evt.payload);
 
             // Check if parsing was successful
             int bufferId = 0;
 
-            if (!result.error()) {
+            if (!result.error()) 
+            {
                 auto& pongData = result.value();
 
                 // Now check if bufferId exists and extract it
-                if (pongData.contains("bufferId")) {
+                if (pongData.contains("bufferId")) 
+                {
 
                     // Try to get bufferId value
-                    if (auto* id = glz::get_if<int>(pongData, "bufferId")) {
+                    if (auto* id = glz::get_if<int>(pongData, "bufferId")) 
+                    {
                         bufferId = *id;
                     }
-                    else if (auto* id = glz::get_if<double>(pongData, "bufferId")) {
+                    else if (auto* id = glz::get_if<double>(pongData, "bufferId")) 
+                    {
                         // Handle case where JSON number might be parsed as double
                         bufferId = static_cast<int>(*id);
                     }
-                    else if (auto* id = glz::get_if<std::string>(pongData, "bufferId")) {
+                    else if (auto* id = glz::get_if<std::string>(pongData, "bufferId")) 
+                    {
                         // Handle case where bufferId might be a string
                         try {
                             bufferId = std::stoi(*id);
@@ -99,7 +102,6 @@ std::string DataSenderManager::HandleDataSenderEvent(const CPPGUI::UIEvent& evt)
                     }
                 }
             }
-            ///////////////////
             // Handle the pong response
             extern std::unique_ptr<WebViewManager> g_webViewManager;
             if (g_webViewManager)
@@ -365,16 +367,16 @@ void DataSenderManager::JsonSenderThreadFunc()
     std::mt19937 generator(rd());
 
     // Random distribution for number of values in array
-    std::uniform_int_distribution<size_t> valueCountDist(500, 2000);
+    std::uniform_int_distribution<size_t> valueCountDist(100, 1000);
 
     // Random distribution for values
     std::uniform_real_distribution<double> valueDist(0.0, 1000.0);
 
     // Random distribution for metadata entries
-    std::uniform_int_distribution<size_t> metadataCountDist(100, 300);
+    std::uniform_int_distribution<size_t> metadataCountDist(50, 250);
 
     // String size for metadata keys/values
-    std::uniform_int_distribution<size_t> stringSizeDist(2000, 10000);
+    std::uniform_int_distribution<size_t> stringSizeDist(30, 500);
 
     // For rate calculation
     size_t messageCount = 0;
@@ -383,13 +385,14 @@ void DataSenderManager::JsonSenderThreadFunc()
     auto lastLogTime = std::chrono::high_resolution_clock::now();
     
     // For throttling
-    int sleepTimeUs = 1; // Start with 1ms sleep
+    int sleepTimeUs = 1; // Start with 50us sleep
     size_t queueSize = 0;
     
     // Get WebViewManager for queue size monitoring
     extern std::unique_ptr<WebViewManager> g_webViewManager;
     WebView2DataStreamer* dataStreamer = nullptr;
-    if (g_webViewManager) {
+    if (g_webViewManager) 
+    {
         dataStreamer = g_webViewManager->GetDataStreamer();
     }
 
@@ -398,28 +401,34 @@ void DataSenderManager::JsonSenderThreadFunc()
         try
         {
             // Check if we need to throttle based on shared buffer queue size
-            if (dataStreamer) {
+            if (dataStreamer) 
+            {
                 queueSize = dataStreamer->GetQueueSize();
                 
                 // Adaptive sleep time based on queue size
-                if (queueSize > 100) {
+                if (queueSize > 10) 
+                {
                     // If queue is getting large, sleep longer to let it drain
-                    sleepTimeUs = 50;
+                    sleepTimeUs = 8;
                 } 
-                else if (queueSize > 50) {
-                    sleepTimeUs = 10;
+                else if (queueSize > 50) 
+                {
+                    sleepTimeUs = 4;
                 } 
-                else if (queueSize > 10) {
-                    sleepTimeUs = 5;
+                else if (queueSize > 10) 
+                {
+                    sleepTimeUs = 2;
                 } 
-                else {
+                else 
+                {
                     // Queue is small, we can generate data faster
-                    sleepTimeUs = 11;
+                    sleepTimeUs = 1;
                 }
                 
                 // If we're waiting for a pong, slow down even more
-                if (dataStreamer->IsWaitingForPong()) {
-                    sleepTimeUs = (sleepTimeUs > 50) ? sleepTimeUs : 50;
+                if (dataStreamer->IsWaitingForPong()) 
+                {
+                    sleepTimeUs = (sleepTimeUs > 1000) ? sleepTimeUs : 1000;
                 }
             }
             
@@ -495,7 +504,7 @@ void DataSenderManager::JsonSenderThreadFunc()
                          << megaBytesPerSecond << " MB/sec (" << totalBytes << " bytes in "
                          << elapsedSeconds << " seconds), UTF-8 equivalent: " << utf8MegaBytesPerSecond << " MB/sec"
                          << ", Queue size: " << queueSize
-                         << ", Sleep time: " << sleepTimeUs << "ms";
+                         << ", Sleep time: " << sleepTimeUs << "us";
 
                     lastLogTime = currentTime;
                 }
@@ -506,7 +515,7 @@ void DataSenderManager::JsonSenderThreadFunc()
             }
 
             // Sleep to allow other threads to run and prevent overwhelming the system
-            std::this_thread::sleep_for(std::chrono::milliseconds(sleepTimeUs));
+            std::this_thread::sleep_for(std::chrono::microseconds(sleepTimeUs));
         }
         catch (const std::exception& e)
         {
@@ -570,7 +579,7 @@ void DataSenderManager::SharedBufferSenderThreadFunc(HWND targetWindow, std::ato
     auto lastLogTime = std::chrono::high_resolution_clock::now();
     
     // For adaptive sleep timing
-    int sleepTimeUs = 1; // Start with 10ms sleep as per memory
+    int sleepTimeUs = 1; // Start with 1us sleep as per memory
     
     while (*runFlag) 
     {
@@ -679,7 +688,7 @@ void DataSenderManager::SharedBufferSenderThreadFunc(HWND targetWindow, std::ato
             }
             
             // Sleep to control the rate (adaptive based on queue size)
-            std::this_thread::sleep_for(std::chrono::milliseconds(sleepTimeUs));
+            std::this_thread::sleep_for(std::chrono::microseconds(sleepTimeUs));
         }
         catch (const std::exception& e) 
         {

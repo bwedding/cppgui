@@ -156,7 +156,7 @@ public:
 
         // Limit how many items we process at once to avoid UI freezing
         int processed = 0;
-        int maxToProcess = (maxItems < 10) ? maxItems : 10; // Process at most 10 items at once to prevent UI freezing
+        int maxToProcess = (maxItems < 100) ? maxItems : 100; // Process at most 100 items at once to prevent UI freezing
         
         while (!m_dataQueue.empty() && processed < maxToProcess && !m_waitingForPong) 
         {
