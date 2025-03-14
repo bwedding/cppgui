@@ -589,6 +589,43 @@ function App()
                       sampleData: sampleData,
                       bufferSize: buffer ? buffer.byteLength : 0
                     });
+                    
+                    // IMPORTANT: Update stats immediately to ensure gauge updates
+                    // This ensures we don't wait for the worker to respond
+                    const dataSize = buffer.byteLength;
+                    setStats(prevStats => {
+                      const now = Date.now();
+                      const timeDiff = now - (prevStats.sharedBuffer.lastTimestamp || now);
+                      const firstTimestamp = prevStats.sharedBuffer.firstTimestamp || now;
+                      
+                      // Calculate instantaneous rate for immediate UI feedback
+                      let instantRateMbps = 0;
+                      if (timeDiff > 10) {
+                        const dataSizeMb = (dataSize * 8) / 1000000;
+                        instantRateMbps = dataSizeMb / (timeDiff / 1000);
+                        if (instantRateMbps > 1000) instantRateMbps = 1000; // Cap at 1000 Mb/s
+                      } else {
+                        instantRateMbps = prevStats.sharedBuffer.rate || 100;
+                      }
+                      
+                      // Simple smoothing for immediate UI feedback
+                      const smoothedRate = prevStats.sharedBuffer.smoothedRate 
+                        ? (0.3 * instantRateMbps) + (0.7 * prevStats.sharedBuffer.smoothedRate)
+                        : instantRateMbps;
+                      
+                      return {
+                        ...prevStats,
+                        sharedBuffer: {
+                          ...prevStats.sharedBuffer,
+                          count: (prevStats.sharedBuffer.count || 0) + 1,
+                          bytesReceived: (prevStats.sharedBuffer.bytesReceived || 0) + dataSize,
+                          lastTimestamp: now,
+                          firstTimestamp: firstTimestamp,
+                          rate: instantRateMbps,
+                          smoothedRate: smoothedRate
+                        }
+                      };
+                    });
                   } else {
                     console.warn('Web Worker not initialized yet, cannot process buffer');
                   }
