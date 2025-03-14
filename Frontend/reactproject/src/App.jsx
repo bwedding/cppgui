@@ -1,5 +1,5 @@
 import LEDBar from './ledbargraph';
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import './App.css'
 import './index.css'  // Make sure this import exists
 import { RadialGauge } from 'react-canvas-gauges'
@@ -26,6 +26,9 @@ function App()
     sharedBuffer: false
   });
   
+  // Reference to the Web Worker for shared buffer processing
+  const sharedBufferWorkerRef = useRef(null);
+
   const calculateRate = (stats, type, bytes) => 
   {
     // Guard against invalid inputs
@@ -59,9 +62,6 @@ function App()
     { // Less than 1ms or invalid
       return currentStats.smoothedRate || 0;
     }
-    
-    // The key issue: we're calculating rate based on individual message size
-    // divided by a very small time difference, which inflates the rate
     
     // Instead, calculate based on a sliding window approach
     // Track bytes received in the last second
@@ -177,7 +177,14 @@ function App()
       {
         // If we're stopping the shared buffer, release all active buffers
         if (senderType === 'sharedBuffer' && window.chrome && window.chrome.webview) {
-          console.log(`Releasing ${0} active shared buffers`);
+          console.log(`Releasing active shared buffers`);
+          
+          // Terminate the Web Worker if it exists
+          if (sharedBufferWorkerRef.current) {
+            console.log('Terminating shared buffer Web Worker');
+            sharedBufferWorkerRef.current.terminate();
+            sharedBufferWorkerRef.current = null;
+          }
         }
         
         // Reset the stats to ensure the gauge shows zero
@@ -195,7 +202,6 @@ function App()
           }
         }));
       }
-      
     }
   }
 
@@ -206,32 +212,155 @@ function App()
     sendDataSenderControl(senderType, isRunning ? 'stop' : 'start');
   }
 
-  useEffect(() => 
-  {
+  useEffect(() => {
+    // Create a new Web Worker for shared buffer processing
+    if (runningSenders.sharedBuffer && !sharedBufferWorkerRef.current) {
+      const worker = new Worker('/sharedBufferWorker.js');
+      sharedBufferWorkerRef.current = worker;
+
+      // Handle messages from the Web Worker
+      worker.onmessage = (event) => {
+        const { type, error, bufferId, sampleData, bufferSize, processingTime, analysisResults } = event.data;
+        
+        if (type === 'error') {
+          console.error('Error in shared buffer worker:', error);
+        } else if (type === 'processed') {
+          // Update stats for the shared buffer based on worker data
+          const dataSize = bufferSize || 0;
+          
+          setStats(prevStats => {
+            const now = Date.now();
+            const timeDiff = now - (prevStats.sharedBuffer.lastTimestamp || now);
+            
+            // Only initialize firstTimestamp if it's not set yet
+            const firstTimestamp = prevStats.sharedBuffer.firstTimestamp || now;
+            
+            // Calculate instantaneous rate based on this buffer only
+            let instantRateMbps;
+            
+            // Calculate instantaneous rate in Mb/s
+            if (timeDiff > 10) { // Only calculate if time difference is meaningful (>10ms)
+              // Convert bytes to Mb (bytes * 8 / 1000000)
+              const dataSizeMb = (dataSize * 8) / 1000000;
+              // Calculate rate in Mb/s (Mb / seconds)
+              instantRateMbps = dataSizeMb / (timeDiff / 1000);
+              
+              // Cap the rate at 500 Mb/s to prevent allocation errors
+              if (instantRateMbps > 500) {
+                instantRateMbps = 500;
+              }
+              
+              // Ensure we never show zero for a valid calculation
+              if (instantRateMbps < 0.01) instantRateMbps = 0.01;
+            } else {
+              // If time difference is too small or invalid, use previous rate or default
+              instantRateMbps = prevStats.sharedBuffer.rate || 100;
+            }
+            
+            // Use exponential smoothing for more stable readings
+            let dampingFactor;
+            if (prevStats.sharedBuffer.count < 10) {
+              dampingFactor = 0.2; // More responsive at the start
+            } else if (prevStats.sharedBuffer.count < 50) {
+              dampingFactor = 0.1; // Medium smoothing as we stabilize
+            } else {
+              dampingFactor = 0.02; // More smoothing for stable long-term reading
+            }
+            
+            // Calculate smoothed rate
+            let smoothedRate;
+            if (!prevStats.sharedBuffer.smoothedRate || prevStats.sharedBuffer.smoothedRate === 0) {
+              smoothedRate = instantRateMbps;
+            } else {
+              // Apply exponential smoothing
+              smoothedRate = (dampingFactor * instantRateMbps) + 
+                           ((1 - dampingFactor) * prevStats.sharedBuffer.smoothedRate);
+            }
+            
+            // Update total bytes for overall average calculation
+            const bytesReceived = prevStats.sharedBuffer.bytesReceived + dataSize;
+            
+            // Calculate overall average (for reference)
+            const elapsedTotal = (now - firstTimestamp) / 1000; // seconds
+            
+            // Reset firstTimestamp if it's too old (>30 seconds) to avoid skewed averages
+            let adjustedFirstTimestamp = firstTimestamp;
+            if (elapsedTotal > 30 && prevStats.sharedBuffer.count < 10) {
+              adjustedFirstTimestamp = now;
+            }
+            
+            const newCount = prevStats.sharedBuffer.count + 1;
+            
+            // Log every 10th update to avoid console spam
+            if (newCount % 10 === 0) {
+              console.log(`Shared buffer stats: Count=${newCount}, ` +
+                         `Instant: ${instantRateMbps.toFixed(2)} Mb/s, ` +
+                         `Smoothed: ${smoothedRate.toFixed(2)} Mb/s, ` +
+                         `Processing time: ${processingTime?.toFixed(2) || 'N/A'} ms`);
+            }
+            
+            // Log sample data occasionally (similar to the original code)
+            if (Math.random() < 0.001 && sampleData) {
+              console.log('Processed buffer data from worker:');
+              console.log(`Buffer ID: ${bufferId}`);
+              console.log(`Sample temperature: ${sampleData.temperature}`);
+              console.log(`Sample pressure: ${sampleData.pressure}`);
+              console.log(`Sample humidity: ${sampleData.humidity}`);
+              console.log(`Sample voltage: ${sampleData.voltage}`);
+              console.log(`Sample timestamp: ${sampleData.timestamp}`);
+              
+              if (analysisResults) {
+                console.log('Analysis results:', analysisResults);
+              }
+            }
+            
+            return {
+              ...prevStats,
+              sharedBuffer: {
+                ...prevStats.sharedBuffer,
+                count: newCount,
+                bytesReceived: bytesReceived,
+                lastTimestamp: now,
+                firstTimestamp: adjustedFirstTimestamp,
+                rate: instantRateMbps,
+                instantRate: instantRateMbps,
+                smoothedRate: smoothedRate
+              }
+            };
+          });
+        }
+      };
+    }
+    
+    // Clean up the Web Worker when the component unmounts or when shared buffer sender is stopped
+    return () => {
+      if (sharedBufferWorkerRef.current && !runningSenders.sharedBuffer) {
+        console.log('Terminating shared buffer Web Worker');
+        sharedBufferWorkerRef.current.terminate();
+        sharedBufferWorkerRef.current = null;
+      }
+    };
+  }, [runningSenders.sharedBuffer]);
+
+  useEffect(() => {
     // Set up web message event listener
-    if (window.chrome && window.chrome.webview) 
-    {
+    if (window.chrome && window.chrome.webview) {
       // Define the message handler function
-      const handleMessage = event => 
-      {
-        try 
-        {
+      const handleMessage = (event) => {
+        try {
           // Get the message data and size
           const message = event.data;
           let messageType = 'unknown'; 
           let dataSize = 0;
           console.log("Handling message");
           // Determine message type and size
-          if (typeof message === 'string') 
-          {
+          if (typeof message === 'string') {
             console.log("It's a string");
-            try 
-            {
+            try {
               // Try to parse as JSON first - a JSON message sent via PostWebMessageAsJson 
               // will arrive as a JavaScript object, not a string
               const parsed = JSON.parse(message);
-              if (parsed && typeof parsed === 'object' && parsed.type === 'json') 
-              {
+              if (parsed && typeof parsed === 'object' && parsed.type === 'json') {
                 console.log("It's a real json data");
                 // This is actually JSON data
                 messageType = 'json';
@@ -241,13 +370,11 @@ function App()
                 setStats(prevStats => ({ ...prevStats, json: { ...prevStats.json, smoothedRate: rate } }));
                 
                 // Debug output
-                if (Math.random() < 0.01) 
-                { 
+                if (Math.random() < 0.01) { 
                   console.log('JSON data detected in string message:', parsed);
                 }
               }
-              else 
-              {
+              else {
                 // It's a string that happens to be valid JSON but not our JSON format
                 console.log("It's a string that happens to be valid JSON but not our JSON format");
                 messageType = 'string';
@@ -269,8 +396,7 @@ function App()
                 setStats(prevStats => ({ ...prevStats, string: { ...prevStats.string, smoothedRate: rate } }));
               }
             } 
-            catch (error) 
-            {
+            catch (error) {
               // Not valid JSON, so it's a plain string
               console.log("Not valid JSON, so it's a plain string");
 
@@ -293,13 +419,11 @@ function App()
               setStats(prevStats => ({ ...prevStats, string: { ...prevStats.string, smoothedRate: rate } }));
             }
           } 
-          else if (typeof message === 'object') 
-          {
+          else if (typeof message === 'object') {
             console.log("it's an object");
 
             // Try to identify the type from the object
-            if (message.type === 'json') 
-            {
+            if (message.type === 'json') {
               console.log("it's a json object");
 
               messageType = 'json';
@@ -308,8 +432,7 @@ function App()
               const rate = calculateRate(stats, messageType, dataSize);
               setStats(prevStats => ({ ...prevStats, json: { ...prevStats.json, smoothedRate: rate } }));
             } 
-            else if (message.type === 'nativeObject') 
-            {
+            else if (message.type === 'nativeObject') {
               console.log("it's a native object");
               messageType = 'nativeObject';
               dataSize = new Blob([JSON.stringify(message.data || message)]).size;
@@ -317,18 +440,15 @@ function App()
               const rate = calculateRate(stats, messageType, dataSize);
               setStats(prevStats => ({ ...prevStats, nativeObject: { ...prevStats.nativeObject, smoothedRate: rate } }));
             } 
-            else if (message.type === 'sharedBuffer') 
-            {
+            else if (message.type === 'sharedBuffer') {
               console.log("it's a shared buffer");
 
               messageType = 'sharedBuffer';
               // For shared buffer, message.data might be an ArrayBuffer
-              if (message.data instanceof ArrayBuffer) 
-              {
+              if (message.data instanceof ArrayBuffer) {
                 dataSize = message.data.byteLength;
               } 
-              else 
-              {
+              else {
                 dataSize = new Blob([JSON.stringify(message.data || message)]).size;
               }
               // Store the original size for later use
@@ -339,8 +459,7 @@ function App()
               dataSize = tempSize;
 
               // Check if this is a dataready notification
-              if (message.action === 'dataready') 
-              {
+              if (message.action === 'dataready') {
                 console.log(`Shared buffer data ready notification: ${message.timestamp}, size: ${message.size} bytes`);
                 
                 // We'll only count the actual buffer when it arrives, not here
@@ -353,8 +472,7 @@ function App()
                 setStats(prevStats => ({ ...prevStats, sharedBuffer: { ...prevStats.sharedBuffer, smoothedRate: rate } }));
               }
             }
-            else 
-            {
+            else {
               // Handle generic objects - assume string if we can't identify it
               messageType = 'string';
               dataSize = new Blob([JSON.stringify(message)]).size;
@@ -365,13 +483,11 @@ function App()
           }
           
           // Log some messages for debugging purposes (not every message to avoid spam)
-          if (Math.random() < 0.01) 
-          { 
+          if (Math.random() < 0.01) { 
             console.log(`Received ${messageType} message, size: ${dataSize} bytes`);
           }
         } 
-        catch (error) 
-        {
+        catch (error) {
           console.error('Error processing message:', error);
         }
       };
@@ -389,10 +505,12 @@ function App()
   }, [stats]);
 
   useEffect(() => {
+    // Reference to the Web Worker for shared buffer processing
+    const sharedBufferWorker = sharedBufferWorkerRef.current;
+
     if (window.chrome && window.chrome.webview) {
       // Define the event handler function separately so we can remove it later
       const handleSharedBufferReceived = (event) => {
-        console.log("I'm in the shared buffer handler!");
         try {
           // Log every shared buffer event for debugging
           console.log('Shared buffer event received!');
@@ -403,158 +521,27 @@ function App()
           
           try {
             // Try to parse the metadata as JSON
-            if (typeof event.additionalData === 'string') 
-            {
+            if (typeof event.additionalData === 'string') {
               metadata = JSON.parse(event.additionalData);
             } 
-            else if (typeof event.additionalData === 'object') 
-            {
+            else if (typeof event.additionalData === 'object') {
               // If it's already an object, use it directly
               metadata = event.additionalData;
             }
-          } catch (parseError) 
-          {
+          } catch (parseError) {
             console.warn('Error parsing metadata:', parseError);
             console.log('Raw metadata:', event.additionalData);
             // Continue with empty metadata object
           }
-          
           console.log('Shared buffer metadata:', metadata);
           console.log('Buffer size:', buffer.byteLength);
           
-          // Update stats for the shared buffer
-          const dataSize = metadata.dataSize || buffer.byteLength;
-          
-          setStats(prevStats => 
-          {
-            const now = Date.now();
-            const timeDiff = now - (prevStats.sharedBuffer.lastTimestamp || now);
-            
-            // Only initialize firstTimestamp if it's not set yet
-            const firstTimestamp = prevStats.sharedBuffer.firstTimestamp || now;
-            
-            // Calculate instantaneous rate based on this buffer only
-            // For the first few buffers, use a more conservative approach
-            let instantRateMbps;
-            
-            // Calculate instantaneous rate in Mb/s
-            // Convert bytes to bits (*8) and milliseconds to seconds (/1000)
-            if (timeDiff > 10) { // Only calculate if time difference is meaningful (>10ms)
-              // Convert bytes to Mb (bytes * 8 / 1000000)
-              const dataSizeMb = (dataSize * 8) / 1000000;
-              // Calculate rate in Mb/s (Mb / seconds)
-              instantRateMbps = dataSizeMb / (timeDiff / 1000);
-              
-              // Only cap extremely unreasonable values (>2000 Mb/s)
-              if (instantRateMbps > 2000) {
-                instantRateMbps = 350; // Use a reasonable default if calculation is extreme
-              }
-              
-              // Ensure we never show zero for a valid calculation
-              if (instantRateMbps < 0.01) instantRateMbps = 0.01;
-            } else {
-              // If time difference is too small or invalid, use previous rate or default
-              instantRateMbps = prevStats.sharedBuffer.rate || 100;
-            }
-            
-            // Use exponential smoothing for more stable readings
-            // Adjust damping factor based on how many buffers we've received
-            let dampingFactor;
-            if (prevStats.sharedBuffer.count < 10) {
-              dampingFactor = 0.2; // More responsive at the start
-            } else if (prevStats.sharedBuffer.count < 50) {
-              dampingFactor = 0.1; // Medium smoothing as we stabilize
-            } else {
-              dampingFactor = 0.02; // More smoothing for stable long-term reading
-            }
-            
-            // Calculate smoothed rate
-            let smoothedRate;
-            if (!prevStats.sharedBuffer.smoothedRate || prevStats.sharedBuffer.smoothedRate === 0) {
-              // Use the first instantaneous rate directly to start
-              smoothedRate = instantRateMbps;
-            } else {
-              // Apply exponential smoothing
-              smoothedRate = (dampingFactor * instantRateMbps) + 
-                           ((1 - dampingFactor) * prevStats.sharedBuffer.smoothedRate);
-            }
-            
-            // Update total bytes for overall average calculation
-            const bytesReceived = prevStats.sharedBuffer.bytesReceived + dataSize;
-            
-            // Calculate overall average (for reference)
-            const elapsedTotal = (now - firstTimestamp) / 1000; // seconds
-            
-            // Reset firstTimestamp if it's too old (>30 seconds) to avoid skewed averages
-            // This handles cases where the app was running for a long time before starting the sender
-            let adjustedFirstTimestamp = firstTimestamp;
-            if (elapsedTotal > 30 && prevStats.sharedBuffer.count < 10) {
-              adjustedFirstTimestamp = now;
-            }
-            
-            // Calculate overall average based on total bytes and elapsed time
-            let overallAvgMbps = 0;
-            const adjustedElapsed = (now - adjustedFirstTimestamp) / 1000; // seconds
-            
-            if (adjustedElapsed > 1 && bytesReceived > 0) { // At least 1 second of data
-              // Convert total bytes to Mb and divide by elapsed seconds
-              const totalMb = (bytesReceived * 8) / 1000000;
-              overallAvgMbps = totalMb / adjustedElapsed;
-              
-              // Only cap extremely unreasonable values
-              if (overallAvgMbps > 2000) {
-                overallAvgMbps = 350; // Use a reasonable default if calculation is extreme
-              }
-            }
-            
-            const newCount = prevStats.sharedBuffer.count + 1;
-            
-            // Log every 10th update to avoid console spam
-            if (newCount % 10 === 0) {
-              console.log(`Shared buffer stats: Count=${newCount}, ` +
-                         `Instant: ${instantRateMbps.toFixed(2)} Mb/s, ` +
-                         `Smoothed: ${smoothedRate.toFixed(2)} Mb/s, ` +
-                         `Avg: ${overallAvgMbps.toFixed(2)} Mb/s`);
-            }
-            return {
-              ...prevStats,
-              sharedBuffer: {
-                ...prevStats.sharedBuffer,
-                count: newCount,
-                bytesReceived: bytesReceived,
-                lastTimestamp: now,
-                firstTimestamp: adjustedFirstTimestamp,
-                rate: instantRateMbps,
-                instantRate: instantRateMbps,
-                smoothedRate: smoothedRate
-              }
-            };
-          });
-          
           // Process the buffer if it's valid
-          if (buffer && buffer.byteLength > 0) 
-          {
-            // Create appropriate views for the buffer
-            const floatView = new Float32Array(buffer);
-            const uint64View = new BigUint64Array(buffer.slice(4 * 4 * 4096)); // Offset to timestamp array
+          if (buffer && buffer.byteLength > 0) {
+            // OPTIMIZATION: Instead of processing the buffer here, send it to the Web Worker
+            // This allows us to send the pong and release the buffer immediately
             
-            // Log some sample data (not every buffer to avoid console spam)
-            if (Math.random() < 0.001) 
-            { // Only log ~0.1% of buffers
-              console.log(`Received shared buffer: ${buffer.byteLength} bytes`);
-              console.log(`Buffer ID: ${metadata.bufferId}, Timestamp: ${metadata.timestamp}`);
-              console.log(`Sample temperature: ${floatView[0]}`);
-              console.log(`Sample pressure: ${floatView[4096]}`);
-              console.log(`Sample humidity: ${floatView[2 * 4096]}`);
-              console.log(`Sample voltage: ${floatView[3 * 4096]}`);
-              console.log(`Sample timestamp: ${uint64View[0]}`);
-            }
-            
-            // Here you would process the data further as needed
-            // For example, update charts, display values, etc.
-            
-            // Send a pong response back to the backend to signal we're ready for more data
-            // This implements flow control - backend won't send more until we process this buffer
+            // First, send the pong response back to the backend immediately
             if (window.chrome && window.chrome.webview) {
               try {
                 const pongMessage = {
@@ -571,7 +558,46 @@ function App()
                 const messageString = JSON.stringify(pongMessage);
                 window.chrome.webview.postMessage(messageString);
                 
-                // Always release the buffer immediately after processing
+                // OPTIMIZATION: Instead of copying the entire buffer, we'll send just the metadata
+                // to the worker and let it know the buffer has been processed
+                try {
+                  // Only sample a small portion of the buffer for analysis if needed
+                  // This avoids the "Array buffer allocation failed" error
+                  let sampleData = null;
+                  
+                  if (buffer && buffer.byteLength > 0) {
+                    // Create a much smaller sample of the buffer (first few values of each section)
+                    // This is just for logging/debugging purposes
+                    const floatView = new Float32Array(buffer);
+                    const uint64View = new BigUint64Array(buffer.slice(4 * 4 * 4096)); // Offset to timestamp array
+                    
+                    // Extract just a few sample values instead of copying the whole buffer
+                    sampleData = {
+                      temperature: floatView[0],
+                      pressure: floatView[4096],
+                      humidity: floatView[2 * 4096],
+                      voltage: floatView[3 * 4096],
+                      timestamp: uint64View[0]
+                    };
+                  }
+                  
+                  // Send just the metadata and sample data to the worker
+                  if (sharedBufferWorkerRef.current) {
+                    sharedBufferWorkerRef.current.postMessage({
+                      metadata: metadata,
+                      timestamp: Date.now(),
+                      sampleData: sampleData,
+                      bufferSize: buffer ? buffer.byteLength : 0
+                    });
+                  } else {
+                    console.warn('Web Worker not initialized yet, cannot process buffer');
+                  }
+                } catch (workerError) {
+                  console.warn('Error sending data to worker:', workerError.message);
+                  // Continue with buffer release even if worker communication fails
+                }
+                
+                // Always release the buffer immediately after sending the pong
                 // This is critical to prevent memory leaks
                 try {
                   // Check if the buffer is still valid before releasing
@@ -583,6 +609,9 @@ function App()
                   console.warn('Error releasing buffer:', releaseError.message);
                 }
               } catch (error) {
+                if (buffer && buffer.byteLength > 0) {
+                  window.chrome.webview.releaseBuffer(buffer);
+                }
                 console.error("Error sending pong message:", error);
               }
             }
@@ -603,6 +632,12 @@ function App()
         console.log('Removing shared buffer event listener');
         if (window.chrome && window.chrome.webview) {
           window.chrome.webview.removeEventListener('sharedbufferreceived', handleSharedBufferReceived);
+        }
+        
+        // Terminate the Web Worker if it exists
+        if (sharedBufferWorker) {
+          console.log('Terminating shared buffer Web Worker');
+          sharedBufferWorker.terminate();
         }
       };
     }

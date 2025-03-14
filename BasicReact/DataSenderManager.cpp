@@ -579,7 +579,7 @@ void DataSenderManager::SharedBufferSenderThreadFunc(HWND targetWindow, std::ato
     auto lastLogTime = std::chrono::high_resolution_clock::now();
     
     // For adaptive sleep timing
-    int sleepTimeUs = 1; // Start with 1us sleep as per memory
+    int sleepTimeUs = 100; // Start with 1us sleep as per memory
     
     while (*runFlag) 
     {
@@ -592,30 +592,30 @@ void DataSenderManager::SharedBufferSenderThreadFunc(HWND targetWindow, std::ato
             if (queueSize > 500) 
             {
                 // If queue is extremely large, sleep much longer
-                sleepTimeUs = 80;
+                sleepTimeUs = 1600;
             }
             else if (queueSize > 200) 
             {
                 // If queue is very large, sleep longer
-                sleepTimeUs = 40;
+                sleepTimeUs = 800;
             }
             else if (queueSize > 100) 
             {
                 // If queue is getting large, sleep longer to let it drain
-                sleepTimeUs = 20;
+                sleepTimeUs = 400;
             } 
             else if (queueSize > 50) 
             {
-                sleepTimeUs = 10;
+                sleepTimeUs = 200;
             } 
             else if (queueSize > 10) 
             {
-                sleepTimeUs = 3;
+                sleepTimeUs = 100;
             } 
             else 
             {
                 // Queue is small, we can generate data faster
-                sleepTimeUs = 1;
+                sleepTimeUs = 100;
             }
             
             // If we're waiting for a pong, slow down even more
@@ -688,7 +688,7 @@ void DataSenderManager::SharedBufferSenderThreadFunc(HWND targetWindow, std::ato
             }
             
             // Sleep to control the rate (adaptive based on queue size)
-            std::this_thread::sleep_for(std::chrono::microseconds(sleepTimeUs));
+            std::this_thread::sleep_for(std::chrono::nanoseconds(sleepTimeUs));
         }
         catch (const std::exception& e) 
         {
