@@ -3,6 +3,7 @@
 #include "SystemUtils.h"
 #include <WebView2EnvironmentOptions.h>
 #include <wrl/event.h>
+#pragma comment(lib, "WebView2LoaderStatic.lib")
 
 WebViewManager::WebViewManager(HWND hWnd, HINSTANCE hInstance) 
     : m_hWnd(hWnd), m_hInstance(hInstance), m_uiThreadId(GetCurrentThreadId()) {}
